@@ -18,17 +18,17 @@
 </script>
 </head>
 
-<body>
+<body class="hamburger-active">
 
 <div id="global-header"></div>
 
 <section class="form-page">
   <h2>List Your Gear</h2>
   <p>
-    Fill out the form below, then continue to the $5 payment page.
+    Fill out the form below to list your gear for free during our early launch.
   </p>
   <p class="gear-form-note">
-    Your listing will not be posted until payment is completed.
+    Your listing will be reviewed before it goes live.
   </p>
 
   <form
@@ -40,8 +40,8 @@
     <input type="hidden" name="_subject" value="New Gear Exchange Submission">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_captcha" value="false">
-    <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/gear-payment.html">
-    <input type="hidden" name="_url" value="https://curiositydrop.com/bandtroductions/submit-gear.html">
+    <input type="hidden" name="_next" value="thank-you.html">
+    <input type="hidden" name="_url" value="submit-gear.html">
     <input type="text" name="_honey" style="display:none">
 
     <label for="seller-name">Name</label>
@@ -103,13 +103,13 @@
     <label for="pickup-notes">Pickup / Meeting Notes (optional)</label>
     <textarea id="pickup-notes" name="Pickup / Meeting Notes" rows="3" placeholder="Pickup only, willing to meet, etc."></textarea>
 
-    <button type="submit">Continue to Payment</button>
+    <button type="submit">Submit Free Listing</button>
   </form>
 </section>
 
 <div id="global-footer"></div>
 
-<script src="/bandtroductions/global.js?v=1"></script>
+<script src="global.js?v=2"></script>
 
 </body>
 </html>
