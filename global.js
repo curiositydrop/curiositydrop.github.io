@@ -1,4 +1,4 @@
-fetch('/bandtroductions/global.html?v=1')
+fetch('global.html?v=1')
   .then(response => response.text())
   .then(data => {
     const temp = document.createElement('div');
