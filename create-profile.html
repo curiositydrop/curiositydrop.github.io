@@ -64,27 +64,9 @@
   </style>
 </head>
 
-<body>
+<body class="hamburger-active">
 
-<header>
-  <div class="logo-area">
-    <img src="IMG_9367.png" alt="BANDtroductions Logo">
-    <p class="tagline">Maine's Musician Hub</p>
-  </div>
-
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="bands.html">Browse Bands</a>
-    <a href="musicians.html">Browse Musicians</a>
-    <a href="venues.html">Browse Venues</a>
-    <a href="bandmatch.html">BandMatch</a>
-    <a href="create-profile.html">Create Profile</a>
-    <a href="sponsors.html">Sponsors</a>
-    <a href="support.html">Support</a>
-    <a href="about.html">About</a>
-    <a href="fan-wall.html" style="color:#ff004c;">Fan Wall-(Live)</a>
-  </nav>
-</header>
+<div id="global-header"></div>
 
 <section class="form-page">
 
@@ -122,7 +104,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Band Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
+      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
       <input type="hidden" name="Profile Type" value="Band">
 
       <p style="display:none;">
@@ -226,7 +208,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Musician Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
+      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
       <input type="hidden" name="Profile Type" value="Musician">
 
       <p style="display:none;">
@@ -333,7 +315,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Venue Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
+      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
       <input type="hidden" name="Profile Type" value="Venue">
 
       <p style="display:none;">
@@ -411,9 +393,7 @@
 
 </section>
 
-<footer>
-  <p>© BANDtroductions</p>
-</footer>
+<div id="global-footer"></div>
 
 <script>
   function showSelectedForm() {
@@ -558,6 +538,8 @@
     return true;
   }
 </script>
+
+<script src="global.js?v=2"></script>
 
 </body>
 </html>
