@@ -44,13 +44,18 @@
   line-height: 1.6;
 }
 
+/* ✅ FIXED GRID */
 .bt-card-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
   gap: 18px;
 }
 
+/* ✅ PREVENT OVERRIDES */
 .bt-card {
+  width: 100%;
+  display: block;
+
   background: linear-gradient(145deg, #151515, #242424);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 18px;
@@ -95,15 +100,10 @@
   border-color: rgba(0, 200, 180, 0.45);
 }
 
-@media (max-width: 850px) {
-  .bt-card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* MOBILE */
 @media (max-width: 600px) {
   .bt-card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   .bt-home-cards-section {
@@ -186,7 +186,6 @@
 
 <body class="hamburger-active">
 
-<!-- GLOBAL HEADER -->
 <div id="global-header"></div>
 
 <section class="hero">
@@ -203,7 +202,6 @@
 
 </section>
 
-<!-- NEW CARD SECTION -->
 <section class="bt-home-cards-section">
 
   <div class="bt-home-intro">
@@ -261,129 +259,77 @@
 
 </section>
 
-<!-- FEATURED SECTIONS (UNCHANGED) -->
+<!-- rest of page unchanged -->
+
 <section class="featured">
-
   <h2>Featured Performance</h2>
-
   <div class="featured-performance">
-
     <div class="album-cover">
       <img src="IMG_9382.jpeg" alt="Burning Time Album Cover">
     </div>
-
     <div class="live-video">
       <div class="video-embed">
-        <iframe src="https://www.youtube.com/embed/rEZltWy13JE"
-          title="Burning Time Live"
-          frameborder="0"
-          allowfullscreen>
-        </iframe>
+        <iframe src="https://www.youtube.com/embed/rEZltWy13JE" title="Burning Time Live" frameborder="0" allowfullscreen></iframe>
       </div>
-
       <p>Burning Time – Live</p>
       <a class="button" href="burning-time.html">View Band</a>
     </div>
-
   </div>
-
 </section>
 
 <section class="featured">
-
   <h2>More Featured Performances</h2>
-
   <div class="featured-performance">
-
     <div class="album-cover">
       <img src="att.ROrnlmqwZqzAJUKGiPaQbvv-mFxw07_gqBXN9jjWGuw.jpeg" alt="Paradise is Cancelled band photo">
     </div>
-
     <div class="live-video">
       <div class="video-embed">
-        <iframe src="https://www.youtube.com/embed/mzdtkhsV53s"
-          title="Paradise is Cancelled"
-          frameborder="0"
-          allowfullscreen>
-        </iframe>
+        <iframe src="https://www.youtube.com/embed/mzdtkhsV53s" title="Paradise is Cancelled" frameborder="0" allowfullscreen></iframe>
       </div>
-
       <p>Paradise is Cancelled – Live @ The Palladium – Worcester, MA</p>
       <a class="button" href="pic.html">View Band</a>
     </div>
-
   </div>
-
 </section>
 
 <section class="local-scene">
-
   <h2>Find What You Need</h2>
-
   <div class="scene-grid">
-
     <div class="scene-card">
       <h3>Find Bands</h3>
       <p>Discover local bands and watch real performances before reaching out.</p>
       <a href="bands.html">Find Bands</a>
     </div>
-
     <div class="scene-card">
       <h3>Find Musicians</h3>
       <p>Looking for a singer, drummer, guitarist or more? Start here.</p>
       <a href="musicians.html">Find Musicians</a>
     </div>
-
     <div class="scene-card">
       <h3>Find Members</h3>
       <p>Need bandmates? Connect with musicians looking for the right fit.</p>
       <a href="bandmatch.html">Find Members</a>
     </div>
-
   </div>
-
 </section>
 
 <section class="how-it-works">
-
   <h2>How BANDtroductions Works</h2>
-
   <div class="steps">
-
-    <div>
-      <h3>1</h3>
-      <p>Create your free profile and add your best performance videos.</p>
-    </div>
-
-    <div>
-      <h3>2</h3>
-      <p>Get seen by fans, bands, musicians, and venues looking for local talent.</p>
-    </div>
-
-    <div>
-      <h3>3</h3>
-      <p>Make it easy for people to hear your sound and decide if you’re the right fit.</p>
-    </div>
-
-    <div>
-      <h3>4</h3>
-      <p>Connect, collaborate, and get closer to your next gig.</p>
-    </div>
-
+    <div><h3>1</h3><p>Create your free profile and add your best performance videos.</p></div>
+    <div><h3>2</h3><p>Get seen by fans, bands, musicians, and venues looking for local talent.</p></div>
+    <div><h3>3</h3><p>Make it easy for people to hear your sound and decide if you’re the right fit.</p></div>
+    <div><h3>4</h3><p>Connect, collaborate, and get closer to your next gig.</p></div>
   </div>
-
 </section>
 
 <section class="cta">
-
   <h2>Ready to Get Seen?</h2>
-
   <p style="max-width:700px; margin:0 auto 20px auto; color:#ccc;">
     Join BANDtroductions and put your music in front of the local scene.
   </p>
-
   <a class="button" href="create-profile.html">Create Your Profile</a>
-
 </section>
 
 <div id="global-footer"></div>
