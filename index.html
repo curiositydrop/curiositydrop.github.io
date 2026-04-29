@@ -19,15 +19,16 @@
 </script>
 
 <style>
+/* ===== EXISTING CARD STYLES (UNCHANGED) ===== */
 .bt-home-cards-section {
-  padding: 35px 18px 50px;
+  padding: 20px 18px 30px; /* ✅ tightened */
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .bt-home-intro {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* ✅ tightened */
 }
 
 .bt-home-intro h2 {
@@ -44,16 +45,15 @@
   line-height: 1.6;
 }
 
-/* ✅ CLEAN 2-COLUMN GRID (ALL DEVICES) */
 .bt-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 10px; /* ✅ tightened */
 }
 
-/* ✅ FIXED CARD SIZING */
 .bt-card {
   display: block;
   box-sizing: border-box;
@@ -76,33 +76,38 @@
   box-shadow: 0 16px 38px rgba(0,0,0,0.5);
 }
 
-.bt-card-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-.bt-card h3 {
-  font-size: 1.2rem;
-  margin: 0 0 8px;
-}
-
-.bt-card p {
-  font-size: 0.9rem;
-  color: #ccc;
-  margin-bottom: 10px;
-}
-
 .bt-card span {
   color: #00c8b4;
   font-weight: 700;
-  font-size: 0.9rem;
 }
 
-.featured-card {
-  border-color: rgba(0, 200, 180, 0.45);
+/* ===== HERO GAP FIX ===== */
+.hero {
+  margin-bottom: 10px;
 }
 
-/* SMALL SCREEN TIGHTEN */
+/* ===== FEATURED SECTION TIGHTEN ===== */
+.featured {
+  padding: 30px 20px;
+  margin-top: 10px;
+}
+
+.featured-performance {
+  margin-bottom: 10px;
+}
+
+.featured h2 {
+  margin-bottom: 15px;
+}
+
+/* ===== TEAL DIVIDER LINE ===== */
+.featured + .featured {
+  border-top: 2px solid rgba(0, 200, 180, 0.5);
+  margin-top: 20px;
+  padding-top: 30px;
+}
+
+/* ===== MOBILE TWEAK ===== */
 @media (max-width:480px){
   .bt-card {
     padding:14px;
@@ -110,7 +115,7 @@
   }
 }
 
-/* KEEP YOUR ORIGINAL MOBILE STYLES */
+/* ===== YOUR ORIGINAL MOBILE RULES ===== */
 @media (max-width:768px){
 
   .watch-nav-toggle{
@@ -146,31 +151,6 @@
 
   .path-section h2{
     margin-bottom:10px;
-  }
-
-  .path-card h3{
-    font-size:22px;
-  }
-
-  .path-card p{
-    font-size:16px;
-  }
-
-  .path-card .button{
-    margin-top:15px;
-  }
-
-  .scene-card h3{
-    font-size:22px;
-  }
-
-  .scene-card p,
-  .scene-card a{
-    font-size:16px;
-  }
-
-  .steps p{
-    font-size:16px;
   }
 
   .button{
@@ -209,44 +189,38 @@
 
   <div class="bt-card-grid">
 
-    <a class="bt-card featured-card" href="bandfeed1.html">
-      <div class="bt-card-icon">🎥</div>
-      <h3>Watch Bands</h3>
+    <a class="bt-card" href="bandfeed1.html">
+      <h3>🎥 Watch Bands</h3>
       <p>Jump into BANDfeed and discover local performances.</p>
       <span>Open →</span>
     </a>
 
     <a class="bt-card" href="bands.html">
-      <div class="bt-card-icon">🔎</div>
-      <h3>Find Bands</h3>
+      <h3>🔎 Find Bands</h3>
       <p>Browse local bands and videos.</p>
       <span>Browse →</span>
     </a>
 
     <a class="bt-card" href="musicians.html">
-      <div class="bt-card-icon">🎸</div>
-      <h3>Find Musicians</h3>
+      <h3>🎸 Find Musicians</h3>
       <p>Connect with local players.</p>
       <span>Explore →</span>
     </a>
 
     <a class="bt-card" href="venues.html">
-      <div class="bt-card-icon">📍</div>
-      <h3>Find Venues</h3>
+      <h3>📍 Find Venues</h3>
       <p>Discover live music spots.</p>
       <span>View →</span>
     </a>
 
     <a class="bt-card" href="gear-exchange.html">
-      <div class="bt-card-icon">🧰</div>
-      <h3>Gear Exchange</h3>
+      <h3>🧰 Gear Exchange</h3>
       <p>Buy, sell, or trade gear.</p>
       <span>Browse →</span>
     </a>
 
     <a class="bt-card" href="band-of-the-week.html">
-      <div class="bt-card-icon">🏆</div>
-      <h3>Band of the Week</h3>
+      <h3>🏆 Band of the Week</h3>
       <p>Vote and support bands.</p>
       <span>Vote →</span>
     </a>
@@ -255,13 +229,11 @@
 
 </section>
 
-<!-- EVERYTHING BELOW UNCHANGED -->
-
 <section class="featured">
   <h2>Featured Performance</h2>
   <div class="featured-performance">
     <div class="album-cover">
-      <img src="IMG_9382.jpeg" alt="Burning Time Album Cover">
+      <img src="IMG_9382.jpeg">
     </div>
     <div class="live-video">
       <div class="video-embed">
