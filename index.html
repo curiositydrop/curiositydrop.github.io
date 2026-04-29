@@ -17,7 +17,104 @@
   gtag('js', new Date());
   gtag('config', 'G-60112G8RH3');
 </script>
+
 <style>
+.bt-home-cards-section {
+  padding: 35px 18px 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bt-home-intro {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.bt-home-intro h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.bt-home-intro p {
+  max-width: 760px;
+  margin: 0 auto;
+  color: #d6d6d6;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.bt-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.bt-card {
+  background: linear-gradient(145deg, #151515, #242424);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 24px;
+  text-decoration: none;
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 210px;
+}
+
+.bt-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 70, 70, 0.75);
+  box-shadow: 0 16px 38px rgba(0,0,0,0.5);
+}
+
+.bt-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+}
+
+.bt-card h3 {
+  font-size: 1.45rem;
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.bt-card p {
+  color: #cccccc;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.bt-card span {
+  color: #ff5757;
+  font-weight: 700;
+}
+
+.featured-card {
+  background: linear-gradient(145deg, #2b1111, #181818);
+  border-color: rgba(255, 70, 70, 0.45);
+}
+
+@media (max-width: 850px) {
+  .bt-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .bt-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bt-home-cards-section {
+    padding: 25px 14px 40px;
+  }
+
+  .bt-card {
+    min-height: auto;
+  }
+}
+
 @media (max-width:768px){
 
   .watch-nav-toggle{
@@ -110,23 +207,58 @@
 
 </section>
 
-<section class="path-section">
+<section class="bt-home-cards-section">
 
-  <h2>Choose Your Path</h2>
+  <div class="bt-home-intro">
+    <h2>Choose Your Path</h2>
+    <p>
+      Watch bands, find musicians, discover venues, list gear, and help spotlight Maine’s local music scene.
+    </p>
+  </div>
 
-  <div class="path-grid">
+  <div class="bt-card-grid">
 
-    <div class="path-card">
-      <h3>🎸 Bands & Musicians</h3>
-      <p>Show your sound, get discovered, and get closer to your next gig.</p>
-      <a class="button" href="create-profile.html">Create Profile</a>
-    </div>
+    <a class="bt-card featured-card" href="bandfeed1.html">
+      <div class="bt-card-icon">🎥</div>
+      <h3>Watch Bands</h3>
+      <p>Jump into BANDfeed and discover local performances in one place.</p>
+      <span>Open BANDfeed →</span>
+    </a>
 
-    <div class="path-card">
-      <h3>🎤 Venues</h3>
-      <p>Watch real performances and find your next band faster.</p>
-      <a class="button" href="bandfeed1.html">Watch Bands</a>
-    </div>
+    <a class="bt-card" href="bands.html">
+      <div class="bt-card-icon">🔎</div>
+      <h3>Find Bands</h3>
+      <p>Browse local bands, videos, styles, and contact info.</p>
+      <span>Find Bands →</span>
+    </a>
+
+    <a class="bt-card" href="musicians.html">
+      <div class="bt-card-icon">🎸</div>
+      <h3>Find Musicians</h3>
+      <p>Connect with local players looking to jam, join, or collaborate.</p>
+      <span>Find Musicians →</span>
+    </a>
+
+    <a class="bt-card" href="venues.html">
+      <div class="bt-card-icon">📍</div>
+      <h3>Find Venues</h3>
+      <p>Discover places supporting live music across Maine.</p>
+      <span>Find Venues →</span>
+    </a>
+
+    <a class="bt-card" href="gear-exchange.html">
+      <div class="bt-card-icon">🧰</div>
+      <h3>Gear Exchange</h3>
+      <p>Buy, sell, or trade music gear with the local scene.</p>
+      <span>Browse Gear →</span>
+    </a>
+
+    <a class="bt-card" href="band-of-the-week.html">
+      <div class="bt-card-icon">🏆</div>
+      <h3>Band of the Week</h3>
+      <p>Vote, support, and help give a local band the spotlight.</p>
+      <span>Vote Now →</span>
+    </a>
 
   </div>
 
