@@ -1683,8 +1683,7 @@ padding:8px 12px;
     linear-gradient(145deg, #151515, #222);
 
   border-radius:18px;
-
-  border:1px solid rgba(0, 200, 180, 0.35);
+  border:2px solid rgba(0, 200, 180, 0.35);
 
   box-shadow:
     0 10px 30px rgba(0,0,0,0.45),
