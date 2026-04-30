@@ -6,44 +6,43 @@
 
 <title>Band of the Week | BANDtroductions</title>
 
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 
-<body>
+<body class="botw-page">
 
 <div id="global-header"></div>
 
-<section class="page-hero">
+<section class="page-hero botw-hero">
   <h2>🏆 Band of the Week</h2>
   <p>
-    Vote for the band you think deserves the spotlight.
+    Vote for the local band you think deserves the spotlight. Each week, the top-voted band gets featured here and added to the winner archive.
   </p>
+  <a class="button" href="bandfeed1.html">Go Vote</a>
 </section>
 
-<section class="profile-grid">
+<section class="botw-current">
+  <h2>Current Spotlight</h2>
 
-  <div class="profile-card">
+  <div class="botw-winner-card" id="currentWinnerCard">
     <img src="IMG_9383.jpeg" alt="Burning Time">
-    <h3>Burning Time</h3>
-    <p>Rock / Metal • Maine</p>
 
-    <button class="button vote-btn" data-band="burning-time" data-name="Burning Time">
-      Vote
-    </button>
+    <div>
+      <h3 id="currentWinnerName">Burning Time</h3>
+      <p id="currentWinnerMeta">Rock / Metal • Maine</p>
+      <p id="currentWinnerVotes">Current test spotlight</p>
 
-    <p class="vote-message" id="vote-message-burning-time"></p>
-
-    <a class="button" href="burning-time.html">View Band</a>
+      <a class="button" id="currentWinnerLink" href="burning-time.html">View Band</a>
+    </div>
   </div>
-
 </section>
 
-<section class="cta">
-  <h2>Want Your Band in the Running?</h2>
-  <p style="max-width:700px; margin:0 auto 20px auto; color:#ccc;">
-    Create your free profile and start getting seen by Maine’s local music scene.
-  </p>
-  <a class="button" href="create-profile.html">Create Profile</a>
+<section class="botw-previous">
+  <h2>Previous Winners</h2>
+
+  <div class="botw-archive" id="previousWinners">
+    <p class="botw-empty">Previous winners will appear here once voting rounds begin.</p>
+  </div>
 </section>
 
 <div id="global-footer"></div>
