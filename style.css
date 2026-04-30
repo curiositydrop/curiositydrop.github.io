@@ -1902,3 +1902,43 @@ padding:8px 12px;
   color:#bbb;
   line-height:1.4;
 }
+/* 🔥 FLAT BOTW HERO (no nested card) */
+.botw-winner{
+  text-align:center;
+  padding:10px 10px 5px;
+}
+
+.botw-winner img{
+  width:100%;
+  max-width:420px;
+  border-radius:12px;
+  margin-bottom:15px;
+}
+
+.botw-winner h3{
+  font-size:32px;
+  margin-bottom:8px;
+}
+
+.botw-winner p{
+  font-size:16px;
+  color:#ccc;
+  margin:6px 0;
+}
+
+/* buttons side by side */
+.botw-winner .band-links{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:14px;
+}
+
+.botw-winner .button{
+  background:#00c8b4;
+  color:#000;
+  padding:10px 18px;
+  font-size:15px;
+  border-radius:6px;
+  font-weight:bold;
+}
