@@ -1824,3 +1824,34 @@ padding:8px 12px;
     font-size:28px;
   }
 }
+.botw-hero{
+  margin:10px auto 10px;
+  max-width:700px;
+  padding:20px 16px;
+
+  border-radius:12px;
+  border:1px solid rgba(0, 200, 180, 0.25);
+
+  background:#181818;
+
+  box-shadow:none;
+
+  text-align:center;
+}
+
+.botw-hero h2{
+  font-size:28px;
+  margin-bottom:10px;
+}
+
+.botw-hero p{
+  font-size:16px;
+  color:#ccc;
+  margin-bottom:14px;
+  line-height:1.5;
+}
+
+.botw-hero .button{
+  font-size:15px;
+  padding:10px 18px;
+}
