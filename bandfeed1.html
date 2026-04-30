@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watch Maine Music | BANDtroductions</title>
 
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=8">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-60112G8RH3"></script>
@@ -44,6 +44,20 @@
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
+}
+
+.vote-message {
+  width: 100%;
+  color: #00c8b4;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+.vote-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .main-video {
@@ -128,7 +142,7 @@
 
 <section class="band-main">
   <p class="feed-intro">
-    🎸 Discover local bands. Watch. Share. Repeat.
+    🎸 Discover local bands. Watch. Share. Vote.
   </p>
 
   <p class="video-cta">
@@ -168,6 +182,15 @@ let currentIndex = -1;
 let player = null;
 let youtubeApiReady = false;
 let playerReady = false;
+
+function slugify(text) {
+  return (text || "unknown-band")
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 function normalizeYouTubeUrl(url) {
   if (!url) return null;
@@ -331,6 +354,53 @@ function buildPlayerIfReady() {
   });
 }
 
+function handleVote(button) {
+  const bandId = button.dataset.band;
+  const bandName = button.dataset.name;
+  const voteKey = "bandtroductions_vote_" + bandId;
+  const message = button.parentElement.querySelector(".vote-message");
+
+  if (localStorage.getItem(voteKey)) {
+    button.textContent = "Voted 🤘";
+    button.disabled = true;
+
+    if (message) {
+      message.textContent = "You already voted for " + bandName + " on this device.";
+    }
+
+    return;
+  }
+
+  localStorage.setItem(voteKey, "true");
+
+  button.textContent = "Voted 🤘";
+  button.disabled = true;
+
+  if (message) {
+    message.textContent = "Vote counted for " + bandName + "! 🤘";
+  }
+}
+
+function refreshVoteButtons() {
+  const buttons = document.querySelectorAll(".vote-btn");
+
+  buttons.forEach(button => {
+    const bandId = button.dataset.band;
+    const bandName = button.dataset.name;
+    const voteKey = "bandtroductions_vote_" + bandId;
+    const message = button.parentElement.querySelector(".vote-message");
+
+    if (localStorage.getItem(voteKey)) {
+      button.textContent = "Voted 🤘";
+      button.disabled = true;
+
+      if (message) {
+        message.textContent = "You already voted for " + bandName + " on this device.";
+      }
+    }
+  });
+}
+
 function createVideoItem(item, index) {
   const div = document.createElement("div");
   div.className = "video-item";
@@ -344,6 +414,9 @@ function createVideoItem(item, index) {
 
   const safeMeta = item.meta ? item.meta : "Maine Music";
   const imageSrc = item.image || "IMG_9383.jpeg";
+  const bandSlug = item.bandId || slugify(item.title);
+  const safeTitle = item.title.replace(/'/g, "\\'");
+  const safeProfileUrl = item.profileUrl.replace(/'/g, "\\'");
 
   const watchButtonHtml = `
     <a class="button" href="#"
@@ -361,7 +434,14 @@ function createVideoItem(item, index) {
     <div class="video-actions">
       ${watchButtonHtml}
       <a class="button" href="${item.profileUrl}" onclick="event.stopPropagation();">View Profile</a>
-      <a class="button" href="#" onclick="event.stopPropagation(); shareSpecificPage('${item.profileUrl.replace(/'/g, "\\'")}','${item.title.replace(/'/g, "\\'")}'); return false;">Share</a>
+      <button class="button vote-btn"
+        data-band="${bandSlug}"
+        data-name="${item.title}"
+        onclick="event.stopPropagation(); handleVote(this);">
+        Vote 🤘
+      </button>
+      <a class="button" href="#" onclick="event.stopPropagation(); shareSpecificPage('${safeProfileUrl}','${safeTitle}'); return false;">Share</a>
+      <p class="vote-message"></p>
     </div>
   `;
 
@@ -385,13 +465,15 @@ function parseCardsFromPage(html) {
     const metaLines = [...card.querySelectorAll("p")].map(p => p.textContent.trim());
     const meta = metaLines.join(" • ");
     const dataVideo = card.getAttribute("data-video") || "";
+    const bandId = card.getAttribute("data-band") || slugify(title);
 
     return {
       title,
       image,
       profileUrl,
       meta,
-      dataVideo
+      dataVideo,
+      bandId
     };
   }).filter(item => item.profileUrl);
 }
@@ -476,7 +558,8 @@ async function loadBandfeed() {
       meta: card.meta,
       embedUrl: videoData.embedUrl,
       videoId: videoData.videoId,
-      fallbackUrl: null
+      fallbackUrl: null,
+      bandId: card.bandId
     });
   }
 
@@ -497,6 +580,7 @@ async function loadBandfeed() {
     browserContainer.appendChild(el);
   });
 
+  refreshVoteButtons();
   buildPlayerIfReady();
 }
 
