@@ -1675,8 +1675,16 @@ padding:8px 12px;
   }
 }
 .home-page .hero{
-  padding:28px 20px 18px !important;
-  margin:0 !important;
+  padding:26px 20px 20px !important;
+  margin:10px 12px 6px !important;
+
   background:
-    radial-gradient(circle at center, rgba(0, 200, 180, 0.25), transparent 60%) !important;
+    radial-gradient(circle at center, rgba(0, 200, 180, 0.18), transparent 65%),
+    linear-gradient(145deg, #151515, #222);
+
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:0 10px 30px rgba(0,0,0,0.45);
+
+  text-align:center;
 }
