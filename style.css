@@ -1889,3 +1889,16 @@ padding:8px 12px;
   font-size:14px;
   padding:8px 16px;
 }
+/* 🔽 BOTW DESCRIPTION (subtle, no card) */
+.botw-description{
+  text-align:center;
+  max-width:600px;
+  margin:8px auto 20px;
+  padding:0 15px;
+}
+
+.botw-description p{
+  font-size:15px;
+  color:#bbb;
+  line-height:1.4;
+}
