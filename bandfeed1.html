@@ -34,6 +34,11 @@
   display: none;
 }
 
+.video-item {
+  overflow: hidden;
+  position: relative;
+}
+
 .video-item.active-video {
   outline: 2px solid teal;
   box-shadow: 0 0 12px rgba(0, 128, 128, 0.45);
@@ -41,9 +46,17 @@
 
 .video-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.video-actions .button {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .vote-message {
@@ -111,6 +124,29 @@
 
 .watch-page .watch-nav-toggle {
   display: block !important;
+}
+
+@media (max-width: 768px) {
+  .watch-page .video-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .watch-page .video-item img {
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    margin: 0 auto 10px;
+  }
+
+  .watch-page .video-item .video-meta {
+    text-align: center;
+    width: 100%;
+  }
+
+  .watch-page .video-actions {
+    width: 100%;
+  }
 }
 </style>
 </head>
