@@ -1708,3 +1708,119 @@ padding:8px 12px;
   border-radius:10px;
   text-align:center;
 }
+/* ================================
+   BAND OF THE WEEK PAGE
+================================ */
+
+.botw-page .page-hero{
+  padding:32px 20px 24px;
+}
+
+.botw-hero{
+  margin:12px;
+  border-radius:18px;
+  border:2px solid rgba(0, 200, 180, 0.35);
+  background:
+    radial-gradient(circle at center, rgba(0, 200, 180, 0.18), transparent 65%),
+    linear-gradient(145deg, #151515, #222);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    0 0 14px rgba(0, 200, 180, 0.28);
+}
+
+.botw-hero p{
+  margin-bottom:18px;
+}
+
+.botw-current,
+.botw-previous{
+  max-width:1000px;
+  margin:0 auto;
+  padding:24px 18px;
+  text-align:center;
+}
+
+.botw-current h2,
+.botw-previous h2{
+  font-size:34px;
+  margin-bottom:18px;
+}
+
+.botw-winner-card{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:24px;
+  background:linear-gradient(145deg, #151515, #242424);
+  border:1px solid rgba(0,200,180,0.35);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.35);
+}
+
+.botw-winner-card img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:12px;
+  background:#333;
+}
+
+.botw-winner-card h3{
+  font-size:32px;
+  margin:0 0 8px;
+}
+
+.botw-winner-card p{
+  font-size:18px;
+  color:#ccc;
+  margin:8px 0;
+}
+
+.botw-archive{
+  display:grid;
+  gap:12px;
+}
+
+.botw-archive-item{
+  background:#1b1b1b;
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:12px;
+  padding:14px;
+}
+
+.botw-empty{
+  color:#aaa;
+}
+
+.vote-message{
+  color:#00c8b4;
+  font-weight:bold;
+  margin-top:12px;
+}
+
+.vote-box{
+  margin-top:25px;
+  padding:20px;
+  background:#1b1b1b;
+  border:1px solid rgba(0,200,180,0.25);
+  border-radius:10px;
+  text-align:center;
+}
+
+@media (max-width:768px){
+  .botw-winner-card{
+    flex-direction:column;
+    padding:18px;
+  }
+
+  .botw-winner-card img{
+    width:100%;
+    max-width:260px;
+    height:220px;
+  }
+
+  .botw-winner-card h3{
+    font-size:28px;
+  }
+}
