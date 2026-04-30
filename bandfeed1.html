@@ -7,7 +7,6 @@
 
 <link rel="stylesheet" href="style.css?v=8">
 
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-60112G8RH3"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -18,134 +17,195 @@
 
 <style>
 .loading-message {
-  text-align: center;
-  padding: 20px;
-  font-size: 1rem;
-  opacity: 0.85;
+  text-align:center;
+  padding:20px;
+  font-size:1rem;
+  opacity:0.85;
 }
 
 .watch-psa {
-  text-align: center;
-  margin-top: 25px;
-  opacity: 0.85;
+  text-align:center;
+  margin-top:25px;
+  opacity:0.85;
 }
 
 .video-item.hidden-item {
-  display: none;
+  display:none;
 }
 
 .video-item {
-  overflow: hidden;
-  position: relative;
+  overflow:hidden;
+  position:relative;
 }
 
 .video-item.active-video {
-  outline: 2px solid teal;
-  box-shadow: 0 0 12px rgba(0, 128, 128, 0.45);
+  outline:2px solid #00c8b4;
+  box-shadow:0 0 12px rgba(0,200,180,0.45);
 }
 
 .video-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: stretch;
-  width: 100%;
-  margin-top: 10px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  justify-content:center;
+  align-items:stretch;
+  width:120px;
+  flex-shrink:0;
 }
 
-.video-actions .button {
-  width: 100%;
-  box-sizing: border-box;
-  text-align: center;
+.video-actions .button,
+.video-actions button.button {
+  width:100%;
+  box-sizing:border-box;
+  text-align:center;
+  background:#00c8b4;
+  color:#000;
+  border:none;
+  font-weight:bold;
+  padding:9px 8px;
+  font-size:13px;
 }
 
 .vote-message {
-  width: 100%;
-  color: #00c8b4;
-  font-size: 13px;
-  font-weight: bold;
-  text-align: center;
-  margin: 4px 0 0;
+  width:100%;
+  color:#00c8b4;
+  font-size:12px;
+  font-weight:bold;
+  text-align:center;
+  margin:2px 0 0;
+  line-height:1.2;
 }
 
 .vote-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  opacity:0.65;
+  cursor:not-allowed;
+}
+
+.genre-filter-wrap {
+  text-align:center;
+  margin:18px auto 22px;
+}
+
+.genre-filter-wrap label {
+  display:block;
+  margin-bottom:8px;
+  color:#ccc;
+  font-weight:bold;
+}
+
+.genre-filter-wrap select {
+  background:#1b1b1b;
+  color:#fff;
+  border:1px solid rgba(0,200,180,0.45);
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:16px;
+  max-width:280px;
+  width:90%;
 }
 
 .main-video {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  overflow: hidden;
-  border-radius: 8px;
+  position:relative;
+  width:100%;
+  aspect-ratio:16 / 9;
+  background:#000;
+  overflow:hidden;
+  border-radius:8px;
 }
 
 #mainPlayer {
-  width: 100%;
-  height: 100%;
+  width:100%;
+  height:100%;
 }
 
 .now-playing-meta {
-  margin-top: 10px;
-  opacity: 0.85;
-  font-size: 0.95rem;
+  margin-top:10px;
+  opacity:0.85;
+  font-size:0.95rem;
 }
 
 .feed-intro {
-  text-align: center;
-  margin-bottom: 20px;
-  opacity: 0.92;
+  text-align:center;
+  margin-bottom:10px;
+  opacity:0.92;
 }
 
 .now-playing-links {
-  text-align: center;
-  margin-top: 15px;
+  text-align:center;
+  margin-top:15px;
 }
 
 .now-playing-links a {
-  color: teal;
-  font-weight: bold;
-  text-decoration: none;
-  margin: 0 10px;
+  color:#00c8b4;
+  font-weight:bold;
+  text-decoration:none;
+  margin:0 10px;
 }
 
 .now-playing-links a:hover {
-  text-decoration: underline;
+  text-decoration:underline;
 }
 
-/* 🔥 Scroller visibility override for BANDfeed only */
 .watch-page .news-scroller {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
 }
 
 .watch-page .watch-nav-toggle {
-  display: block !important;
+  display:block !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width:768px) {
   .watch-page .video-item {
-    flex-direction: column;
-    align-items: stretch;
+    display:grid !important;
+    grid-template-columns:86px minmax(0, 1fr) 102px;
+    gap:10px;
+    align-items:center;
+    padding:10px;
   }
 
   .watch-page .video-item img {
-    width: 100%;
-    max-width: 260px;
-    height: auto;
-    margin: 0 auto 10px;
+    width:86px;
+    height:64px;
+    object-fit:cover;
+    border-radius:8px;
+    margin:0;
   }
 
   .watch-page .video-item .video-meta {
-    text-align: center;
-    width: 100%;
+    min-width:0;
+    text-align:left;
+  }
+
+  .watch-page .video-item .video-meta h3 {
+    font-size:15px;
+    line-height:1.2;
+    margin:0 0 4px;
+  }
+
+  .watch-page .video-item .video-meta p {
+    font-size:12px;
+    line-height:1.25;
+    margin:0;
+    opacity:0.9;
   }
 
   .watch-page .video-actions {
-    width: 100%;
+    width:102px;
+    gap:6px;
+  }
+
+  .watch-page .video-actions .button,
+  .watch-page .video-actions button.button {
+    font-size:12px;
+    padding:8px 6px;
+  }
+
+  .vote-message {
+    grid-column:1 / -1;
+    font-size:12px;
+    margin-top:4px;
   }
 }
 </style>
@@ -181,10 +241,19 @@
     🎸 Discover local bands. Watch. Share. Vote.
   </p>
 
+  <!--
   <p class="video-cta">
     Want your video featured here?
     <a href="https://venmo.com/Telis-Bergeron" target="_blank">💙 Boost your video for $10</a>.
   </p>
+  -->
+
+  <div class="genre-filter-wrap">
+    <label for="genreFilter">Filter by genre</label>
+    <select id="genreFilter">
+      <option value="all">All Genres</option>
+    </select>
+  </div>
 
   <div id="loadingMessage" class="loading-message">
     Loading BANDfeed...
@@ -212,6 +281,7 @@ const loadingMessage = document.getElementById("loadingMessage");
 const videoTitle = document.getElementById("videoTitle");
 const videoMeta = document.getElementById("videoMeta");
 const profileLink = document.getElementById("profileLink");
+const genreFilter = document.getElementById("genreFilter");
 
 let bandfeedItems = [];
 let currentIndex = -1;
@@ -312,8 +382,10 @@ function updateNowPlaying(item) {
 
 function highlightActiveItem() {
   const cards = browserContainer.querySelectorAll(".video-item");
-  cards.forEach((card, index) => {
-    if (index === currentIndex) {
+  cards.forEach(card => {
+    const cardIndex = Number(card.dataset.index);
+
+    if (cardIndex === currentIndex) {
       card.classList.add("active-video");
     } else {
       card.classList.remove("active-video");
@@ -437,9 +509,57 @@ function refreshVoteButtons() {
   });
 }
 
+function getGenreFromMeta(meta) {
+  const text = (meta || "").toLowerCase();
+
+  if (text.includes("metal")) return "Metal";
+  if (text.includes("hard rock")) return "Hard Rock";
+  if (text.includes("rock")) return "Rock";
+  if (text.includes("country")) return "Country";
+  if (text.includes("punk")) return "Punk";
+  if (text.includes("folk")) return "Folk";
+  if (text.includes("acoustic")) return "Acoustic";
+  if (text.includes("hip hop") || text.includes("rap")) return "Hip Hop";
+  if (text.includes("pop")) return "Pop";
+  if (text.includes("blues")) return "Blues";
+  if (text.includes("jazz")) return "Jazz";
+
+  return "Other";
+}
+
+function populateGenreFilter() {
+  const genres = [...new Set(bandfeedItems.map(item => item.genre || "Other"))].sort();
+
+  genreFilter.innerHTML = `<option value="all">All Genres</option>`;
+
+  genres.forEach(genre => {
+    const option = document.createElement("option");
+    option.value = genre;
+    option.textContent = genre;
+    genreFilter.appendChild(option);
+  });
+}
+
+function applyGenreFilter() {
+  const selected = genreFilter.value;
+  const cards = browserContainer.querySelectorAll(".video-item");
+
+  cards.forEach(card => {
+    const genre = card.dataset.genre;
+
+    if (selected === "all" || genre === selected) {
+      card.style.display = "";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+
 function createVideoItem(item, index) {
   const div = document.createElement("div");
   div.className = "video-item";
+  div.dataset.index = index;
+  div.dataset.genre = item.genre || "Other";
 
   if (item.videoId) {
     div.style.cursor = "pointer";
@@ -469,7 +589,7 @@ function createVideoItem(item, index) {
     </div>
     <div class="video-actions">
       ${watchButtonHtml}
-      <a class="button" href="${item.profileUrl}" onclick="event.stopPropagation();">View Profile</a>
+      <a class="button" href="${item.profileUrl}" onclick="event.stopPropagation();">Profile</a>
       <button class="button vote-btn"
         data-band="${bandSlug}"
         data-name="${item.title}"
@@ -587,6 +707,8 @@ async function loadBandfeed() {
     const videoData = await extractVideoFromProfile(card.profileUrl, card.dataVideo);
     if (!videoData || !videoData.videoId) continue;
 
+    const genre = getGenreFromMeta(card.meta);
+
     finalItems.push({
       title: card.title,
       image: card.image,
@@ -595,7 +717,8 @@ async function loadBandfeed() {
       embedUrl: videoData.embedUrl,
       videoId: videoData.videoId,
       fallbackUrl: null,
-      bandId: card.bandId
+      bandId: card.bandId,
+      genre
     });
   }
 
@@ -616,9 +739,12 @@ async function loadBandfeed() {
     browserContainer.appendChild(el);
   });
 
+  populateGenreFilter();
   refreshVoteButtons();
   buildPlayerIfReady();
 }
+
+genreFilter.addEventListener("change", applyGenreFilter);
 
 function onYouTubeIframeAPIReady() {
   youtubeApiReady = true;
