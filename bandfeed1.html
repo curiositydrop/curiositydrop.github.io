@@ -44,35 +44,39 @@
 }
 
 .video-actions {
+  grid-column:1 / -1;
   display:flex;
-  flex-direction:column;
-  gap:7px;
-  justify-content:center;
-  align-items:stretch;
-  width:120px;
-  flex-shrink:0;
+  flex-direction:row;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+  width:100%;
+  margin-top:8px;
 }
 
 .video-actions .button,
 .video-actions button.button {
-  width:100%;
+  flex:1;
+  width:auto;
   box-sizing:border-box;
   text-align:center;
   background:#00c8b4;
   color:#000;
   border:none;
   font-weight:bold;
-  padding:9px 8px;
-  font-size:13px;
+  padding:8px 6px;
+  font-size:12px;
+  border-radius:6px;
 }
 
 .vote-message {
+  grid-column:1 / -1;
   width:100%;
   color:#00c8b4;
-  font-size:12px;
+  font-size:11px;
   font-weight:bold;
   text-align:center;
-  margin:2px 0 0;
+  margin:4px 0 0;
   line-height:1.2;
 }
 
@@ -156,56 +160,64 @@
   display:block !important;
 }
 
+.watch-page .video-item {
+  display:grid !important;
+  grid-template-columns:90px minmax(0, 1fr);
+  gap:12px;
+  align-items:center;
+  padding:12px;
+}
+
+.watch-page .video-item img {
+  width:90px;
+  height:70px;
+  object-fit:cover;
+  border-radius:8px;
+  margin:0;
+}
+
+.watch-page .video-item .video-meta {
+  min-width:0;
+  text-align:left;
+}
+
+.watch-page .video-item .video-meta h3 {
+  font-size:16px;
+  line-height:1.2;
+  margin:0 0 4px;
+}
+
+.watch-page .video-item .video-meta p {
+  font-size:13px;
+  line-height:1.25;
+  margin:0;
+  opacity:0.9;
+}
+
 @media (max-width:768px) {
   .watch-page .video-item {
-    display:grid !important;
-    grid-template-columns:86px minmax(0, 1fr) 102px;
+    grid-template-columns:86px minmax(0, 1fr);
     gap:10px;
-    align-items:center;
     padding:10px;
   }
 
   .watch-page .video-item img {
     width:86px;
     height:64px;
-    object-fit:cover;
-    border-radius:8px;
-    margin:0;
-  }
-
-  .watch-page .video-item .video-meta {
-    min-width:0;
-    text-align:left;
   }
 
   .watch-page .video-item .video-meta h3 {
     font-size:15px;
-    line-height:1.2;
-    margin:0 0 4px;
   }
 
   .watch-page .video-item .video-meta p {
     font-size:12px;
-    line-height:1.25;
-    margin:0;
-    opacity:0.9;
-  }
-
-  .watch-page .video-actions {
-    width:102px;
-    gap:6px;
   }
 
   .watch-page .video-actions .button,
   .watch-page .video-actions button.button {
-    font-size:12px;
-    padding:8px 6px;
-  }
-
-  .vote-message {
-    grid-column:1 / -1;
-    font-size:12px;
-    margin-top:4px;
+    font-size:11px;
+    padding:7px 5px;
   }
 }
 </style>
