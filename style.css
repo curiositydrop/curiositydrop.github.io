@@ -1694,3 +1694,17 @@ padding:8px 12px;
 .bt-home-cards-section{
   margin-top:6px;
 }
+.vote-message{
+  color:#00c8b4;
+  font-weight:bold;
+  margin-top:12px;
+}
+
+.vote-box{
+  margin-top:25px;
+  padding:20px;
+  background:#1b1b1b;
+  border:1px solid rgba(0,200,180,0.25);
+  border-radius:10px;
+  text-align:center;
+}
