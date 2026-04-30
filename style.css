@@ -1855,3 +1855,37 @@ padding:8px 12px;
   font-size:15px;
   padding:10px 18px;
 }
+/* 🔽 FINAL BOTW HERO TIGHT VERSION */
+.botw-hero{
+  margin:8px auto;
+  max-width:520px;
+  padding:14px 14px;
+
+  border-radius:10px;
+  border:1px solid rgba(0,200,180,0.2);
+
+  background:#151515;
+  box-shadow:none;
+
+  text-align:center;
+}
+
+/* Title */
+.botw-hero h2{
+  font-size:22px;
+  margin-bottom:6px;
+}
+
+/* Description */
+.botw-hero p{
+  font-size:14px;
+  color:#bbb;
+  margin-bottom:10px;
+  line-height:1.4;
+}
+
+/* Button */
+.botw-hero .button{
+  font-size:14px;
+  padding:8px 16px;
+}
