@@ -509,11 +509,39 @@ function refreshVoteButtons() {
   });
 }
 
+function extractCleanMeta(card) {
+  const paragraphs = [...card.querySelectorAll("p")].map(p => p.textContent.trim());
+
+  let location = "";
+  let genre = "";
+
+  paragraphs.forEach(text => {
+    const lower = text.toLowerCase();
+
+    if (lower.includes("location")) {
+      location = text
+        .replace(/location\s*:/i, "")
+        .replace(/location/i, "")
+        .trim();
+    }
+
+    if (lower.includes("genre")) {
+      genre = text
+        .replace(/genre\s*:/i, "")
+        .replace(/genre/i, "")
+        .trim();
+    }
+  });
+
+  return [location, genre].filter(Boolean).join(" • ");
+}
+
 function getGenreFromMeta(meta) {
   const text = (meta || "").toLowerCase();
 
   if (text.includes("metal")) return "Metal";
   if (text.includes("hard rock")) return "Hard Rock";
+  if (text.includes("blues rock")) return "Blues Rock";
   if (text.includes("rock")) return "Rock";
   if (text.includes("country")) return "Country";
   if (text.includes("punk")) return "Punk";
@@ -618,8 +646,7 @@ function parseCardsFromPage(html) {
     const title = card.querySelector("h3")?.textContent?.trim() || "Untitled Artist";
     const image = card.querySelector("img")?.getAttribute("src") || "";
     const profileUrl = card.querySelector("a.button")?.getAttribute("href") || "";
-    const metaLines = [...card.querySelectorAll("p")].map(p => p.textContent.trim());
-    const meta = metaLines.join(" • ");
+    const meta = extractCleanMeta(card);
     const dataVideo = card.getAttribute("data-video") || "";
     const bandId = card.getAttribute("data-band") || slugify(title);
 
