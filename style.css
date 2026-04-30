@@ -1942,3 +1942,27 @@ padding:8px 12px;
   border-radius:6px;
   font-weight:bold;
 }
+/* 🔥 FIX BOTW OVERFLOW */
+.botw-hero,
+.botw-current{
+  max-width:100%;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+/* make sure nothing inside can push wider */
+.botw-winner,
+.botw-winner-card{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+/* 🔥 IMAGE FIX */
+.botw-winner img,
+.botw-winner-card img{
+  width:100%;
+  max-width:100%;
+  height:auto;
+  display:block;
+}
