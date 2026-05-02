@@ -2016,45 +2016,47 @@ padding:8px 12px;
 }
 
 .sponsor-strip{
-  margin:78px auto 18px;
-  padding:14px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(0,200,180,0.25);
-  border-radius:14px;
+  margin:58px auto 16px;
+  padding:10px 12px;
+  background:rgba(255,255,255,0.035);
+  border:1px solid rgba(0,200,180,0.22);
+  border-radius:12px;
   text-align:center;
 }
 
 .sponsor-strip p{
-  margin:0 0 10px;
-  color:#bbb;
-  font-size:14px;
+  margin:0 0 7px;
+  color:#aaa;
+  font-size:13px;
 }
 
 .sponsor-logo-row{
   display:flex;
   justify-content:center;
-  flex-wrap:wrap;
-  gap:10px;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:2px;
 }
 
 .sponsor-logo-row span{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:34px;
-  padding:7px 12px;
+  flex:0 0 auto;
+  min-height:26px;
+  padding:5px 9px;
   border-radius:999px;
-  background:#1f1f1f;
+  background:#1b1b1b;
   border:1px solid rgba(255,255,255,0.12);
   color:#aaa;
-  font-size:12px;
+  font-size:10px;
+  white-space:nowrap;
 }
 
 .sponsor-strip small{
   display:block;
-  margin-top:8px;
+  margin-top:6px;
   color:#00c8b4;
-  font-size:12px;
+  font-size:11px;
 }
 
 .profile-header-card,
@@ -2320,7 +2322,7 @@ padding:8px 12px;
   }
 
   .sponsor-logo-row span{
-    font-size:11px;
-    padding:7px 10px;
-  }
+  font-size:9px;
+  padding:5px 8px;
+}
 }
