@@ -12,14 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
       button.disabled = true;
 
       if (message) {
-        message.textContent = "You already voted for " + bandName + " on this device.";
+        message.innerHTML = `🤘 You voted for ${bandName} — now show them some love 🔥 <br><small>Tap “Support” to back the band</small>`;
       }
     }
 
     button.addEventListener("click", function () {
       if (localStorage.getItem(voteKey)) {
         if (message) {
-          message.textContent = "You already voted for " + bandName + " on this device.";
+          message.innerHTML = `🤘 You voted for ${bandName} — now show them some love 🔥 <br><small>Tap “Support” to back the band</small>`;
         }
         return;
       }
