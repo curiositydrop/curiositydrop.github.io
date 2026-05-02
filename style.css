@@ -2032,12 +2032,10 @@ padding:8px 12px;
 
 .sponsor-logo-row{
   display:flex;
-  justify-content:center;
+  justify-content:space-between;
   align-items:center;
   flex-wrap:nowrap;
-  gap:6px;
-  overflow-x:auto;
-  padding-bottom:2px;
+  gap:4px;
 }
 
 .sponsor-logo-row span{
@@ -2322,14 +2320,15 @@ padding:8px 12px;
   }
 
   .sponsor-logo-row span{
-  flex:0 0 auto;
-  min-height:24px;
-  padding:4px 8px;
+  flex:1; /* evenly distribute */
+  min-height:22px;
+  padding:4px 6px;
   border-radius:999px;
   background:#1b1b1b;
   border:1px solid rgba(255,255,255,0.12);
   color:#aaa;
-  font-size:9px;
+  font-size:8.5px;
+  text-align:center;
   white-space:nowrap;
 }
 }
