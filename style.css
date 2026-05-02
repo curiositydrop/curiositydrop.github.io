@@ -2332,3 +2332,62 @@ padding:8px 12px;
   white-space:nowrap;
 }
 }
+.profile-action-card{
+  background:linear-gradient(145deg, #151515, #222);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.35);
+  margin-bottom:18px;
+  text-align:center;
+}
+
+.profile-action-card h1{
+  font-size:38px;
+  margin:0 0 4px;
+}
+
+.profile-action-card .profile-meta{
+  margin:0 0 8px;
+}
+
+.profile-action-card .featured-badge{
+  margin:8px 0 18px;
+}
+
+.profile-details-card{
+  background:linear-gradient(145deg, #151515, #222);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.35);
+}
+
+.profile-details-card summary{
+  cursor:pointer;
+  font-size:28px;
+  font-weight:bold;
+  color:#fff;
+  margin-bottom:12px;
+}
+
+.profile-details-card p{
+  font-size:18px;
+  color:#ddd;
+  line-height:1.7;
+}
+
+.profile-live-section{
+  border:1px solid rgba(0,200,180,0.32);
+}
+
+@media (max-width:768px){
+  .profile-action-card h1{
+    font-size:32px;
+  }
+
+  .profile-details-card summary{
+    font-size:24px;
+  }
+}
