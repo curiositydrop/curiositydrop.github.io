@@ -196,24 +196,23 @@ const db = getDatabase(app);
 const likesRef = ref(db, 'Bands/burning-time/likes');
 
 const likeBtn = document.getElementById('like-btn-burning-time');
-const likeCountEl = document.getElementById('like-count-burning-time');
+const likeStorageKey = 'liked_burning_time_v2';
 
-// 🔥 LIVE count listener
 onValue(likesRef, (snapshot) => {
   const count = snapshot.val() || 0;
 
-  likeCountEl.textContent = count;
-
-  if (localStorage.getItem('liked_burning_time')) {
+  if (localStorage.getItem(likeStorageKey)) {
     likeBtn.innerHTML = '🔥 Liked (<span id="like-count-burning-time">' + count + '</span>)';
     likeBtn.style.opacity = '0.7';
+  } else {
+    likeBtn.innerHTML = '🤘 Like (<span id="like-count-burning-time">' + count + '</span>)';
+    likeBtn.style.opacity = '1';
   }
 });
 
-// 👍 Click handler (safe increment)
 likeBtn.addEventListener('click', () => {
-  if (!localStorage.getItem('liked_burning_time')) {
-    localStorage.setItem('liked_burning_time', 'true');
+  if (!localStorage.getItem(likeStorageKey)) {
+    localStorage.setItem(likeStorageKey, 'true');
 
     runTransaction(likesRef, (current) => {
       return (current || 0) + 1;
@@ -221,7 +220,6 @@ likeBtn.addEventListener('click', () => {
   }
 });
 </script>
-
 <!-- SUPPORT MODAL SCRIPT -->
 <script>
 function openSupportModal() {
