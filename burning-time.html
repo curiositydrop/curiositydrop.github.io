@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Burning Time | BANDtroductions</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=8">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-60112G8RH3"></script>
@@ -62,19 +62,28 @@
     <p class="featured-badge">⭐ Early Adopter Band on BANDtroductions</p>
 
     <div class="profile-action-row">
-      <button class="profile-action like-action">🤘 Like</button>
 
+      <!-- LIKE -->
+      <button class="profile-action like-action" id="like-btn-burning-time">
+        🤘 Like
+      </button>
+      <span id="like-count-burning-time" style="margin-left:10px; opacity:0.7;"></span>
+
+      <!-- VOTE -->
       <button class="profile-action vote-action vote-btn" data-band="burning-time" data-name="Burning Time">
         Vote
       </button>
 
-      <a class="profile-action support-action" href="https://www.burningtimemusic.com" target="_blank">
+      <!-- SUPPORT -->
+      <button class="profile-action support-action" onclick="openSupportModal()">
         🔥 Support
-      </a>
+      </button>
 
+      <!-- SHARE -->
       <button class="profile-action share-action" onclick="navigator.share ? navigator.share({title:'Burning Time on BANDtroductions', url:window.location.href}) : navigator.clipboard.writeText(window.location.href)">
         Share
       </button>
+
     </div>
 
     <p class="vote-message" id="vote-message-burning-time"></p>
@@ -84,8 +93,8 @@
     <h2>Want your band featured like this?</h2>
     <p>Create a free BANDtroductions profile and get seen by Maine’s local music scene.</p>
     <a class="profile-action support-action" href="create-profile.html">
-  🚀 Create Your Free Profile
-</a>
+      🚀 Create Your Free Profile
+    </a>
   </section>
 
   <section class="comments-section profile-live-section">
@@ -147,8 +156,73 @@
 
 <div id="global-footer"></div>
 
+<!-- SUPPORT MODAL -->
+<div id="support-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#111; padding:20px; border-radius:12px; max-width:400px; width:90%; text-align:center;">
+    <h2>Support Burning Time</h2>
+    <p>Choose how you'd like to support the band 🤘</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+      <a href="#" target="_blank" class="profile-action">💰 Buy Song</a>
+      <a href="#" target="_blank" class="profile-action">🤝 Donate</a>
+      <a href="#" target="_blank" class="profile-action">👕 Merch</a>
+      <a href="https://www.burningtimemusic.com" target="_blank" class="profile-action">🌐 Website</a>
+    </div>
+
+    <button onclick="closeSupportModal()" style="margin-top:15px;">Close</button>
+  </div>
+</div>
+
 <script src="global.js"></script>
 <script src="band-vote.js?v=3"></script>
+
+<!-- LIKE SCRIPT -->
+<script>
+const likeBtn = document.getElementById('like-btn-burning-time');
+const likeCountEl = document.getElementById('like-count-burning-time');
+
+const likeKey = 'bandtroductions_like_burning_time';
+
+let liked = localStorage.getItem(likeKey);
+let count = parseInt(localStorage.getItem(likeKey + '_count')) || 0;
+
+likeCountEl.textContent = count + ' likes';
+
+if (liked) {
+  likeBtn.textContent = '🔥 Liked';
+  likeBtn.style.opacity = '0.7';
+}
+
+likeBtn.addEventListener('click', () => {
+  if (!localStorage.getItem(likeKey)) {
+    localStorage.setItem(likeKey, 'true');
+    count++;
+    localStorage.setItem(likeKey + '_count', count);
+
+    likeBtn.textContent = '🔥 Liked';
+    likeBtn.style.opacity = '0.7';
+    likeCountEl.textContent = count + ' likes';
+  }
+});
+</script>
+
+<!-- SUPPORT MODAL SCRIPT -->
+<script>
+function openSupportModal() {
+  document.getElementById('support-modal').style.display = 'flex';
+}
+
+function closeSupportModal() {
+  document.getElementById('support-modal').style.display = 'none';
+}
+
+window.onclick = function(e) {
+  const modal = document.getElementById('support-modal');
+  if (e.target === modal) {
+    modal.style.display = 'none';
+  }
+}
+</script>
 
 </body>
 </html>
