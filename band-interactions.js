@@ -18,6 +18,21 @@ const db = getDatabase(app);
 const band = document.body.dataset.band;
 
 // =======================
+// 👀 VIEW TRACKING
+// =======================
+
+const viewRef = ref(db, `Bands/${band}/analytics/views`);
+const viewKey = `viewed_${band}`;
+
+if (!sessionStorage.getItem(viewKey)) {
+  sessionStorage.setItem(viewKey, 'true');
+
+  runTransaction(viewRef, (current) => {
+    return (current || 0) + 1;
+  });
+}
+
+// =======================
 // 👍 LIKE SYSTEM
 // =======================
 
