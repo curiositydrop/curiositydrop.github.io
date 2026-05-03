@@ -256,7 +256,7 @@ voteBtn.addEventListener('click', () => {
 });
 
 // =======================
-// 💬 FAN WALL COMMENTS
+// 💬 FAN WALL COMMENTS (FIXED)
 // =======================
 
 const commentsRef = ref(db, 'Bands/burning-time/comments');
@@ -266,7 +266,6 @@ const messageInput = document.getElementById('comment-message');
 const postBtn = document.getElementById('post-comment-btn');
 const commentFeed = document.getElementById('comment-feed');
 
-// 🧠 Load comments live
 onValue(commentsRef, (snapshot) => {
   const data = snapshot.val();
 
@@ -277,7 +276,14 @@ onValue(commentsRef, (snapshot) => {
     return;
   }
 
-  const commentsArray = Object.values(data).reverse();
+  const commentsArray = Object.values(data)
+    .filter(comment => comment.name && comment.message)
+    .reverse();
+
+  if (commentsArray.length === 0) {
+    commentFeed.innerHTML = '<p><strong>BANDtroductions:</strong> Be the first to show some love 🤘</p>';
+    return;
+  }
 
   commentsArray.forEach(comment => {
     const div = document.createElement('div');
