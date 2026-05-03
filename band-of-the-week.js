@@ -31,19 +31,37 @@ onValue(bandsRef, (snapshot) => {
   if (!data) return;
 
   const rankedBands = Object.entries(data)
-    .map(([id, bandData]) => ({
-      id,
-      votes: bandData.votes || 0,
-      likes: bandData.likes || 0,
-      views: bandData.analytics?.views || 0,
-      info: bandInfo[id] || {
-        name: id,
-        meta: "Local Band",
-        image: "IMG_9383.jpeg",
-        link: "#"
-      }
-    }))
-    .sort((a, b) => b.votes - a.votes);
+    .map(([id, bandData]) => {
+      const votes = bandData.votes || 0;
+      const likes = bandData.likes || 0;
+      const views = bandData.analytics?.views || 0;
+      const supportClicks = bandData.analytics?.supportClicks || 0;
+      const shareClicks = bandData.analytics?.shareClicks || 0;
+
+      const score =
+        (votes * 5) +
+        (likes * 2) +
+        (supportClicks * 10) +
+        (shareClicks * 4) +
+        (views * 0.25);
+
+      return {
+        id,
+        votes,
+        likes,
+        views,
+        supportClicks,
+        shareClicks,
+        score,
+        info: bandInfo[id] || {
+          name: id,
+          meta: "Local Band",
+          image: "IMG_9383.jpeg",
+          link: "#"
+        }
+      };
+    })
+    .sort((a, b) => b.score - a.score);
 
   const winner = rankedBands[0];
 
@@ -51,7 +69,9 @@ onValue(bandsRef, (snapshot) => {
 
   document.getElementById("currentWinnerName").textContent = winner.info.name;
   document.getElementById("currentWinnerMeta").textContent = winner.info.meta;
-  document.getElementById("currentWinnerVotes").textContent = `${winner.votes} votes • ${winner.likes} likes • ${winner.views} views`;
+  document.getElementById("currentWinnerVotes").textContent =
+    `${winner.votes} votes • ${winner.likes} likes • ${winner.views} views • Score: ${Math.round(winner.score)}`;
+
   document.getElementById("currentWinnerLink").href = winner.info.link;
 
   const img = document.querySelector("#currentWinnerCard img");
@@ -75,6 +95,7 @@ onValue(bandsRef, (snapshot) => {
           <h3>#${index + 1} ${band.info.name}</h3>
           <p>${band.info.meta}</p>
           <p>${band.votes} votes • ${band.likes} likes • ${band.views} views</p>
+          <p>🔥 Score: ${Math.round(band.score)}</p>
           <div class="band-links">
             <a class="button" href="${band.info.link}">View Band</a>
           </div>
