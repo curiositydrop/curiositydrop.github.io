@@ -196,7 +196,7 @@ const db = getDatabase(app);
 const likesRef = ref(db, 'Bands/burning-time/likes');
 
 const likeBtn = document.getElementById('like-btn-burning-time');
-const likeStorageKey = 'liked_burning_time_v2';
+const likeStorageKey = 'liked_burning_time_v3'; // ✅ updated key
 
 onValue(likesRef, (snapshot) => {
   const count = snapshot.val() || 0;
