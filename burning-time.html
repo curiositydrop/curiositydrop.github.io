@@ -173,7 +173,6 @@
 </div>
 
 <script src="global.js"></script>
-<script src="band-vote.js?v=3"></script>
 
 <!-- LIKE SCRIPT -->
 <script type="module">
@@ -193,19 +192,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const likesRef = ref(db, 'Bands/burning-time/likes');
+// =======================
+// 🔥 LIKE SYSTEM
+// =======================
 
+const likesRef = ref(db, 'Bands/burning-time/likes');
 const likeBtn = document.getElementById('like-btn-burning-time');
-const likeStorageKey = 'liked_burning_time_v3'; // ✅ updated key
+const likeStorageKey = 'liked_burning_time_v3';
 
 onValue(likesRef, (snapshot) => {
   const count = snapshot.val() || 0;
 
   if (localStorage.getItem(likeStorageKey)) {
-    likeBtn.innerHTML = '🔥 Liked (<span id="like-count-burning-time">' + count + '</span>)';
+    likeBtn.innerHTML = '🔥 Liked (' + count + ')';
     likeBtn.style.opacity = '0.7';
   } else {
-    likeBtn.innerHTML = '🤘 Like (<span id="like-count-burning-time">' + count + '</span>)';
+    likeBtn.innerHTML = '🤘 Like (' + count + ')';
     likeBtn.style.opacity = '1';
   }
 });
@@ -219,6 +221,41 @@ likeBtn.addEventListener('click', () => {
     });
   }
 });
+
+
+// =======================
+// 🤘 VOTE SYSTEM
+// =======================
+
+const votesRef = ref(db, 'Bands/burning-time/votes');
+const voteBtn = document.querySelector('.vote-btn');
+const voteMessage = document.getElementById('vote-message-burning-time');
+const voteStorageKey = 'voted_burning_time_v1';
+
+onValue(votesRef, (snapshot) => {
+  const count = snapshot.val() || 0;
+
+  if (localStorage.getItem(voteStorageKey)) {
+    voteBtn.textContent = 'Voted 🤘';
+    voteBtn.style.opacity = '0.7';
+
+    voteMessage.textContent = '🤘 You voted for Burning Time — now show them some love 🔥';
+  } else {
+    voteBtn.textContent = 'Vote';
+    voteBtn.style.opacity = '1';
+  }
+});
+
+voteBtn.addEventListener('click', () => {
+  if (!localStorage.getItem(voteStorageKey)) {
+    localStorage.setItem(voteStorageKey, 'true');
+
+    runTransaction(votesRef, (current) => {
+      return (current || 0) + 1;
+    });
+  }
+});
+
 </script>
 <!-- SUPPORT MODAL SCRIPT -->
 <script>
