@@ -48,6 +48,20 @@ if (supportBtn) {
 }
 
 // =======================
+// 📤 SHARE CLICK TRACKING
+// =======================
+
+const shareBtn = document.querySelector('.share-action');
+const shareClicksRef = ref(db, `Bands/${band}/analytics/shareClicks`);
+
+if (shareBtn) {
+  shareBtn.addEventListener('click', () => {
+    runTransaction(shareClicksRef, (current) => {
+      return (current || 0) + 1;
+    });
+  });
+}
+// =======================
 // 👍 LIKE SYSTEM
 // =======================
 
