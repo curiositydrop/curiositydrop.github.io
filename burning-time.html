@@ -176,30 +176,48 @@
 <script src="band-vote.js?v=3"></script>
 
 <!-- LIKE SCRIPT -->
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyApLiiJsKTw1Fp8J3aQatMqiSZoP_6EycE",
+  authDomain: "bandfanwall.firebaseapp.com",
+  databaseURL: "https://bandfanwall-default-rtdb.firebaseio.com",
+  projectId: "bandfanwall",
+  storageBucket: "bandfanwall.firebasestorage.app",
+  messagingSenderId: "619241154826",
+  appId: "1:619241154826:web:25ddc58eef094e3c0732f3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const likesRef = ref(db, 'Bands/burning-time/likes');
+
 const likeBtn = document.getElementById('like-btn-burning-time');
 const likeCountEl = document.getElementById('like-count-burning-time');
 
-const likeKey = 'bandtroductions_like_burning_time';
+// 🔥 LIVE count listener
+onValue(likesRef, (snapshot) => {
+  const count = snapshot.val() || 0;
 
-let liked = localStorage.getItem(likeKey);
-let count = parseInt(localStorage.getItem(likeKey + '_count')) || 0;
+  likeCountEl.textContent = count;
 
-likeCountEl.textContent = count;
-
-if (liked) {
-  likeBtn.innerHTML = '🔥 Liked (<span id="like-count-burning-time">' + count + '</span>)';
-  likeBtn.style.opacity = '0.7';
-}
-
-likeBtn.addEventListener('click', () => {
-  if (!localStorage.getItem(likeKey)) {
-    localStorage.setItem(likeKey, 'true');
-    count++;
-    localStorage.setItem(likeKey + '_count', count);
-
+  if (localStorage.getItem('liked_burning_time')) {
     likeBtn.innerHTML = '🔥 Liked (<span id="like-count-burning-time">' + count + '</span>)';
     likeBtn.style.opacity = '0.7';
+  }
+});
+
+// 👍 Click handler (safe increment)
+likeBtn.addEventListener('click', () => {
+  if (!localStorage.getItem('liked_burning_time')) {
+    localStorage.setItem('liked_burning_time', 'true');
+
+    runTransaction(likesRef, (current) => {
+      return (current || 0) + 1;
+    });
   }
 });
 </script>
