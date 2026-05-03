@@ -151,5 +151,120 @@
 <div id="global-footer"></div>
 <script src="global.js?v=2"></script>
 
+<!-- FEATURED BAND POPUP -->
+<div id="featured-popup" class="featured-popup">
+  <div class="featured-popup-card">
+    <button class="featured-popup-close" onclick="closeFeaturedPopup()">×</button>
+
+    <p class="featured-popup-label">🚨 Featured Band Alert</p>
+    <h2>Burning Time</h2>
+    <p>
+      Their new single <strong>“Hard to Follow”</strong> drops May 8.
+      See what a BANDtroductions feature page looks like.
+    </p>
+
+    <div class="featured-popup-actions">
+      <a href="burning-time.html" class="featured-popup-btn primary">🔥 Listen Now</a>
+      <a href="create-profile.html" class="featured-popup-btn secondary">🚀 Get Featured</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.featured-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.featured-popup-card {
+  background: #151515;
+  border: 1px solid rgba(0, 200, 180, 0.45);
+  border-radius: 18px;
+  max-width: 430px;
+  width: 100%;
+  padding: 28px 22px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 200, 180, 0.18);
+  position: relative;
+}
+
+.featured-popup-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.featured-popup-label {
+  color: #00c8b4;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.featured-popup-card h2 {
+  color: white;
+  font-size: 2rem;
+  margin: 5px 0 12px;
+}
+
+.featured-popup-card p {
+  color: #ddd;
+  line-height: 1.5;
+}
+
+.featured-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.featured-popup-btn {
+  display: inline-block;
+  padding: 13px 18px;
+  border-radius: 999px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.featured-popup-btn.primary {
+  background: #00c8b4;
+  color: #000;
+  box-shadow: 0 0 18px rgba(0, 200, 180, 0.45);
+}
+
+.featured-popup-btn.secondary {
+  border: 1px solid #00c8b4;
+  color: #00c8b4;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const popupSeen = localStorage.getItem('bt_featured_popup_seen');
+
+  if (!popupSeen) {
+    setTimeout(function () {
+      document.getElementById('featured-popup').style.display = 'flex';
+    }, 900);
+  }
+});
+
+function closeFeaturedPopup() {
+  localStorage.setItem('bt_featured_popup_seen', 'true');
+  document.getElementById('featured-popup').style.display = 'none';
+}
+</script>
+  
 </body>
 </html>
