@@ -59,4 +59,29 @@ onValue(bandsRef, (snapshot) => {
     img.src = winner.info.image;
     img.alt = winner.info.name;
   }
+
+  const leaderboard = document.getElementById("botwLeaderboard");
+
+  if (leaderboard) {
+    leaderboard.innerHTML = "";
+
+    rankedBands.forEach((band, index) => {
+      const row = document.createElement("div");
+      row.className = "botw-winner";
+
+      row.innerHTML = `
+        <img src="${band.info.image}" alt="${band.info.name}">
+        <div>
+          <h3>#${index + 1} ${band.info.name}</h3>
+          <p>${band.info.meta}</p>
+          <p>${band.votes} votes • ${band.likes} likes • ${band.views} views</p>
+          <div class="band-links">
+            <a class="button" href="${band.info.link}">View Band</a>
+          </div>
+        </div>
+      `;
+
+      leaderboard.appendChild(row);
+    });
+  }
 });
