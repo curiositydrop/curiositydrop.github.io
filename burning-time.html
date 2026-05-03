@@ -177,7 +177,7 @@
 <!-- LIKE SCRIPT -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+import { getDatabase, ref, onValue, runTransaction, push } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyApLiiJsKTw1Fp8J3aQatMqiSZoP_6EycE",
@@ -222,7 +222,6 @@ likeBtn.addEventListener('click', () => {
   }
 });
 
-
 // =======================
 // 🤘 VOTE SYSTEM
 // =======================
@@ -256,6 +255,58 @@ voteBtn.addEventListener('click', () => {
   }
 });
 
+// =======================
+// 💬 FAN WALL COMMENTS
+// =======================
+
+const commentsRef = ref(db, 'Bands/burning-time/comments');
+
+const nameInput = document.getElementById('comment-name');
+const messageInput = document.getElementById('comment-message');
+const postBtn = document.getElementById('post-comment-btn');
+const commentFeed = document.getElementById('comment-feed');
+
+// 🧠 Load comments live
+onValue(commentsRef, (snapshot) => {
+  const data = snapshot.val();
+
+  commentFeed.innerHTML = '';
+
+  if (!data) {
+    commentFeed.innerHTML = '<p><strong>BANDtroductions:</strong> Be the first to show some love 🤘</p>';
+    return;
+  }
+
+  const commentsArray = Object.values(data).reverse();
+
+  commentsArray.forEach(comment => {
+    const div = document.createElement('div');
+    div.style.marginBottom = '10px';
+
+    div.innerHTML = `
+      <p><strong>${comment.name}</strong>: ${comment.message}</p>
+    `;
+
+    commentFeed.appendChild(div);
+  });
+});
+
+// ✍️ Post comment
+postBtn.addEventListener('click', () => {
+  const name = nameInput.value.trim();
+  const message = messageInput.value.trim();
+
+  if (!name || !message) return;
+
+  push(commentsRef, {
+    name,
+    message,
+    createdAt: Date.now()
+  });
+
+  nameInput.value = '';
+  messageInput.value = '';
+});
 </script>
 <!-- SUPPORT MODAL SCRIPT -->
 <script>
