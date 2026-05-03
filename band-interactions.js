@@ -33,6 +33,21 @@ if (!sessionStorage.getItem(viewKey)) {
 }
 
 // =======================
+// 🔥 SUPPORT CLICK TRACKING
+// =======================
+
+const supportBtn = document.querySelector('.support-action');
+const supportClicksRef = ref(db, `Bands/${band}/analytics/supportClicks`);
+
+if (supportBtn) {
+  supportBtn.addEventListener('click', () => {
+    runTransaction(supportClicksRef, (current) => {
+      return (current || 0) + 1;
+    });
+  });
+}
+
+// =======================
 // 👍 LIKE SYSTEM
 // =======================
 
