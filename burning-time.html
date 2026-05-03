@@ -239,7 +239,7 @@ onValue(votesRef, (snapshot) => {
     voteBtn.textContent = 'Voted 🤘';
     voteBtn.style.opacity = '0.7';
 
-    voteMessage.textContent = '🤘 You voted for Burning Time — now show them some love 🔥';
+    voteMessage.innerHTML = '🤘 You voted for Burning Time — now show them some love 🔥<br><small>Tap "Support" to back the band</small>';
   } else {
     voteBtn.textContent = 'Vote';
     voteBtn.style.opacity = '1';
