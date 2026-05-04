@@ -2296,3 +2296,15 @@ padding:8px 12px;
 .botw-winner h3 {
   margin: 4px 0 8px !important;
 }
+@keyframes botwPulse {
+  0%   { text-shadow: 0 0 4px rgba(0,200,180,0.25); }
+  50%  { text-shadow: 0 0 10px rgba(0,200,180,0.55); }
+  100% { text-shadow: 0 0 4px rgba(0,200,180,0.25); }
+}
+
+.botw-winner h3 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  animation: botwPulse 3s ease-in-out infinite;
+}
