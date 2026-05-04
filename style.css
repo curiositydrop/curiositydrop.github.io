@@ -2297,18 +2297,18 @@ padding:8px 12px;
   margin: 4px 0 8px !important;
 }
 @keyframes botwPulse {
-  0%   { text-shadow: 0 0 2px rgba(0,200,180,0.2); }
-  50%  { text-shadow: 0 0 16px rgba(0,200,180,0.9); }
-  100% { text-shadow: 0 0 2px rgba(0,200,180,0.2); }
+  0%   { text-shadow: 0 0 4px rgba(0,200,180,0.4); }
+  50%  { text-shadow: 0 0 14px rgba(0,200,180,0.9); }
+  100% { text-shadow: 0 0 4px rgba(0,200,180,0.4); }
 }
 
 .botw-winner h3 {
   font-size: 36px;
   font-weight: 800;
-  color: red;
+  color: #ffffff;
 
-  /* 🔥 add BASE glow so it's always visible */
-  text-shadow: 0 0 6px rgba(0,200,180,0.5);
+  /* base glow so it's always visible */
+  text-shadow: 0 0 6px rgba(0,200,180,0.6);
 
-  animation: botwPulse 2s ease-in-out infinite;
+  animation: botwPulse 2.5s ease-in-out infinite;
 }
