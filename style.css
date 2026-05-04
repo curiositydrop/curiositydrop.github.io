@@ -2280,8 +2280,8 @@ padding:8px 12px;
 }
 
 .botw-sponsor-logo {
-  width: 110px;
-  height: auto;
-  display: block;
-  margin: -22px auto -18px; /* 🔥 pulls it up AND down */
+  width: 110px !important;
+  height: auto !important;
+  display: block !important;
+  margin: -22px auto -18px !important;
 }
