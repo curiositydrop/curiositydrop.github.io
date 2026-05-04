@@ -2284,9 +2284,9 @@ padding:8px 12px;
 
 .botw-sponsor-logo {
   display: block;
-  width: 120px;
+  width: 220px;
   height: auto;
-  max-height: 60px;
+  max-height: 110px;
   object-fit: contain;
   margin: 0 auto;
 }
