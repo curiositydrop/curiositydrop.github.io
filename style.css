@@ -2453,3 +2453,30 @@ padding:8px 12px;
   object-fit: contain;
   opacity: 0.95;
 }
+.botw-sponsor {
+  text-align: center;
+  margin: 12px 0 24px;
+}
+
+.botw-sponsor-link {
+  display: inline-block;
+  background: rgba(0, 200, 180, 0.1);
+  padding: 8px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #00c8b4;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* 🔥 THIS is the fix */
+.botw-sponsor-logo-wrap {
+  margin-top: 10px;
+}
+
+.botw-sponsor-logo-wrap img {
+  height: 50px;   /* ← control size here */
+  width: auto;
+  display: block;
+  margin: 0 auto;
+}
