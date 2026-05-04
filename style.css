@@ -2259,35 +2259,34 @@ padding:8px 12px;
   }
 }
 
-/* BOTW EXCLUSIVE SPONSOR SLOT */
+/* BOTW EXCLUSIVE SPONSOR SLOT (TIGHTENED) */
 .botw-sponsor {
   width: 100%;
-  margin: 10px auto 22px;
+  margin: 6px auto 14px; /* ⬅️ less space above/below */
   display: flex;
   justify-content: center;
-  box-sizing: border-box;
 }
 
 .botw-sponsor-link {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px; /* ⬅️ tighter text-to-logo spacing */
   background: rgba(0, 200, 180, 0.1);
-  padding: 9px 18px 10px;
-  border-radius: 12px;
+  padding: 6px 16px 8px; /* ⬅️ shorter pill height */
+  border-radius: 10px;
   text-decoration: none;
   color: #00c8b4;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   max-width: 92%;
 }
 
 .botw-sponsor-logo {
   display: block;
-  width: 105px;
+  width: 90px; /* ⬅️ slightly smaller + cleaner */
   height: auto;
-  max-height: 52px;
+  max-height: 45px;
   object-fit: contain;
-  margin: 0 auto;
+  margin: 0;
 }
