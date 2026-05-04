@@ -2392,3 +2392,30 @@ padding:8px 12px;
     font-size:24px;
   }
 }
+.botw-sponsor {
+  text-align: center;
+  margin: 12px 0 24px;
+}
+
+.botw-sponsor-text {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.botw-sponsor-link {
+  display: inline-block;
+  font-size: 15px;
+  color: #00c8b4;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.botw-sponsor-link:hover {
+  background: rgba(0, 200, 180, 0.1);
+  transform: translateY(-1px);
+}
