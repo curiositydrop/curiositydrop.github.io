@@ -36,14 +36,19 @@ if (!sessionStorage.getItem(viewKey)) {
 // 🔥 SUPPORT CLICK TRACKING
 // =======================
 
-const supportBtn = document.querySelector('.support-action');
 const supportClicksRef = ref(db, `Bands/${band}/analytics/supportClicks`);
+
+window.trackSupportClick = function () {
+  runTransaction(supportClicksRef, (current) => {
+    return (current || 0) + 1;
+  });
+};
+
+const supportBtn = document.querySelector('.support-action');
 
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
-    runTransaction(supportClicksRef, (current) => {
-      return (current || 0) + 1;
-    });
+    window.trackSupportClick();
   });
 }
 
@@ -61,6 +66,7 @@ if (shareBtn) {
     });
   });
 }
+
 // =======================
 // 👍 LIKE SYSTEM
 // =======================
@@ -78,6 +84,7 @@ if (likeBtn) {
       likeBtn.style.opacity = '0.7';
     } else {
       likeBtn.innerHTML = `🤘 Like (${count})`;
+      likeBtn.style.opacity = '1';
     }
   });
 
@@ -108,6 +115,9 @@ if (voteBtn) {
       if (voteMessage) {
         voteMessage.innerHTML = `🤘 You voted — now show them some love 🔥<br><small>Tap "Support" to back the band</small>`;
       }
+    } else {
+      voteBtn.textContent = 'Vote';
+      voteBtn.style.opacity = '1';
     }
   });
 
