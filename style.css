@@ -2419,3 +2419,35 @@ padding:8px 12px;
   background: rgba(0, 200, 180, 0.1);
   transform: translateY(-1px);
 }
+/* BOTW SPONSOR */
+.botw-sponsor {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 24px;
+}
+
+.botw-sponsor-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 200, 180, 0.1);
+  padding: 8px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #00c8b4;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.botw-sponsor-link:hover {
+  background: rgba(0, 200, 180, 0.18);
+  transform: translateY(-1px);
+}
+
+.botw-sponsor-logo {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.9;
+}p
