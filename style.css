@@ -2259,18 +2259,20 @@ padding:8px 12px;
   }
 }
 
-/* BOTW EXCLUSIVE SPONSOR SLOT (TIGHTENED) */
-/* FINAL BOTW SPONSOR */
+/* BOTW SPONSOR — TIGHT VERSION */
 .botw-sponsor {
   text-align: center;
-  margin: 10px 0 18px;
+  margin: 6px 0 12px; /* tighter top/bottom */
 }
 
 .botw-sponsor-link {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px; /* 🔥 kills vertical space between text + logo */
   background: rgba(0, 200, 180, 0.1);
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 8px 14px 6px; /* 🔥 less bottom padding */
+  border-radius: 12px;
   text-decoration: none;
   color: #00c8b4;
   font-weight: 700;
@@ -2278,8 +2280,8 @@ padding:8px 12px;
 }
 
 .botw-sponsor-logo {
-  display: block;
-  width: 130px;
+  width: 120px;
   height: auto;
-  margin: 6px auto 0;
+  margin: 0; /* 🔥 CRITICAL: removes extra space */
+  display: block;
 }
