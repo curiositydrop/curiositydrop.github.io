@@ -2283,10 +2283,10 @@ padding:8px 12px;
 }
 
 .botw-sponsor-logo {
-  display: block;
-  width: 125px; /* ⬅️ slightly smaller + cleaner */
+  width: 140px;     /* control size here */
   height: auto;
-  max-height: 65px;
+  max-height: none; /* 🔥 REMOVE the cap */
   object-fit: contain;
-  margin: 0;
+  display: block;
+  margin: 6px auto 0;
 }
