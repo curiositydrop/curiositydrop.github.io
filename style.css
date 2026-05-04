@@ -625,6 +625,7 @@ font-size:14px;
     transform: translateX(-100%);
   }
 }
+
 .support-section{
 text-align:center;
 padding:10px 0 15px;
@@ -1031,8 +1032,9 @@ font-size:13px;
 padding:8px 12px;
 }
 }
+
 .video-cta a {
-  color: #00cfc8; /* teal */
+  color: #00cfc8;
   font-weight: bold;
   text-decoration: none;
 }
@@ -1040,6 +1042,7 @@ padding:8px 12px;
 .video-cta a:hover {
   text-decoration: underline;
 }
+
 .watch-psa {
   margin: 20px 0;
   padding: 12px;
@@ -1144,6 +1147,7 @@ padding:8px 12px;
   border-radius:6px;
   cursor:pointer;
 }
+
 /* GEAR EXCHANGE */
 
 .gear-hero{
@@ -1168,7 +1172,7 @@ padding:8px 12px;
   justify-content:center;
   gap:22px;
   flex-wrap:wrap;
-  max-width:1200px;
+  max-width:900px;
   margin:0 auto 20px auto;
 }
 
@@ -1248,81 +1252,6 @@ padding:8px 12px;
 }
 
 .payment-page{
-  padding-top:30px;
-  padding-bottom:60px;
-}
-
-.payment-box{
-  margin:30px 0;
-}
-
-.payment-note{
-  font-size:20px;
-  max-width:700px;
-  margin:0 auto;
-}
-
-@media (max-width:768px){
-
-  .gear-hero h2{
-    font-size:36px;
-  }
-
-  .gear-subtext{
-    font-size:20px;
-  }
-
-  .gear-explainer-box{
-    width:90%;
-    max-width:320px;
-  }
-
-  .gear-explainer-box h3{
-    font-size:24px;
-  }
-
-  .gear-explainer-box p{
-    font-size:18px;
-  }
-
-  .section-intro h2,
-  .gear-rules h2{
-    font-size:34px;
-  }
-
-  .section-intro p,
-  .payment-note{
-    font-size:18px;
-  }
-
-  .submission-form select,
-  .submission-form input[type="file"]{
-    font-size:16px;
-  }
-}
-.gear-explainer{
-  padding:20px;
-  display:flex;
-  justify-content:center;
-  gap:22px;
-  flex-wrap:wrap;
-  max-width:900px;
-  margin:0 auto 20px auto;
-}
-.gear-mini-note{
-  font-size:18px;
-  color:#aaa;
-  max-width:800px;
-  margin:20px auto 0 auto;
-}
-
-@media (max-width:768px){
-  .gear-mini-note{
-    font-size:16px;
-    padding:0 10px;
-  }
-}
-.payment-page{
   max-width:800px;
   margin:0 auto;
   padding:50px 20px 70px;
@@ -1374,6 +1303,48 @@ padding:8px 12px;
 }
 
 @media (max-width:768px){
+
+  .gear-hero h2{
+    font-size:36px;
+  }
+
+  .gear-subtext{
+    font-size:20px;
+  }
+
+  .gear-explainer-box{
+    width:90%;
+    max-width:320px;
+  }
+
+  .gear-explainer-box h3{
+    font-size:24px;
+  }
+
+  .gear-explainer-box p{
+    font-size:18px;
+  }
+
+  .section-intro h2,
+  .gear-rules h2{
+    font-size:34px;
+  }
+
+  .section-intro p,
+  .payment-note{
+    font-size:18px;
+  }
+
+  .submission-form select,
+  .submission-form input[type="file"]{
+    font-size:16px;
+  }
+
+  .gear-mini-note{
+    font-size:16px;
+    padding:0 10px;
+  }
+
   .payment-page{
     padding:35px 20px 60px;
   }
@@ -1396,6 +1367,14 @@ padding:8px 12px;
     font-size:18px;
   }
 }
+
+.gear-mini-note{
+  font-size:18px;
+  color:#aaa;
+  max-width:800px;
+  margin:20px auto 0 auto;
+}
+
 @media (max-width:768px){
   .watch-nav-toggle{
     display:block;
@@ -1415,6 +1394,7 @@ padding:8px 12px;
     padding:12px 10px 20px 10px;
   }
 }
+
 .path-section{
   padding:30px 20px 50px;
   text-align:center;
@@ -1476,26 +1456,37 @@ padding:8px 12px;
     font-size:18px;
   }
 }
+
 /* 🔽 HEADER TIGHTEN */
-  .logo-area{
-    padding:5px 0 0 0;
-  }
+.logo-area{
+  padding:5px 0 0 0;
+}
 
-  .logo-area img{
-    height:120px;
-  }
+.logo-area img{
+  height:120px;
+}
 
-  .logo-area .tagline{
-    font-size:18px;
-    margin-top:-2px;
-  }
+.logo-area .tagline{
+  font-size:18px;
+  margin-top:-2px;
+}
+
 /* ================================
    HOME PAGE CARD LAYOUT + SPACING
 ================================ */
 
 .home-page .hero{
-  padding:22px 20px 10px;
-  margin:0;
+  padding:26px 20px 20px !important;
+  margin:10px 12px 6px !important;
+  background:
+    radial-gradient(circle at center, rgba(0, 200, 180, 0.22), transparent 65%),
+    linear-gradient(145deg, #151515, #222);
+  border-radius:18px;
+  border:2px solid rgba(0, 200, 180, 0.35);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    0 0 14px rgba(0, 200, 180, 0.28);
+  text-align:center;
 }
 
 .home-page .hero h2{
@@ -1509,7 +1500,7 @@ padding:8px 12px;
 .bt-home-cards-section{
   padding:8px 14px 18px;
   max-width:1200px;
-  margin:0 auto;
+  margin:6px auto 0;
 }
 
 .bt-home-intro{
@@ -1580,7 +1571,6 @@ padding:8px 12px;
   font-size:0.9rem;
 }
 
-/* Tighten featured sections on homepage */
 .home-page .featured{
   padding:18px 20px;
   margin:0;
@@ -1596,7 +1586,6 @@ padding:8px 12px;
   gap:22px;
 }
 
-/* Faded teal divider between featured bands */
 .home-page .featured + .featured{
   position:relative;
   padding-top:26px;
@@ -1619,7 +1608,6 @@ padding:8px 12px;
   );
 }
 
-/* Tighten lower homepage sections */
 .home-page .local-scene,
 .home-page .how-it-works,
 .home-page .cta{
@@ -1674,26 +1662,7 @@ padding:8px 12px;
     padding-top:24px;
   }
 }
-.home-page .hero{
-  padding:26px 20px 20px !important;
-  margin:10px 12px 6px !important;
 
-  background:
-    radial-gradient(circle at center, rgba(0, 200, 180, 0.22), transparent 65%),
-    linear-gradient(145deg, #151515, #222);
-
-  border-radius:18px;
-  border:2px solid rgba(0, 200, 180, 0.35);
-
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    0 0 14px rgba(0, 200, 180, 0.28);
-
-  text-align:center;
-}
-.bt-home-cards-section{
-  margin-top:6px;
-}
 .vote-message{
   color:#00c8b4;
   font-weight:bold;
@@ -1708,28 +1677,13 @@ padding:8px 12px;
   border-radius:10px;
   text-align:center;
 }
+
 /* ================================
    BAND OF THE WEEK PAGE
 ================================ */
 
 .botw-page .page-hero{
   padding:32px 20px 24px;
-}
-
-.botw-hero{
-  margin:12px;
-  border-radius:18px;
-  border:2px solid rgba(0, 200, 180, 0.35);
-  background:
-    radial-gradient(circle at center, rgba(0, 200, 180, 0.18), transparent 65%),
-    linear-gradient(145deg, #151515, #222);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    0 0 14px rgba(0, 200, 180, 0.28);
-}
-
-.botw-hero p{
-  margin-bottom:18px;
 }
 
 .botw-current,
@@ -1746,35 +1700,91 @@ padding:8px 12px;
   margin-bottom:18px;
 }
 
-.botw-winner-card{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:24px;
-  background:linear-gradient(145deg, #151515, #242424);
-  border:1px solid rgba(0,200,180,0.35);
-  border-radius:18px;
-  padding:22px;
-  box-shadow:0 12px 30px rgba(0,0,0,0.35);
+.botw-hero{
+  margin:8px auto;
+  max-width:520px;
+  padding:14px 14px;
+  border-radius:10px;
+  border:1px solid rgba(0,200,180,0.2);
+  background:#151515;
+  box-shadow:none;
+  text-align:center;
+  overflow:hidden;
+  box-sizing:border-box;
 }
 
-.botw-winner-card img{
-  width:220px;
-  height:220px;
-  object-fit:cover;
+.botw-hero h2{
+  font-size:22px;
+  margin-bottom:6px;
+}
+
+.botw-hero p{
+  font-size:14px;
+  color:#bbb;
+  margin-bottom:10px;
+  line-height:1.4;
+}
+
+.botw-hero .button{
+  font-size:14px;
+  padding:8px 16px;
+}
+
+.botw-description{
+  text-align:center;
+  max-width:600px;
+  margin:8px auto 20px;
+  padding:0 15px;
+}
+
+.botw-description p{
+  font-size:15px;
+  color:#bbb;
+  line-height:1.4;
+}
+
+.botw-winner{
+  text-align:center;
+  padding:10px 10px 5px;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+.botw-winner img{
+  width:100%;
+  max-width:100%;
+  height:auto;
+  display:block;
   border-radius:12px;
-  background:#333;
+  margin-bottom:15px;
 }
 
-.botw-winner-card h3{
+.botw-winner h3{
   font-size:32px;
-  margin:0 0 8px;
+  margin-bottom:8px;
 }
 
-.botw-winner-card p{
-  font-size:18px;
+.botw-winner p{
+  font-size:16px;
   color:#ccc;
-  margin:8px 0;
+  margin:6px 0;
+}
+
+.botw-winner .band-links{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:14px;
+}
+
+.botw-winner .button{
+  background:#00c8b4;
+  color:#000;
+  padding:10px 18px;
+  font-size:15px;
+  border-radius:6px;
+  font-weight:bold;
 }
 
 .botw-archive{
@@ -1793,19 +1803,17 @@ padding:8px 12px;
   color:#aaa;
 }
 
-.vote-message{
-  color:#00c8b4;
-  font-weight:bold;
-  margin-top:12px;
+.botw-winner-card{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
 }
 
-.vote-box{
-  margin-top:25px;
-  padding:20px;
-  background:#1b1b1b;
-  border:1px solid rgba(0,200,180,0.25);
-  border-radius:10px;
-  text-align:center;
+.botw-winner-card img{
+  width:100%;
+  max-width:100%;
+  height:auto;
+  display:block;
 }
 
 @media (max-width:768px){
@@ -1824,148 +1832,7 @@ padding:8px 12px;
     font-size:28px;
   }
 }
-.botw-hero{
-  margin:10px auto 10px;
-  max-width:700px;
-  padding:20px 16px;
 
-  border-radius:12px;
-  border:1px solid rgba(0, 200, 180, 0.25);
-
-  background:#181818;
-
-  box-shadow:none;
-
-  text-align:center;
-}
-
-.botw-hero h2{
-  font-size:28px;
-  margin-bottom:10px;
-}
-
-.botw-hero p{
-  font-size:16px;
-  color:#ccc;
-  margin-bottom:14px;
-  line-height:1.5;
-}
-
-.botw-hero .button{
-  font-size:15px;
-  padding:10px 18px;
-}
-/* 🔽 FINAL BOTW HERO TIGHT VERSION */
-.botw-hero{
-  margin:8px auto;
-  max-width:520px;
-  padding:14px 14px;
-
-  border-radius:10px;
-  border:1px solid rgba(0,200,180,0.2);
-
-  background:#151515;
-  box-shadow:none;
-
-  text-align:center;
-}
-
-/* Title */
-.botw-hero h2{
-  font-size:22px;
-  margin-bottom:6px;
-}
-
-/* Description */
-.botw-hero p{
-  font-size:14px;
-  color:#bbb;
-  margin-bottom:10px;
-  line-height:1.4;
-}
-
-/* Button */
-.botw-hero .button{
-  font-size:14px;
-  padding:8px 16px;
-}
-/* 🔽 BOTW DESCRIPTION (subtle, no card) */
-.botw-description{
-  text-align:center;
-  max-width:600px;
-  margin:8px auto 20px;
-  padding:0 15px;
-}
-
-.botw-description p{
-  font-size:15px;
-  color:#bbb;
-  line-height:1.4;
-}
-/* 🔥 FLAT BOTW HERO (no nested card) */
-.botw-winner{
-  text-align:center;
-  padding:10px 10px 5px;
-}
-
-.botw-winner img{
-  width:100%;
-  max-width:420px;
-  border-radius:12px;
-  margin-bottom:15px;
-}
-
-.botw-winner h3{
-  font-size:32px;
-  margin-bottom:8px;
-}
-
-.botw-winner p{
-  font-size:16px;
-  color:#ccc;
-  margin:6px 0;
-}
-
-/* buttons side by side */
-.botw-winner .band-links{
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-top:14px;
-}
-
-.botw-winner .button{
-  background:#00c8b4;
-  color:#000;
-  padding:10px 18px;
-  font-size:15px;
-  border-radius:6px;
-  font-weight:bold;
-}
-/* 🔥 FIX BOTW OVERFLOW */
-.botw-hero,
-.botw-current{
-  max-width:100%;
-  overflow:hidden;
-  box-sizing:border-box;
-}
-
-/* make sure nothing inside can push wider */
-.botw-winner,
-.botw-winner-card{
-  width:100%;
-  max-width:100%;
-  box-sizing:border-box;
-}
-
-/* 🔥 IMAGE FIX */
-.botw-winner img,
-.botw-winner-card img{
-  width:100%;
-  max-width:100%;
-  height:auto;
-  display:block;
-}
 /* ================================
    NEW BAND PROFILE LAYOUT
 ================================ */
@@ -2267,6 +2134,56 @@ padding:8px 12px;
   border:1px solid rgba(255,255,255,0.08);
 }
 
+.profile-action-card{
+  background:linear-gradient(145deg, #151515, #222);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.35);
+  margin-bottom:18px;
+  text-align:center;
+}
+
+.profile-action-card h1{
+  font-size:38px;
+  margin:0 0 4px;
+}
+
+.profile-action-card .profile-meta{
+  margin:0 0 8px;
+}
+
+.profile-action-card .featured-badge{
+  margin:8px 0 18px;
+}
+
+.profile-details-card{
+  background:linear-gradient(145deg, #151515, #222);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.35);
+}
+
+.profile-details-card summary{
+  cursor:pointer;
+  font-size:28px;
+  font-weight:bold;
+  color:#fff;
+  margin-bottom:12px;
+}
+
+.profile-details-card p{
+  font-size:18px;
+  color:#ddd;
+  line-height:1.7;
+}
+
+.profile-live-section{
+  border:1px solid rgba(0,200,180,0.32);
+}
+
 @media (max-width:768px){
   .profile-banner-wrap{
     height:220px;
@@ -2321,69 +2238,18 @@ padding:8px 12px;
   }
 
   .sponsor-logo-row span{
-  flex:1; /* evenly distribute */
-  min-height:22px;
-  padding:4px 6px;
-  border-radius:999px;
-  background:#1b1b1b;
-  border:1px solid rgba(255,255,255,0.12);
-  color:#aaa;
-  font-size:8.5px;
-  text-align:center;
-  white-space:nowrap;
-}
-}
-.profile-action-card{
-  background:linear-gradient(145deg, #151515, #222);
-  border:1px solid rgba(255,255,255,0.10);
-  border-radius:18px;
-  padding:20px;
-  box-shadow:0 10px 28px rgba(0,0,0,0.35);
-  margin-bottom:18px;
-  text-align:center;
-}
+    flex:1;
+    min-height:22px;
+    padding:4px 6px;
+    border-radius:999px;
+    background:#1b1b1b;
+    border:1px solid rgba(255,255,255,0.12);
+    color:#aaa;
+    font-size:8.5px;
+    text-align:center;
+    white-space:nowrap;
+  }
 
-.profile-action-card h1{
-  font-size:38px;
-  margin:0 0 4px;
-}
-
-.profile-action-card .profile-meta{
-  margin:0 0 8px;
-}
-
-.profile-action-card .featured-badge{
-  margin:8px 0 18px;
-}
-
-.profile-details-card{
-  background:linear-gradient(145deg, #151515, #222);
-  border:1px solid rgba(255,255,255,0.10);
-  border-radius:18px;
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 10px 28px rgba(0,0,0,0.35);
-}
-
-.profile-details-card summary{
-  cursor:pointer;
-  font-size:28px;
-  font-weight:bold;
-  color:#fff;
-  margin-bottom:12px;
-}
-
-.profile-details-card p{
-  font-size:18px;
-  color:#ddd;
-  line-height:1.7;
-}
-
-.profile-live-section{
-  border:1px solid rgba(0,200,180,0.32);
-}
-
-@media (max-width:768px){
   .profile-action-card h1{
     font-size:32px;
   }
@@ -2392,70 +2258,17 @@ padding:8px 12px;
     font-size:24px;
   }
 }
+
+/* BOTW EXCLUSIVE SPONSOR SLOT */
 .botw-sponsor {
+  width: 100%;
   text-align: center;
-  margin: 12px 0 24px;
-}
-
-.botw-sponsor-text {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 6px;
-  letter-spacing: 0.5px;
-}
-
-.botw-sponsor-link {
-  display: inline-block;
-  font-size: 15px;
-  color: #00c8b4;
-  text-decoration: none;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.botw-sponsor-link:hover {
-  background: rgba(0, 200, 180, 0.1);
-  transform: translateY(-1px);
-}
-/* BOTW SPONSOR */
-.botw-sponsor {
+  margin: 12px auto 26px;
   display: flex;
-  justify-content: center;
-  margin: 12px 0 24px;
-}
-
-.botw-sponsor-link {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
-  background: rgba(0, 200, 180, 0.1);
-  padding: 8px 14px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #00c8b4;
-  font-weight: 700;
-  font-size: 15px;
-  transition: all 0.2s ease;
-}
-
-.botw-sponsor-link:hover {
-  background: rgba(0, 200, 180, 0.18);
-  transform: translateY(-1px);
-}
-
-.botw-sponsor-logo {
-  display: block;
-  margin: 8px auto 0;
-  height: 40px;
-  width: auto;
-  object-fit: contain;
-  opacity: 0.95;
-}
-.botw-sponsor {
-  text-align: center;
-  margin: 12px 0 24px;
+  box-sizing: border-box;
 }
 
 .botw-sponsor-link {
@@ -2469,39 +2282,11 @@ padding:8px 12px;
   font-size: 16px;
 }
 
-/* 🔥 THIS is the fix */
-.botw-sponsor-logo-wrap {
-  margin-top: 10px;
-}
-
-.botw-sponsor-logo-wrap img {
-  height: 50px;   /* ← control size here */
-  width: auto;
-  display: block;
-  margin: 0 auto;
-}
-.botw-sponsor {
-  display: flex;
-  flex-direction: column; /* 🔥 THIS is what forces it UNDER */
-  align-items: center;
-  margin: 12px 0 24px;
-}
-
-.botw-sponsor-link {
-  background: rgba(0, 200, 180, 0.1);
-  padding: 8px 16px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #00c8b4;
-  font-weight: 700;
-  font-size: 16px;
-}
-
 .botw-sponsor-logo {
-  margin-top: 10px;
-  height: 36px;
-  max-width: 140px;
-  width: auto;
-  object-fit: contain;
   display: block;
+  width: 120px;
+  height: auto;
+  max-height: 60px;
+  object-fit: contain;
+  margin: 0 auto;
 }
