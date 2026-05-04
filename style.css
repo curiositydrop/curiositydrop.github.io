@@ -2285,3 +2285,14 @@ padding:8px 12px;
   display: block !important;
   margin: -30px auto -26px !important;
 }
+.botw-sponsor {
+  margin-bottom: 6px !important;
+}
+
+.botw-winner {
+  margin-top: 0 !important;
+}
+
+.botw-winner h3 {
+  margin: 4px 0 8px !important;
+}
