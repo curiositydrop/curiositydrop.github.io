@@ -2262,31 +2262,32 @@ padding:8px 12px;
 /* BOTW EXCLUSIVE SPONSOR SLOT */
 .botw-sponsor {
   width: 100%;
-  text-align: center;
-  margin: 12px auto 26px;
+  margin: 10px auto 22px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  justify-content: center;
   box-sizing: border-box;
 }
 
 .botw-sponsor-link {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   background: rgba(0, 200, 180, 0.1);
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 9px 18px 10px;
+  border-radius: 12px;
   text-decoration: none;
   color: #00c8b4;
   font-weight: 700;
   font-size: 16px;
+  max-width: 92%;
 }
 
 .botw-sponsor-logo {
   display: block;
-  width: 220px;
+  width: 105px;
   height: auto;
-  max-height: 110px;
+  max-height: 52px;
   object-fit: contain;
   margin: 0 auto;
 }
