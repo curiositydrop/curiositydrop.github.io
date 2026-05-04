@@ -2284,7 +2284,7 @@ padding:8px 12px;
 
 .botw-sponsor-logo {
   display: block;
-  width: 25px; /* ⬅️ slightly smaller + cleaner */
+  width: 125px; /* ⬅️ slightly smaller + cleaner */
   height: auto;
   max-height: 65px;
   object-fit: contain;
