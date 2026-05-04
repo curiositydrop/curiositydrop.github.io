@@ -2273,20 +2273,19 @@ padding:8px 12px;
   align-items: center;
   gap: 2px; /* ⬅️ tighter text-to-logo spacing */
   background: rgba(0, 200, 180, 0.1);
-  padding: 6px 16px 8px; /* ⬅️ shorter pill height */
+  padding: 6px 14px 6px; /* ⬅️ shorter pill height */
   border-radius: 10px;
   text-decoration: none;
   color: #00c8b4;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   max-width: 92%;
 }
 
 .botw-sponsor-logo {
-  width: 140px;     /* control size here */
+  width: 110px;   /* 👈 THIS is the sweet spot */
   height: auto;
-  max-height: none; /* 🔥 REMOVE the cap */
   object-fit: contain;
   display: block;
-  margin: 6px auto 0;
+  margin: 4px auto 0; /* tighter spacing */
 }
