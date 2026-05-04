@@ -2260,32 +2260,26 @@ padding:8px 12px;
 }
 
 /* BOTW EXCLUSIVE SPONSOR SLOT (TIGHTENED) */
+/* FINAL BOTW SPONSOR */
 .botw-sponsor {
-  width: 100%;
-  margin: 6px auto 14px; /* ⬅️ less space above/below */
-  display: flex;
-  justify-content: center;
+  text-align: center;
+  margin: 10px 0 18px;
 }
 
 .botw-sponsor-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+  display: inline-block;
   background: rgba(0, 200, 180, 0.1);
-  padding: 8px 16px 10px;
-  border-radius: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
   text-decoration: none;
   color: #00c8b4;
   font-weight: 700;
-  font-size: 16px;
-  max-width: 92%;
+  font-size: 14px;
 }
 
 .botw-sponsor-logo {
   display: block;
-  width: 120px;
+  width: 130px;
   height: auto;
-  object-fit: contain;
-  margin: -10px auto 0;
+  margin: 6px auto 0;
 }
