@@ -2312,3 +2312,13 @@ padding:8px 12px;
 
   animation: botwPulse 2.5s ease-in-out infinite;
 }
+.support-local-link {
+  color: #00c8b4;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.support-local-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}p
