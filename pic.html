@@ -197,7 +197,10 @@
 
     <div class="profile-link-list">
       <a href="https://www.paradiseiscancelled.com" target="_blank">Official Website</a>
-      <a href="mailto:paradiseiscancelled207@gmail.com">Email Paradise Is Cancelled</a>
+
+      <button class="profile-action support-action" type="button" onclick="openContactModal()">
+        📩 Contact This Band
+      </button>
     </div>
   </section>
 
@@ -222,10 +225,66 @@
   </div>
 </div>
 
+<!-- CONTACT BAND MODAL -->
+<div id="contact-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+
+  <div style="background:#111; padding:20px; border-radius:12px; max-width:500px; width:90%; text-align:center;">
+
+    <h2>Contact Paradise Is Cancelled</h2>
+
+    <p>Send the band a message directly through BANDtroductions 🤘</p>
+
+    <form action="https://formsubmit.co/paradiseiscancelled207@gmail.com" method="POST">
+
+      <!-- FORM SETTINGS -->
+      <input type="hidden" name="_subject" value="New BANDtroductions message for Paradise Is Cancelled">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_cc" value="bandtroductions@gmail.com">
+      
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:18px;">
+
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name"
+          required
+          style="padding:12px; border-radius:8px; border:none; background:#1b1b1b; color:#fff;"
+        >
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email"
+          required
+          style="padding:12px; border-radius:8px; border:none; background:#1b1b1b; color:#fff;"
+        >
+
+        <textarea
+          name="message"
+          placeholder="Your Message"
+          required
+          style="padding:12px; border-radius:8px; border:none; background:#1b1b1b; color:#fff; min-height:120px;"
+        ></textarea>
+
+        <button type="submit" class="profile-action support-action">
+          Send Message
+        </button>
+
+      </div>
+
+    </form>
+
+    <button onclick="closeContactModal()" style="margin-top:15px;">
+      Close
+    </button>
+
+  </div>
+</div>
+
 <script src="global.js"></script>
 <script type="module" src="band-interactions.js?v=5"></script>
 
-<!-- SUPPORT MODAL SCRIPT -->
+<!-- MODAL SCRIPTS -->
 <script>
 function openSupportModal() {
   document.getElementById('support-modal').style.display = 'flex';
@@ -235,10 +294,24 @@ function closeSupportModal() {
   document.getElementById('support-modal').style.display = 'none';
 }
 
+function openContactModal() {
+  document.getElementById('contact-modal').style.display = 'flex';
+}
+
+function closeContactModal() {
+  document.getElementById('contact-modal').style.display = 'none';
+}
+
 window.onclick = function(e) {
-  const modal = document.getElementById('support-modal');
-  if (e.target === modal) {
-    modal.style.display = 'none';
+  const supportModal = document.getElementById('support-modal');
+  const contactModal = document.getElementById('contact-modal');
+
+  if (e.target === supportModal) {
+    supportModal.style.display = 'none';
+  }
+
+  if (e.target === contactModal) {
+    contactModal.style.display = 'none';
   }
 }
 </script>
