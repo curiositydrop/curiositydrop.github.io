@@ -54,13 +54,23 @@ BANDtroductions is being built to help connect bands, musicians, venues, and fan
   </p>
 
   <p>
-    <strong>Direct music, merch, and donation links inside a band’s profile support popup still go 100% to the band.</strong>
+    <strong>Business support placements are shared 50/50 between the band and BANDtroductions.</strong>
+    <br><br>
+    If you'd prefer to support the band directly, you can use the Donate, Merch, or Music links found inside the band's profile support popup — those contributions go 100% directly to the band.
   </p>
 
   <h2>Become a Supporter</h2>
 
   <p>
-    Fill out the form below and we’ll follow up about supporting this band’s page.
+    Support this band while also helping BANDtroductions continue growing the Maine music scene.
+  </p>
+
+  <p>
+    <strong>Business support placements are shared 50/50 between the band and BANDtroductions.</strong>
+  </p>
+
+  <p>
+    Direct music, merch, and donation links inside band profiles still go 100% directly to the band.
   </p>
 
   <form action="https://formsubmit.co/bandtroductions@gmail.com" method="POST" class="submission-form">
@@ -75,16 +85,63 @@ BANDtroductions is being built to help connect bands, musicians, venues, and fan
     <label>Email</label>
     <input type="email" name="Email" required>
 
+    <label>I am supporting as:</label>
+
+    <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+
+      <label style="display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="Support Type" value="Individual" required>
+        Individual
+      </label>
+
+      <label style="display:flex; align-items:center; gap:6px;">
+        <input type="radio" name="Support Type" value="Business" required>
+        Business
+      </label>
+
+    </div>
+
     <label>Business / Supporter Name</label>
     <input type="text" name="Supporter Name" placeholder="Example: New Leaf Painting or Mike B.">
 
-    <label>Website / Social Link</label>
+    <label>Website / Social Link (Optional)</label>
     <input type="url" name="Website or Social Link" placeholder="https://">
+
+    <label>Support Option</label>
+
+    <select name="Support Plan" required>
+      <option value="">Select an option</option>
+      <option value="Individual Support - One Time">Individual Support - One Time</option>
+      <option value="Business Support - One Time">Business Support - One Time</option>
+      <option value="Business Support - Monthly">Business Support - Monthly</option>
+    </select>
+
+    <label>Support Amount</label>
+
+    <select name="Support Amount" required>
+      <option value="">Choose amount</option>
+      <option value="$10">$10</option>
+      <option value="$25">$25</option>
+      <option value="$50">$50</option>
+      <option value="$100">$100</option>
+      <option value="$150">$150</option>
+      <option value="$250">$250</option>
+      <option value="Custom Amount">Custom Amount</option>
+    </select>
+
+    <label>Custom Amount (Optional)</label>
+    <input type="text" name="Custom Amount" placeholder="Example: $75">
 
     <label>Message</label>
     <textarea name="Message" placeholder="Tell us how you'd like to support this band..."></textarea>
 
-    <button type="submit">Send Support Request</button>
+    <p style="font-size:14px; color:#aaa; line-height:1.6;">
+      Business supporter placements help promote both the band and BANDtroductions while supporting the continued growth of the local music scene.
+    </p>
+
+    <button type="submit">
+      Continue to Support
+    </button>
 
   </form>
 
