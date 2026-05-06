@@ -31,7 +31,7 @@
     BANDtroductions is being built to help connect bands, musicians, venues, and fans across Maine.
   </p>
 
-  <div class="band-links" style="margin-top:25px; text-align:center;">
+  <div id="missionSupportButton" class="band-links" style="margin-top:25px; text-align:center;">
 
     <!-- GOFUNDME LINK GOES HERE LATER -->
     <!--
@@ -213,6 +213,7 @@ const bandNames = {
 if (bandSlug) {
   const bandName = bandNames[bandSlug] || "This Band";
 
+  document.getElementById("missionSupportButton").style.display = "none";
   document.getElementById("supportPageTitle").textContent = "Support " + bandName;
   document.getElementById("supportPageIntro").textContent = "Help support " + bandName + " while helping BANDtroductions continue building the local music scene.";
   document.getElementById("bandSupportBox").style.display = "block";
