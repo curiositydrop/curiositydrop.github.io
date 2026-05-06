@@ -53,6 +53,21 @@ if (supportBtn) {
 }
 
 // =======================
+// 🚀 CREATE PROFILE CLICK TRACKING
+// =======================
+
+const createProfileBtn = document.querySelector('.create-profile-action');
+const createProfileClicksRef = ref(db, `Bands/${band}/analytics/createProfileClicks`);
+
+if (createProfileBtn) {
+  createProfileBtn.addEventListener('click', () => {
+    runTransaction(createProfileClicksRef, (current) => {
+      return (current || 0) + 1;
+    });
+  });
+}
+
+// =======================
 // 📤 SHARE CLICK TRACKING
 // =======================
 
