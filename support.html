@@ -27,15 +27,70 @@
 
 <section class="page-hero">
 
-<h2>Support the Maine Music Scene</h2>
+<h2 id="supportPageTitle">Support the Maine Music Scene</h2>
 
-<p>
+<p id="supportPageIntro">
 BANDtroductions is being built to help connect bands, musicians, venues, and fans across Maine.
 </p>
 
 </section>
 
 <section class="support-main">
+
+<div id="bandSupportBox" style="display:none;">
+
+  <h2 id="bandSupportHeading">Support This Band</h2>
+
+  <p id="bandSupportText">
+    Want to support this band while also helping BANDtroductions continue growing the local music scene?
+  </p>
+
+  <p>
+    Band support placements help give the artist more exposure while helping keep BANDtroductions free for bands, musicians, and venues to join.
+  </p>
+
+  <p>
+    Support received through this page is treated as a shared exposure partnership between the band and BANDtroductions.
+  </p>
+
+  <p>
+    <strong>Direct music, merch, and donation links inside a band’s profile support popup still go 100% to the band.</strong>
+  </p>
+
+  <h2>Become a Supporter</h2>
+
+  <p>
+    Fill out the form below and we’ll follow up about supporting this band’s page.
+  </p>
+
+  <form action="https://formsubmit.co/bandtroductions@gmail.com" method="POST" class="submission-form">
+
+    <input type="hidden" name="_subject" value="New BANDtroductions Band Support Request">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" id="bandField" name="Band Being Supported" value="">
+
+    <label>Your Name</label>
+    <input type="text" name="Name" required>
+
+    <label>Email</label>
+    <input type="email" name="Email" required>
+
+    <label>Business / Supporter Name</label>
+    <input type="text" name="Supporter Name" placeholder="Example: New Leaf Painting or Mike B.">
+
+    <label>Website / Social Link</label>
+    <input type="url" name="Website or Social Link" placeholder="https://">
+
+    <label>Message</label>
+    <textarea name="Message" placeholder="Tell us how you'd like to support this band..."></textarea>
+
+    <button type="submit">Send Support Request</button>
+
+  </form>
+
+  <hr style="margin:40px 0; border:0; border-top:1px solid rgba(255,255,255,0.15);">
+
+</div>
 
 <h2>Why BANDtroductions Exists</h2>
 
@@ -117,6 +172,27 @@ Whether you're a musician, venue, fan, sponsor, or supporter — thank you for b
 </section>
 
 <div id="global-footer"></div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const bandSlug = params.get("band");
+
+const bandNames = {
+  "burning-time": "Burning Time",
+  "paradise-is-cancelled": "Paradise Is Cancelled"
+};
+
+if (bandSlug) {
+  const bandName = bandNames[bandSlug] || "This Band";
+
+  document.getElementById("supportPageTitle").textContent = "Support " + bandName;
+  document.getElementById("supportPageIntro").textContent = "Help support " + bandName + " while helping BANDtroductions continue building the local music scene.";
+  document.getElementById("bandSupportBox").style.display = "block";
+  document.getElementById("bandSupportHeading").textContent = "Support " + bandName;
+  document.getElementById("bandSupportText").textContent = "Want to support " + bandName + " while also helping BANDtroductions continue growing the local music scene?";
+  document.getElementById("bandField").value = bandName + " (" + bandSlug + ")";
+}
+</script>
 
 </body>
 </html>
