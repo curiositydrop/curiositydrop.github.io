@@ -251,17 +251,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const popupSeen = localStorage.getItem('bt_featured_popup_seen');
 
-  if (!popupSeen) {
+  // TEMPORARILY DISABLED ONE-TIME POPUP CHECK FOR TESTING
+  // const popupSeen = localStorage.getItem('bt_featured_popup_seen');
+
+  // if (!popupSeen) {
     setTimeout(function () {
       document.getElementById('featured-popup').style.display = 'flex';
     }, 900);
-  }
+  // }
+
 });
 
 function closeFeaturedPopup() {
-  localStorage.setItem('bt_featured_popup_seen', 'true');
+
+  // TEMPORARILY DISABLED ONE-TIME POPUP SAVE FOR TESTING
+  // localStorage.setItem('bt_featured_popup_seen', 'true');
+
   document.getElementById('featured-popup').style.display = 'none';
 }
 </script>
