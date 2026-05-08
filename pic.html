@@ -38,7 +38,12 @@
       <span>Your Business Here</span>
       <span>Your Business Here</span>
     </div>
-    <small>Support local music 🤘</small>
+    <small>
+      Support local music 🤘 •
+      <a href="support.html?band=paradise-is-cancelled" class="support-local-link">
+        Support this band
+      </a>
+    </small>
   </section>
 
   <section class="profile-featured-video">
@@ -124,12 +129,20 @@
         Vote
       </button>
 
+      <!-- SUPPORT TEMPORARILY DISABLED -->
+      <!--
       <button class="profile-action support-action" onclick="openSupportModal()">
         🔥 Support
       </button>
+      -->
+
+      <button class="profile-action support-action"
+      style="opacity:0.55; cursor:not-allowed; pointer-events:none;">
+        🚧 Coming Soon
+      </button>
 
       <button class="profile-action share-action" onclick="navigator.share ? navigator.share({title:'Paradise Is Cancelled on BANDtroductions', url:window.location.href}) : navigator.clipboard.writeText(window.location.href)">
-        Share
+        Share Band
       </button>
 
     </div>
@@ -196,7 +209,9 @@
     <p>For booking or inquiries, please contact Paradise Is Cancelled directly.</p>
 
     <div class="profile-link-list">
+      <!--
       <a href="https://www.paradiseiscancelled.com" target="_blank">Official Website</a>
+      -->
 
       <button class="profile-action support-action" type="button" onclick="openContactModal()">
         📩 Contact This Band
@@ -269,9 +284,10 @@
         <button type="submit" class="profile-action support-action">
           Send Message
         </button>
+
         <small>
-Messages submitted through BANDtroductions may be monitored for platform support and moderation purposes.
-</small>
+          Messages submitted through BANDtroductions may be monitored for platform support and moderation purposes.
+        </small>
       </div>
 
     </form>
