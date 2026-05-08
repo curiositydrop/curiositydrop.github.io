@@ -62,57 +62,57 @@
   </section>
 
   <!-- MORE VIDEOS ACCORDION -->
-  <details class="profile-details-card more-videos-accordion">
-    <summary>🎬 More Videos</summary>
+<details class="profile-details-card more-videos-accordion">
+  <summary>🎬 More Videos</summary>
 
-    <div class="more-video-grid">
+  <div class="more-video-grid">
 
-      <div class="mini-video-card">
-        <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/ChZHLuhqpS8"
-          title="Burning Time additional video 1"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
-        </div>
-        <p>Hard to Follow</p>
+    <div class="mini-video-card">
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/o_a3zRmXjf0"
+        title="Burning Time additional video 1"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
       </div>
-
-      <div class="mini-video-card">
-        <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/ChZHLuhqpS8"
-          title="Burning Time additional video 2"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
-        </div>
-        <p>More video coming soon</p>
-      </div>
-
-      <div class="mini-video-card">
-        <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/ChZHLuhqpS8"
-          title="Burning Time additional video 3"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
-        </div>
-        <p>More video coming soon</p>
-      </div>
-
-      <div class="mini-video-card">
-        <div class="video-embed">
-          <iframe src="https://www.youtube.com/embed/ChZHLuhqpS8"
-          title="Burning Time additional video 4"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
-        </div>
-        <p>More video coming soon</p>
-      </div>
-
+      <p>Burning Time — More Video</p>
     </div>
-  </details>
+
+    <div class="mini-video-card">
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/mAAIqAtM9lU"
+        title="Burning Time additional video 2"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      </div>
+      <p>Burning Time — More Video</p>
+    </div>
+
+    <div class="mini-video-card">
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/Es5BP4jGlcc"
+        title="Burning Time additional video 3"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      </div>
+      <p>Burning Time — More Video</p>
+    </div>
+
+    <div class="mini-video-card">
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/hg3FNy3xgGo"
+        title="Burning Time additional video 4"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      </div>
+      <p>Burning Time — More Video</p>
+    </div>
+
+  </div>
+</details>
 
   <section class="profile-action-card">
     <h1>Burning Time</h1>
@@ -131,10 +131,17 @@
         Vote
       </button>
 
-      <!-- SUPPORT -->
-      <button class="profile-action support-action" onclick="openSupportModal()">
-        🔥 Support
-      </button>
+      <!-- SUPPORT TEMPORARILY DISABLED -->
+<!--
+<button class="profile-action support-action" onclick="openSupportModal()">
+  🔥 Support
+</button>
+-->
+
+<button class="profile-action support-action"
+style="opacity:0.55; cursor:not-allowed; pointer-events:none;">
+  🚧 Coming Soon
+</button>
 
       <!-- SHARE -->
       <button class="profile-action share-action" onclick="navigator.share ? navigator.share({title:'Burning Time on BANDtroductions', url:window.location.href}) : navigator.clipboard.writeText(window.location.href)">
