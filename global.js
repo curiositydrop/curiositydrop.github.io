@@ -1,6 +1,6 @@
-fetch('global.html?v=1')
+fetch('global.html?v=2')
   .then(response => response.text())
-  .then(data => {
+  .then(async data => {
     const temp = document.createElement('div');
     temp.innerHTML = data;
 
@@ -12,6 +12,7 @@ fetch('global.html?v=1')
 
     if (header && headerTarget) {
       headerTarget.innerHTML = header.innerHTML;
+      await initializeAuthNavigation();
     }
 
     if (footer && footerTarget) {
@@ -21,6 +22,52 @@ fetch('global.html?v=1')
   .catch(error => {
     console.error('Error loading global header/footer:', error);
   });
+
+async function initializeAuthNavigation() {
+  const loginLink = document.getElementById('auth-login-link');
+  const accountLink = document.getElementById('auth-account-link');
+  const profileLink = document.getElementById('auth-profile-link');
+  const logoutLink = document.getElementById('auth-logout-link');
+
+  if (!loginLink || !accountLink || !profileLink || !logoutLink) return;
+
+  try {
+    const [{ auth }, { onAuthStateChanged, signOut }] = await Promise.all([
+      import('./firebase-dev.js'),
+      import('https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js')
+    ]);
+
+    onAuthStateChanged(auth, (user) => {
+      const signedIn = Boolean(user);
+      loginLink.hidden = signedIn;
+      accountLink.hidden = signedIn;
+      profileLink.hidden = !signedIn;
+      logoutLink.hidden = !signedIn;
+
+      if (user) {
+        profileLink.href = `profile.html?id=${encodeURIComponent(user.uid)}`;
+      }
+    });
+
+    logoutLink.addEventListener('click', async (event) => {
+      event.preventDefault();
+      logoutLink.textContent = 'Logging Out…';
+      logoutLink.style.pointerEvents = 'none';
+
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Could not log out:', error);
+        logoutLink.textContent = 'Log Out';
+        logoutLink.style.pointerEvents = '';
+        window.alert('You could not be logged out. Please try again.');
+      }
+    });
+  } catch (error) {
+    console.error('Error loading account navigation:', error);
+  }
+}
 
 function toggleWatchNav() {
   const nav = document.getElementById('mainNav');
@@ -59,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-/* Test community owner controls: edit and delete only the signed-in user's posts. */
+/* Test community controls: owners can edit/delete; admins can delete any post. */
 if (window.location.pathname.endsWith('/community.html')) {
   import('./post-owner-controls.js').catch((error) => {
     console.error('Error loading post owner controls:', error);
