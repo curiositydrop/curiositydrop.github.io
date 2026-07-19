@@ -29,8 +29,8 @@
 
       <label>
         Profile image URL
-        <input id="image-url" type="url" placeholder="https://...">
-        <small>Temporary until Firebase Storage uploads are enabled.</small>
+        <input id="image-url" type="text" inputmode="url" placeholder="example.com/photo.jpg">
+        <small>Temporary until Firebase Storage uploads are enabled. You may enter the address with or without https://.</small>
       </label>
 
       <label>
@@ -74,8 +74,8 @@
         <label>What brings you to BANDtroductions?<textarea id="fan-interests" rows="4" maxlength="800"></textarea></label>
       </div>
 
-      <label>Website or main link<input id="website" type="url" placeholder="https://..."></label>
-      <label>Music/video link<input id="media-link" type="url" placeholder="YouTube, Spotify, Bandcamp, etc."></label>
+      <label>Website or main link<input id="website" type="text" inputmode="url" placeholder="bandtroductions.com"></label>
+      <label>Music/video link<input id="media-link" type="text" inputmode="url" placeholder="YouTube, Spotify, Bandcamp, etc."></label>
 
       <button id="save-button" class="auth-button" type="submit">Save & Publish Profile</button>
       <p id="setup-status" class="auth-message" role="status"></p>
@@ -97,6 +97,11 @@
     let accountType;
 
     const value = (id) => document.getElementById(id)?.value.trim() || '';
+    const normalizeUrl = (raw) => {
+      const url = raw.trim();
+      if (!url) return '';
+      return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    };
 
     function showFields(type) {
       document.querySelectorAll('.account-fields').forEach((section) => section.hidden = true);
@@ -128,12 +133,20 @@
         message.textContent = `Build and publish your ${accountType} profile. You can return and edit it anytime.`;
         showFields(accountType);
 
-        const profileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
-        fillProfile(profileSnapshot.exists() ? profileSnapshot.data() : { displayName: userData.displayName || user.displayName || '' });
+        let existingProfile = { displayName: userData.displayName || user.displayName || '' };
+        try {
+          const profileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
+          if (profileSnapshot.exists()) existingProfile = profileSnapshot.data();
+        } catch (profileError) {
+          if (profileError.code !== 'permission-denied') throw profileError;
+        }
+
+        fillProfile(existingProfile);
         form.hidden = false;
+        status.textContent = '';
       } catch (error) {
         console.error(error);
-        status.textContent = 'We could not load your profile information.';
+        status.textContent = 'We could not load your account information.';
       }
     });
 
@@ -149,7 +162,7 @@
         accountType,
         displayName: value('display-name'),
         location: value('location'),
-        imageUrl: value('image-url'),
+        imageUrl: normalizeUrl(value('image-url')),
         bio: value('bio'),
         genre: value('genre'),
         yearFormed: value('year-formed'),
@@ -163,8 +176,8 @@
         venueBooking: value('venue-booking'),
         favoriteGenres: value('favorite-genres'),
         fanInterests: value('fan-interests'),
-        website: value('website'),
-        mediaLink: value('media-link'),
+        website: normalizeUrl(value('website')),
+        mediaLink: normalizeUrl(value('media-link')),
         published: true,
         updatedAt: serverTimestamp()
       };
