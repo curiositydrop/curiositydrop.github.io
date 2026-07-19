@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=3">
+  <link rel="stylesheet" href="auth.css?v=5">
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
@@ -50,8 +50,9 @@
           <input id="post-link" type="text" maxlength="500" placeholder="bandtroductions.com or https://...">
         </label>
         <label>
-          Optional image URL
-          <input id="post-image" type="text" maxlength="1000" placeholder="https://...">
+          Image upload
+          <input id="post-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled>
+          <small>Prepared for Firebase Storage. Uploading becomes available when Storage is activated.</small>
         </label>
       </div>
 
@@ -60,9 +61,9 @@
     </section>
 
     <section id="guest-prompt" class="auth-form community-guest" hidden>
-      <p>You can browse every public post as a guest.</p>
+      <p>You can browse every public post and comment as a guest.</p>
       <div class="community-actions">
-        <a class="auth-button" href="login.html">Log In to Post</a>
+        <a class="auth-button" href="login.html">Log In to Join In</a>
         <a class="auth-button auth-button-secondary" href="signup.html">Create an Account</a>
       </div>
     </section>
@@ -115,6 +116,7 @@
     let currentUser = null;
     let currentProfile = null;
     let posts = [];
+    let commentUnsubscribers = [];
 
     const normalizeUrl = (raw) => {
       const trimmed = (raw || '').trim();
@@ -129,12 +131,143 @@
       }).format(timestamp.toDate());
     };
 
+    function buildSharedProfileCard(post) {
+      if (!post.sharedProfile) return null;
+      const shared = post.sharedProfile;
+      const card = document.createElement('a');
+      card.className = 'shared-profile-card';
+      card.href = `profile.html?id=${encodeURIComponent(shared.id)}`;
+
+      if (shared.imageUrl) {
+        const image = document.createElement('img');
+        image.src = shared.imageUrl;
+        image.alt = '';
+        image.loading = 'lazy';
+        card.appendChild(image);
+      }
+
+      const copy = document.createElement('div');
+      const type = document.createElement('span');
+      type.textContent = (shared.accountType || 'profile').toUpperCase();
+      const name = document.createElement('strong');
+      name.textContent = shared.displayName || 'BANDtroductions Profile';
+      const meta = document.createElement('p');
+      meta.textContent = [shared.genre, shared.location].filter(Boolean).join(' • ');
+      copy.append(type, name, meta);
+      card.appendChild(copy);
+      return card;
+    }
+
+    function buildComments(post, article) {
+      const section = document.createElement('section');
+      section.className = 'post-comments';
+
+      const heading = document.createElement('strong');
+      heading.textContent = 'Comments';
+      section.appendChild(heading);
+
+      const list = document.createElement('div');
+      list.className = 'comment-list';
+      list.innerHTML = '<p class="community-post-meta">Loading comments…</p>';
+      section.appendChild(list);
+
+      if (currentUser && currentProfile) {
+        const form = document.createElement('form');
+        form.className = 'comment-form';
+        const input = document.createElement('textarea');
+        input.rows = 2;
+        input.maxLength = 1000;
+        input.placeholder = 'Add a music-related comment...';
+        input.required = true;
+        const button = document.createElement('button');
+        button.className = 'auth-button';
+        button.type = 'submit';
+        button.textContent = 'Comment';
+        const message = document.createElement('p');
+        message.className = 'auth-message';
+        form.append(input, button, message);
+
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const content = input.value.trim();
+          if (!content) return;
+          button.disabled = true;
+          message.textContent = 'Posting comment…';
+          try {
+            await addDoc(collection(db, 'posts', post.id, 'comments'), {
+              postId: post.id,
+              authorId: currentUser.uid,
+              authorName: currentProfile.displayName || currentUser.displayName || 'BANDtroductions Member',
+              accountType: currentProfile.accountType || 'member',
+              content,
+              published: true,
+              createdAt: serverTimestamp()
+            });
+            input.value = '';
+            message.textContent = '';
+          } catch (error) {
+            console.error(error);
+            message.textContent = error.code === 'permission-denied'
+              ? 'Comment permissions are not enabled yet.'
+              : 'Your comment could not be posted.';
+          } finally {
+            button.disabled = false;
+          }
+        });
+        section.appendChild(form);
+      } else {
+        const loginNote = document.createElement('p');
+        loginNote.className = 'community-post-meta';
+        loginNote.innerHTML = '<a href="login.html">Log in</a> to comment.';
+        section.appendChild(loginNote);
+      }
+
+      article.appendChild(section);
+
+      const commentsQuery = query(collection(db, 'posts', post.id, 'comments'), orderBy('createdAt', 'asc'));
+      const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+        list.replaceChildren();
+        if (snapshot.empty) {
+          const empty = document.createElement('p');
+          empty.className = 'community-post-meta';
+          empty.textContent = 'No comments yet.';
+          list.appendChild(empty);
+          return;
+        }
+        snapshot.forEach((commentDoc) => {
+          const comment = commentDoc.data();
+          const item = document.createElement('div');
+          item.className = 'comment-item';
+          const top = document.createElement('div');
+          top.className = 'comment-top';
+          const author = document.createElement('a');
+          author.href = `profile.html?id=${encodeURIComponent(comment.authorId)}`;
+          author.textContent = comment.authorName || 'Member';
+          const meta = document.createElement('span');
+          meta.textContent = `${comment.accountType || 'member'} • ${formatDate(comment.createdAt)}`;
+          top.append(author, meta);
+          const body = document.createElement('p');
+          body.textContent = comment.content || '';
+          item.append(top, body);
+          list.appendChild(item);
+        });
+      }, (error) => {
+        console.error(error);
+        list.innerHTML = '<p class="auth-message">Comments could not be loaded.</p>';
+      });
+      commentUnsubscribers.push(unsubscribe);
+    }
+
     function renderFeed() {
+      commentUnsubscribers.forEach((unsubscribe) => unsubscribe());
+      commentUnsubscribers = [];
+
       const term = searchInput.value.trim().toLowerCase();
       const filter = filterInput.value;
       const visible = posts.filter((post) => {
         const categoryMatch = filter === 'all' || post.accountType === filter || post.category === filter;
-        const haystack = [post.authorName, post.accountType, post.category, post.content].join(' ').toLowerCase();
+        const sharedText = post.sharedProfile ? Object.values(post.sharedProfile).join(' ') : '';
+        const haystack = [post.authorName, post.accountType, post.category, post.content, sharedText].join(' ').toLowerCase();
         return categoryMatch && (!term || haystack.includes(term));
       });
 
@@ -152,12 +285,10 @@
 
         const header = document.createElement('div');
         header.className = 'community-post-header';
-
         const author = document.createElement('a');
         author.className = 'community-author';
         author.href = `profile.html?id=${encodeURIComponent(post.authorId)}`;
         author.textContent = post.authorName || 'BANDtroductions Member';
-
         const meta = document.createElement('div');
         meta.className = 'community-post-meta';
         meta.textContent = `${post.accountType || 'member'} • ${post.category || 'general'} • ${formatDate(post.createdAt)}`;
@@ -166,8 +297,10 @@
         const body = document.createElement('p');
         body.className = 'community-post-body';
         body.textContent = post.content || '';
-
         article.append(header, body);
+
+        const sharedCard = buildSharedProfileCard(post);
+        if (sharedCard) article.appendChild(sharedCard);
 
         if (post.imageUrl) {
           const image = document.createElement('img');
@@ -178,7 +311,7 @@
           article.appendChild(image);
         }
 
-        if (post.linkUrl) {
+        if (post.linkUrl && !sharedCard) {
           const link = document.createElement('a');
           link.className = 'auth-button community-post-link';
           link.href = post.linkUrl;
@@ -188,10 +321,7 @@
           article.appendChild(link);
         }
 
-        const footer = document.createElement('div');
-        footer.className = 'community-post-footer';
-        footer.innerHTML = '<span>Comments coming next</span><span>Post stays permanently on the creator’s profile</span>';
-        article.appendChild(footer);
+        buildComments(post, article);
         feed.appendChild(article);
       });
     }
@@ -199,8 +329,10 @@
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       if (!user) {
+        currentProfile = null;
         composer.hidden = true;
         guestPrompt.hidden = false;
+        renderFeed();
         return;
       }
 
@@ -213,6 +345,7 @@
         document.getElementById('composer-profile-link').href = `profile.html?id=${encodeURIComponent(user.uid)}`;
         composer.hidden = false;
         guestPrompt.hidden = true;
+        renderFeed();
       } catch (error) {
         console.error(error);
         composerStatus.textContent = 'Your profile could not be loaded for posting.';
@@ -230,7 +363,6 @@
       const button = document.getElementById('publish-post');
       button.disabled = true;
       composerStatus.textContent = 'Publishing…';
-
       try {
         await addDoc(collection(db, 'posts'), {
           authorId: currentUser.uid,
@@ -239,14 +371,13 @@
           category: document.getElementById('post-category').value,
           content,
           linkUrl: normalizeUrl(document.getElementById('post-link').value),
-          imageUrl: normalizeUrl(document.getElementById('post-image').value),
+          imageUrl: '',
           published: true,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
         document.getElementById('post-content').value = '';
         document.getElementById('post-link').value = '';
-        document.getElementById('post-image').value = '';
         composerStatus.textContent = 'Posted. It is now in the chronological feed.';
       } catch (error) {
         console.error(error);
