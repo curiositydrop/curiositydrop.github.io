@@ -1,7 +1,7 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import {
-  collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc
+  collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const style = document.createElement('style');
@@ -20,6 +20,7 @@ style.textContent = `
 document.head.appendChild(style);
 
 let currentUser = null;
+let currentUserIsAdmin = false;
 let posts = [];
 
 const normalizeUrl = (raw) => {
@@ -117,7 +118,11 @@ function addOwnerControls() {
   document.querySelectorAll('.community-post').forEach((article) => {
     if (article.dataset.ownerControlsReady === 'true') return;
     const post = findPostForArticle(article);
-    if (!post || !currentUser || post.authorId !== currentUser.uid) return;
+    if (!post || !currentUser) return;
+
+    const isOwner = post.authorId === currentUser.uid;
+    const canDelete = isOwner || currentUserIsAdmin;
+    if (!isOwner && !canDelete) return;
 
     article.dataset.ownerControlsReady = 'true';
     const header = article.querySelector('.community-post-header');
@@ -126,52 +131,70 @@ function addOwnerControls() {
     const controls = document.createElement('div');
     controls.className = 'post-owner-controls';
 
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'post-owner-button';
-    edit.textContent = 'Edit';
+    if (isOwner) {
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'post-owner-button';
+      edit.textContent = 'Edit';
+      edit.addEventListener('click', () => buildEditor(article, post, controls));
+      controls.appendChild(edit);
+    }
 
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'post-owner-button delete';
-    remove.textContent = 'Delete';
+    if (canDelete) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'post-owner-button delete';
+      remove.textContent = currentUserIsAdmin && !isOwner ? 'Admin Delete' : 'Delete';
 
-    controls.append(edit, remove);
+      remove.addEventListener('click', async () => {
+        const confirmed = window.confirm('Delete this post permanently? This cannot be undone.');
+        if (!confirmed) return;
+        remove.disabled = true;
+        try {
+          await deleteDoc(doc(db, 'posts', post.id));
+        } catch (error) {
+          console.error(error);
+          window.alert(error.code === 'permission-denied'
+            ? 'Post-delete permissions are not enabled yet.'
+            : 'The post could not be deleted.');
+          remove.disabled = false;
+        }
+      });
+      controls.appendChild(remove);
+    }
+
     header.appendChild(controls);
-
-    edit.addEventListener('click', () => buildEditor(article, post, controls));
-
-    remove.addEventListener('click', async () => {
-      const confirmed = window.confirm('Delete this post permanently? This cannot be undone.');
-      if (!confirmed) return;
-      remove.disabled = true;
-      try {
-        await deleteDoc(doc(db, 'posts', post.id));
-      } catch (error) {
-        console.error(error);
-        window.alert(error.code === 'permission-denied'
-          ? 'Post-delete permissions are not enabled yet.'
-          : 'The post could not be deleted.');
-        remove.disabled = false;
-      }
-    });
   });
+}
+
+function resetControls() {
+  document.querySelectorAll('.post-owner-controls, .post-owner-editor').forEach((item) => item.remove());
+  document.querySelectorAll('.community-post').forEach((item) => delete item.dataset.ownerControlsReady);
+  addOwnerControls();
 }
 
 const observer = new MutationObserver(() => addOwnerControls());
 const feed = document.getElementById('feed');
 if (feed) observer.observe(feed, { childList: true, subtree: true });
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user;
-  document.querySelectorAll('.post-owner-controls, .post-owner-editor').forEach((item) => item.remove());
-  document.querySelectorAll('.community-post').forEach((item) => delete item.dataset.ownerControlsReady);
-  addOwnerControls();
+  currentUserIsAdmin = false;
+
+  if (user) {
+    try {
+      const adminSnapshot = await getDoc(doc(db, 'admins', user.uid));
+      currentUserIsAdmin = adminSnapshot.exists();
+    } catch (error) {
+      console.error('Could not check admin status:', error);
+    }
+  }
+
+  resetControls();
 });
 
 const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
 onSnapshot(postsQuery, (snapshot) => {
   posts = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-  document.querySelectorAll('.community-post').forEach((item) => delete item.dataset.ownerControlsReady);
-  addOwnerControls();
+  resetControls();
 });
