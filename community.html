@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=5">
+  <link rel="stylesheet" href="auth.css?v=6">
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
@@ -102,7 +102,8 @@
     import { auth, db } from './firebase-dev.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import {
-      addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp
+      addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query,
+      serverTimestamp, setDoc
     } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
     const composer = document.getElementById('post-composer');
@@ -117,6 +118,7 @@
     let currentProfile = null;
     let posts = [];
     let commentUnsubscribers = [];
+    let reactionUnsubscribers = [];
 
     const normalizeUrl = (raw) => {
       const trimmed = (raw || '').trim();
@@ -156,6 +158,66 @@
       copy.append(type, name, meta);
       card.appendChild(copy);
       return card;
+    }
+
+    function buildReactions(post, article) {
+      const row = document.createElement('div');
+      row.className = 'post-reactions';
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'rock-on-button';
+      button.disabled = !currentUser;
+      button.title = currentUser ? 'Rock On' : 'Log in to react';
+
+      const label = document.createElement('span');
+      label.textContent = '🤘 Rock On';
+      const count = document.createElement('span');
+      count.textContent = '0';
+      button.append(label, count);
+
+      const status = document.createElement('p');
+      status.className = 'auth-message reaction-status';
+      row.append(button, status);
+      article.appendChild(row);
+
+      const reactionsRef = collection(db, 'posts', post.id, 'reactions');
+      const unsubscribe = onSnapshot(reactionsRef, (snapshot) => {
+        count.textContent = String(snapshot.size);
+        const reacted = currentUser ? snapshot.docs.some((item) => item.id === currentUser.uid) : false;
+        button.classList.toggle('is-active', reacted);
+        button.setAttribute('aria-pressed', reacted ? 'true' : 'false');
+        button.dataset.reacted = reacted ? 'true' : 'false';
+      }, (error) => {
+        console.error(error);
+        status.textContent = 'Reactions could not be loaded.';
+      });
+      reactionUnsubscribers.push(unsubscribe);
+
+      button.addEventListener('click', async () => {
+        if (!currentUser) return;
+        button.disabled = true;
+        status.textContent = '';
+        const reactionRef = doc(db, 'posts', post.id, 'reactions', currentUser.uid);
+        try {
+          if (button.dataset.reacted === 'true') {
+            await deleteDoc(reactionRef);
+          } else {
+            await setDoc(reactionRef, {
+              userId: currentUser.uid,
+              authorName: currentProfile?.displayName || currentUser.displayName || 'BANDtroductions Member',
+              createdAt: serverTimestamp()
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          status.textContent = error.code === 'permission-denied'
+            ? 'Reaction permissions are not enabled yet.'
+            : 'Your reaction could not be saved.';
+        } finally {
+          button.disabled = false;
+        }
+      });
     }
 
     function buildComments(post, article) {
@@ -261,6 +323,8 @@
     function renderFeed() {
       commentUnsubscribers.forEach((unsubscribe) => unsubscribe());
       commentUnsubscribers = [];
+      reactionUnsubscribers.forEach((unsubscribe) => unsubscribe());
+      reactionUnsubscribers = [];
 
       const term = searchInput.value.trim().toLowerCase();
       const filter = filterInput.value;
@@ -321,6 +385,7 @@
           article.appendChild(link);
         }
 
+        buildReactions(post, article);
         buildComments(post, article);
         feed.appendChild(article);
       });
