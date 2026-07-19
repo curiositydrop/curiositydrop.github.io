@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile | BANDtroductions</title>
+  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="auth.css?v=2">
+</head>
+<body class="hamburger-active auth-page">
+  <div id="global-header"></div>
+
+  <main class="auth-shell auth-shell-wide">
+    <section id="profile-card" class="auth-form" hidden>
+      <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+        <img id="profile-image" alt="Profile image" hidden style="width:150px;height:150px;object-fit:cover;border-radius:18px;border:1px solid #00c8b4;">
+        <div>
+          <p id="profile-type" class="profile-meta" style="text-transform:uppercase;letter-spacing:.08em;color:#00c8b4;font-weight:800;"></p>
+          <h1 id="profile-name" style="margin:0 0 8px;"></h1>
+          <p id="profile-location" class="auth-subtitle" style="margin:0;"></p>
+        </div>
+      </div>
+
+      <div style="margin-top:30px;">
+        <h2>About</h2>
+        <p id="profile-bio" style="white-space:pre-wrap;line-height:1.7;"></p>
+      </div>
+
+      <div id="profile-details" class="profile-details-grid" style="margin-top:28px;"></div>
+      <div id="profile-links" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;"></div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;">
+        <a id="edit-profile" class="auth-button" href="profile-setup.html" hidden style="text-decoration:none;justify-content:center;">Edit Profile</a>
+        <a class="auth-button auth-button-secondary" href="index.html" style="text-decoration:none;justify-content:center;">Back to Community</a>
+      </div>
+    </section>
+
+    <p id="profile-status" class="auth-message">Loading profile…</p>
+  </main>
+
+  <div id="global-footer"></div>
+  <script src="global.js?v=2"></script>
+  <script type="module">
+    import { auth, db } from './firebase-dev.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const profileId = params.get('id');
+    const card = document.getElementById('profile-card');
+    const status = document.getElementById('profile-status');
+
+    const labels = {
+      genre: 'Genre', yearFormed: 'Year formed', members: 'Members', bookingEmail: 'Booking',
+      instruments: 'Instrument(s)', experience: 'Experience', lookingForBand: 'Looking for a band',
+      capacity: 'Capacity', venueType: 'Venue type', venueBooking: 'Booking information',
+      favoriteGenres: 'Favorite genres', fanInterests: 'Interests'
+    };
+
+    function addDetail(label, value) {
+      if (!value) return;
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:16px;border:1px solid rgba(0,200,180,.28);border-radius:14px;background:#111;';
+      const heading = document.createElement('strong');
+      heading.textContent = label;
+      heading.style.display = 'block';
+      heading.style.color = '#00c8b4';
+      heading.style.marginBottom = '6px';
+      const text = document.createElement('span');
+      text.textContent = value;
+      item.append(heading, text);
+      document.getElementById('profile-details').appendChild(item);
+    }
+
+    function addLink(label, url) {
+      if (!url) return;
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.className = 'auth-button';
+      link.style.textDecoration = 'none';
+      link.textContent = label;
+      document.getElementById('profile-links').appendChild(link);
+    }
+
+    async function loadProfile(user) {
+      if (!profileId) {
+        status.textContent = 'No profile was selected.';
+        return;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, 'profiles', profileId));
+        if (!snapshot.exists() || snapshot.data().published !== true) {
+          status.textContent = 'This profile is not available.';
+          return;
+        }
+
+        const data = snapshot.data();
+        document.title = `${data.displayName} | BANDtroductions`;
+        document.getElementById('profile-name').textContent = data.displayName || 'BANDtroductions Member';
+        document.getElementById('profile-type').textContent = data.accountType || 'member';
+        document.getElementById('profile-location').textContent = data.location || '';
+        document.getElementById('profile-bio').textContent = data.bio || '';
+
+        if (data.imageUrl) {
+          const image = document.getElementById('profile-image');
+          image.src = data.imageUrl;
+          image.hidden = false;
+        }
+
+        Object.entries(labels).forEach(([key, label]) => addDetail(label, data[key]));
+        addLink('Visit Website', data.website);
+        addLink('Music / Video', data.mediaLink);
+
+        if (user && user.uid === profileId) document.getElementById('edit-profile').hidden = false;
+        status.hidden = true;
+        card.hidden = false;
+      } catch (error) {
+        console.error(error);
+        status.textContent = 'We could not load this profile.';
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => loadProfile(user));
+  </script>
+</body>
+</html>
