@@ -50,11 +50,27 @@
     const card = document.getElementById('profile-card');
     const status = document.getElementById('profile-status');
 
-    const labels = {
-      genre: 'Genre', yearFormed: 'Year formed', members: 'Members', bookingEmail: 'Booking',
-      instruments: 'Instrument(s)', experience: 'Experience', lookingForBand: 'Looking for a band',
-      capacity: 'Capacity', venueType: 'Venue type', venueBooking: 'Booking information',
-      favoriteGenres: 'Favorite genres', fanInterests: 'Interests'
+    const detailGroups = {
+      band: [
+        ['genre', 'Genre'],
+        ['yearFormed', 'Year formed'],
+        ['members', 'Members'],
+        ['bookingEmail', 'Booking']
+      ],
+      musician: [
+        ['instruments', 'Instrument(s)'],
+        ['experience', 'Experience'],
+        ['lookingForBand', 'Looking for a band']
+      ],
+      venue: [
+        ['capacity', 'Capacity'],
+        ['venueType', 'Venue type'],
+        ['venueBooking', 'Booking information']
+      ],
+      fan: [
+        ['favoriteGenres', 'Favorite genres'],
+        ['fanInterests', 'Interests']
+      ]
     };
 
     function addDetail(label, value) {
@@ -98,9 +114,10 @@
         }
 
         const data = snapshot.data();
+        const accountType = data.accountType || 'fan';
         document.title = `${data.displayName} | BANDtroductions`;
         document.getElementById('profile-name').textContent = data.displayName || 'BANDtroductions Member';
-        document.getElementById('profile-type').textContent = data.accountType || 'member';
+        document.getElementById('profile-type').textContent = accountType;
         document.getElementById('profile-location').textContent = data.location || '';
         document.getElementById('profile-bio').textContent = data.bio || '';
 
@@ -110,7 +127,7 @@
           image.hidden = false;
         }
 
-        Object.entries(labels).forEach(([key, label]) => addDetail(label, data[key]));
+        (detailGroups[accountType] || []).forEach(([key, label]) => addDetail(label, data[key]));
         addLink('Visit Website', data.website);
         addLink('Music / Video', data.mediaLink);
 
