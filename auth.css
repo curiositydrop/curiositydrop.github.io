@@ -73,6 +73,16 @@ body.auth-page {
 .shared-profile-card strong { font-size: 1.2rem; }
 .shared-profile-card p { margin: 0; color: #aaa; }
 
+.post-reactions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+.rock-on-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px;
+  border: 1px solid #3d3d3d; border-radius: 999px; background: #0d0d0d; color: #ddd;
+  font: inherit; font-weight: 900; cursor: pointer;
+}
+.rock-on-button:hover, .rock-on-button.is-active { border-color: #00c8b4; color: #00c8b4; background: rgba(0,200,180,.08); }
+.rock-on-button:disabled { opacity: .6; cursor: wait; }
+.reaction-status { margin: 0; min-height: 0; font-size: .82rem; }
+
 .post-comments { display: grid; gap: 14px; margin-top: 10px; padding-top: 18px; border-top: 1px solid #333; }
 .comment-list { display: grid; gap: 10px; }
 .comment-item { padding: 12px 14px; background: #0d0d0d; border-radius: 13px; border: 1px solid #2d2d2d; }
