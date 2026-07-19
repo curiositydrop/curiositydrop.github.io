@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community | BANDtroductions</title>
+  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="auth.css?v=3">
+</head>
+<body class="hamburger-active auth-page">
+  <div id="global-header"></div>
+
+  <main class="auth-shell auth-shell-wide community-shell">
+    <section class="community-intro">
+      <p class="profile-meta">THE BANDtroductions COMMUNITY</p>
+      <h1>Community Feed</h1>
+      <p class="auth-subtitle">Newest first. No algorithm deciding who deserves to be seen. Every post remains attached to its creator.</p>
+    </section>
+
+    <section id="post-composer" class="auth-form community-composer" hidden>
+      <div class="community-composer-heading">
+        <div>
+          <strong id="composer-name">Create a post</strong>
+          <p id="composer-type" class="profile-meta"></p>
+        </div>
+        <a id="composer-profile-link" href="#">View my profile</a>
+      </div>
+
+      <label>
+        Post category
+        <select id="post-category">
+          <option value="general">General</option>
+          <option value="release">Release</option>
+          <option value="show">Show / Event</option>
+          <option value="video">Video</option>
+          <option value="radio">Radio</option>
+          <option value="btv">BTV</option>
+          <option value="shared-profile">Shared Profile</option>
+        </select>
+      </label>
+
+      <label>
+        What do you want to share?
+        <textarea id="post-content" rows="5" maxlength="3000" placeholder="Post something music-related..." required></textarea>
+      </label>
+
+      <div class="auth-grid">
+        <label>
+          Optional link
+          <input id="post-link" type="text" maxlength="500" placeholder="bandtroductions.com or https://...">
+        </label>
+        <label>
+          Optional image URL
+          <input id="post-image" type="text" maxlength="1000" placeholder="https://...">
+        </label>
+      </div>
+
+      <button id="publish-post" class="auth-button" type="button">Publish Post</button>
+      <p id="composer-status" class="auth-message" role="status"></p>
+    </section>
+
+    <section id="guest-prompt" class="auth-form community-guest" hidden>
+      <p>You can browse every public post as a guest.</p>
+      <div class="community-actions">
+        <a class="auth-button" href="login.html">Log In to Post</a>
+        <a class="auth-button auth-button-secondary" href="signup.html">Create an Account</a>
+      </div>
+    </section>
+
+    <section class="community-tools auth-form">
+      <label>
+        Search posts
+        <input id="feed-search" type="search" placeholder="Search names, posts, genres, releases...">
+      </label>
+      <label>
+        Show
+        <select id="feed-filter">
+          <option value="all">All</option>
+          <option value="band">Bands</option>
+          <option value="musician">Musicians</option>
+          <option value="venue">Venues</option>
+          <option value="fan">Fans</option>
+          <option value="release">Releases</option>
+          <option value="show">Shows</option>
+          <option value="video">Videos</option>
+          <option value="radio">Radio</option>
+          <option value="btv">BTV</option>
+          <option value="shared-profile">Shared Profiles</option>
+        </select>
+      </label>
+      <div class="community-sort-note">Sorted: <strong>Newest first</strong></div>
+    </section>
+
+    <section id="feed" class="community-feed" aria-live="polite"></section>
+    <p id="feed-status" class="auth-message">Loading the community feed…</p>
+  </main>
+
+  <div id="global-footer"></div>
+  <script src="global.js?v=2"></script>
+  <script type="module">
+    import { auth, db } from './firebase-dev.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import {
+      addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+    const composer = document.getElementById('post-composer');
+    const guestPrompt = document.getElementById('guest-prompt');
+    const composerStatus = document.getElementById('composer-status');
+    const feedStatus = document.getElementById('feed-status');
+    const feed = document.getElementById('feed');
+    const searchInput = document.getElementById('feed-search');
+    const filterInput = document.getElementById('feed-filter');
+
+    let currentUser = null;
+    let currentProfile = null;
+    let posts = [];
+
+    const normalizeUrl = (raw) => {
+      const trimmed = (raw || '').trim();
+      if (!trimmed) return '';
+      return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    };
+
+    const formatDate = (timestamp) => {
+      if (!timestamp?.toDate) return 'Just now';
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+      }).format(timestamp.toDate());
+    };
+
+    function renderFeed() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filter = filterInput.value;
+      const visible = posts.filter((post) => {
+        const categoryMatch = filter === 'all' || post.accountType === filter || post.category === filter;
+        const haystack = [post.authorName, post.accountType, post.category, post.content].join(' ').toLowerCase();
+        return categoryMatch && (!term || haystack.includes(term));
+      });
+
+      feed.replaceChildren();
+      if (!visible.length) {
+        feedStatus.hidden = false;
+        feedStatus.textContent = posts.length ? 'No posts match those filters.' : 'No posts yet. Be the first to post.';
+        return;
+      }
+
+      feedStatus.hidden = true;
+      visible.forEach((post) => {
+        const article = document.createElement('article');
+        article.className = 'community-post auth-form';
+
+        const header = document.createElement('div');
+        header.className = 'community-post-header';
+
+        const author = document.createElement('a');
+        author.className = 'community-author';
+        author.href = `profile.html?id=${encodeURIComponent(post.authorId)}`;
+        author.textContent = post.authorName || 'BANDtroductions Member';
+
+        const meta = document.createElement('div');
+        meta.className = 'community-post-meta';
+        meta.textContent = `${post.accountType || 'member'} • ${post.category || 'general'} • ${formatDate(post.createdAt)}`;
+        header.append(author, meta);
+
+        const body = document.createElement('p');
+        body.className = 'community-post-body';
+        body.textContent = post.content || '';
+
+        article.append(header, body);
+
+        if (post.imageUrl) {
+          const image = document.createElement('img');
+          image.className = 'community-post-image';
+          image.src = post.imageUrl;
+          image.alt = '';
+          image.loading = 'lazy';
+          article.appendChild(image);
+        }
+
+        if (post.linkUrl) {
+          const link = document.createElement('a');
+          link.className = 'auth-button community-post-link';
+          link.href = post.linkUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = 'Open Link';
+          article.appendChild(link);
+        }
+
+        const footer = document.createElement('div');
+        footer.className = 'community-post-footer';
+        footer.innerHTML = '<span>Comments coming next</span><span>Post stays permanently on the creator’s profile</span>';
+        article.appendChild(footer);
+        feed.appendChild(article);
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (!user) {
+        composer.hidden = true;
+        guestPrompt.hidden = false;
+        return;
+      }
+
+      try {
+        const profileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
+        const userSnapshot = await getDoc(doc(db, 'users', user.uid));
+        currentProfile = profileSnapshot.exists() ? profileSnapshot.data() : (userSnapshot.exists() ? userSnapshot.data() : {});
+        document.getElementById('composer-name').textContent = currentProfile.displayName || user.displayName || 'Create a post';
+        document.getElementById('composer-type').textContent = currentProfile.accountType || 'member';
+        document.getElementById('composer-profile-link').href = `profile.html?id=${encodeURIComponent(user.uid)}`;
+        composer.hidden = false;
+        guestPrompt.hidden = true;
+      } catch (error) {
+        console.error(error);
+        composerStatus.textContent = 'Your profile could not be loaded for posting.';
+      }
+    });
+
+    document.getElementById('publish-post').addEventListener('click', async () => {
+      if (!currentUser || !currentProfile) return;
+      const content = document.getElementById('post-content').value.trim();
+      if (!content) {
+        composerStatus.textContent = 'Write something before publishing.';
+        return;
+      }
+
+      const button = document.getElementById('publish-post');
+      button.disabled = true;
+      composerStatus.textContent = 'Publishing…';
+
+      try {
+        await addDoc(collection(db, 'posts'), {
+          authorId: currentUser.uid,
+          authorName: currentProfile.displayName || currentUser.displayName || 'BANDtroductions Member',
+          accountType: currentProfile.accountType || 'member',
+          category: document.getElementById('post-category').value,
+          content,
+          linkUrl: normalizeUrl(document.getElementById('post-link').value),
+          imageUrl: normalizeUrl(document.getElementById('post-image').value),
+          published: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        document.getElementById('post-content').value = '';
+        document.getElementById('post-link').value = '';
+        document.getElementById('post-image').value = '';
+        composerStatus.textContent = 'Posted. It is now in the chronological feed.';
+      } catch (error) {
+        console.error(error);
+        composerStatus.textContent = error.code === 'permission-denied'
+          ? 'Post permissions are not enabled yet.'
+          : 'Your post could not be published.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    onSnapshot(postsQuery, (snapshot) => {
+      posts = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+      renderFeed();
+    }, (error) => {
+      console.error(error);
+      feedStatus.hidden = false;
+      feedStatus.textContent = error.code === 'permission-denied'
+        ? 'Community-feed permissions are not enabled yet.'
+        : 'The community feed could not be loaded.';
+    });
+
+    searchInput.addEventListener('input', renderFeed);
+    filterInput.addEventListener('change', renderFeed);
+  </script>
+</body>
+</html>
