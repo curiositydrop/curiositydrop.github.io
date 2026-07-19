@@ -58,3 +58,10 @@ document.addEventListener('DOMContentLoaded', function () {
     featuredPopup.style.display = 'none';
   }
 });
+
+/* Test community owner controls: edit and delete only the signed-in user's posts. */
+if (window.location.pathname.endsWith('/community.html')) {
+  import('./post-owner-controls.js').catch((error) => {
+    console.error('Error loading post owner controls:', error);
+  });
+}
