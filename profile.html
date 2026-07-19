@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=2">
+  <link rel="stylesheet" href="auth.css?v=5">
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
@@ -31,8 +31,21 @@
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;">
         <a id="edit-profile" class="auth-button" href="profile-setup.html" hidden style="text-decoration:none;justify-content:center;">Edit Profile</a>
-        <a class="auth-button auth-button-secondary" href="index.html" style="text-decoration:none;justify-content:center;">Back to Community</a>
+        <button id="share-profile" class="auth-button" type="button" hidden>Share to BANDtroductions</button>
+        <a class="auth-button auth-button-secondary" href="community.html" style="text-decoration:none;justify-content:center;">Back to Community</a>
       </div>
+
+      <section id="share-panel" class="share-panel" hidden>
+        <label>
+          Add a message
+          <textarea id="share-message" rows="3" maxlength="1000" placeholder="Tell the community why they should check out this profile..."></textarea>
+        </label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button id="confirm-share" class="auth-button" type="button">Post to Community</button>
+          <button id="cancel-share" class="auth-button auth-button-secondary" type="button">Cancel</button>
+        </div>
+        <p id="share-status" class="auth-message" role="status"></p>
+      </section>
     </section>
 
     <p id="profile-status" class="auth-message">Loading profile…</p>
@@ -43,34 +56,24 @@
   <script type="module">
     import { auth, db } from './firebase-dev.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { addDoc, collection, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
     const params = new URLSearchParams(window.location.search);
     const profileId = params.get('id');
     const card = document.getElementById('profile-card');
     const status = document.getElementById('profile-status');
+    const shareButton = document.getElementById('share-profile');
+    const sharePanel = document.getElementById('share-panel');
+    const shareStatus = document.getElementById('share-status');
+    let loadedProfile = null;
+    let signedInUser = null;
+    let signedInProfile = null;
 
     const detailGroups = {
-      band: [
-        ['genre', 'Genre'],
-        ['yearFormed', 'Year formed'],
-        ['members', 'Members'],
-        ['bookingEmail', 'Booking']
-      ],
-      musician: [
-        ['instruments', 'Instrument(s)'],
-        ['experience', 'Experience'],
-        ['lookingForBand', 'Looking for a band']
-      ],
-      venue: [
-        ['capacity', 'Capacity'],
-        ['venueType', 'Venue type'],
-        ['venueBooking', 'Booking information']
-      ],
-      fan: [
-        ['favoriteGenres', 'Favorite genres'],
-        ['fanInterests', 'Interests']
-      ]
+      band: [['genre', 'Genre'], ['yearFormed', 'Year formed'], ['members', 'Members'], ['bookingEmail', 'Booking']],
+      musician: [['instruments', 'Instrument(s)'], ['experience', 'Experience'], ['lookingForBand', 'Looking for a band']],
+      venue: [['capacity', 'Capacity'], ['venueType', 'Venue type'], ['venueBooking', 'Booking information']],
+      fan: [['favoriteGenres', 'Favorite genres'], ['fanInterests', 'Interests']]
     };
 
     function addDetail(label, value) {
@@ -101,6 +104,7 @@
     }
 
     async function loadProfile(user) {
+      signedInUser = user;
       if (!profileId) {
         status.textContent = 'No profile was selected.';
         return;
@@ -113,25 +117,32 @@
           return;
         }
 
-        const data = snapshot.data();
-        const accountType = data.accountType || 'fan';
-        document.title = `${data.displayName} | BANDtroductions`;
-        document.getElementById('profile-name').textContent = data.displayName || 'BANDtroductions Member';
+        loadedProfile = snapshot.data();
+        const accountType = loadedProfile.accountType || 'fan';
+        document.title = `${loadedProfile.displayName} | BANDtroductions`;
+        document.getElementById('profile-name').textContent = loadedProfile.displayName || 'BANDtroductions Member';
         document.getElementById('profile-type').textContent = accountType;
-        document.getElementById('profile-location').textContent = data.location || '';
-        document.getElementById('profile-bio').textContent = data.bio || '';
+        document.getElementById('profile-location').textContent = loadedProfile.location || '';
+        document.getElementById('profile-bio').textContent = loadedProfile.bio || '';
 
-        if (data.imageUrl) {
+        if (loadedProfile.imageUrl) {
           const image = document.getElementById('profile-image');
-          image.src = data.imageUrl;
+          image.src = loadedProfile.imageUrl;
           image.hidden = false;
         }
 
-        (detailGroups[accountType] || []).forEach(([key, label]) => addDetail(label, data[key]));
-        addLink('Visit Website', data.website);
-        addLink('Music / Video', data.mediaLink);
+        (detailGroups[accountType] || []).forEach(([key, label]) => addDetail(label, loadedProfile[key]));
+        addLink('Visit Website', loadedProfile.website);
+        addLink('Music / Video', loadedProfile.mediaLink);
 
-        if (user && user.uid === profileId) document.getElementById('edit-profile').hidden = false;
+        if (user) {
+          const ownProfileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
+          const ownUserSnapshot = await getDoc(doc(db, 'users', user.uid));
+          signedInProfile = ownProfileSnapshot.exists() ? ownProfileSnapshot.data() : (ownUserSnapshot.exists() ? ownUserSnapshot.data() : {});
+          shareButton.hidden = false;
+          if (user.uid === profileId) document.getElementById('edit-profile').hidden = false;
+        }
+
         status.hidden = true;
         card.hidden = false;
       } catch (error) {
@@ -139,6 +150,54 @@
         status.textContent = 'We could not load this profile.';
       }
     }
+
+    shareButton.addEventListener('click', () => {
+      sharePanel.hidden = false;
+      document.getElementById('share-message').focus();
+    });
+
+    document.getElementById('cancel-share').addEventListener('click', () => {
+      sharePanel.hidden = true;
+      shareStatus.textContent = '';
+    });
+
+    document.getElementById('confirm-share').addEventListener('click', async () => {
+      if (!signedInUser || !signedInProfile || !loadedProfile) return;
+      const button = document.getElementById('confirm-share');
+      const customMessage = document.getElementById('share-message').value.trim();
+      button.disabled = true;
+      shareStatus.textContent = 'Sharing profile…';
+
+      try {
+        await addDoc(collection(db, 'posts'), {
+          authorId: signedInUser.uid,
+          authorName: signedInProfile.displayName || signedInUser.displayName || 'BANDtroductions Member',
+          accountType: signedInProfile.accountType || 'member',
+          category: 'shared-profile',
+          content: customMessage || `Check out ${loadedProfile.displayName || 'this profile'} on BANDtroductions.`,
+          linkUrl: `${window.location.origin}${window.location.pathname}?id=${encodeURIComponent(profileId)}`,
+          imageUrl: '',
+          sharedProfile: {
+            id: profileId,
+            displayName: loadedProfile.displayName || 'BANDtroductions Profile',
+            accountType: loadedProfile.accountType || 'member',
+            location: loadedProfile.location || '',
+            genre: loadedProfile.genre || loadedProfile.favoriteGenres || '',
+            imageUrl: loadedProfile.imageUrl || ''
+          },
+          published: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        window.location.href = 'community.html';
+      } catch (error) {
+        console.error(error);
+        shareStatus.textContent = error.code === 'permission-denied'
+          ? 'Sharing permissions are not enabled yet.'
+          : 'This profile could not be shared.';
+        button.disabled = false;
+      }
+    });
 
     onAuthStateChanged(auth, (user) => loadProfile(user));
   </script>
