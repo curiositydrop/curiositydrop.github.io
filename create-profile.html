@@ -64,9 +64,27 @@
   </style>
 </head>
 
-<body class="hamburger-active">
+<body>
 
-<div id="global-header"></div>
+<header>
+  <div class="logo-area">
+    <img src="IMG_9367.png" alt="BANDtroductions Logo">
+    <p class="tagline">Maine's Musician Hub</p>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="bands.html">Browse Bands</a>
+    <a href="musicians.html">Browse Musicians</a>
+    <a href="venues.html">Browse Venues</a>
+    <a href="bandmatch.html">BandMatch</a>
+    <a href="create-profile.html">Create Profile</a>
+    <a href="sponsors.html">Sponsors</a>
+    <a href="support.html">Support</a>
+    <a href="about.html">About</a>
+    <a href="fan-wall.html" style="color:#ff004c;">Fan Wall-(Live)</a>
+  </nav>
+</header>
 
 <section class="form-page">
 
@@ -104,7 +122,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Band Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
+      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
       <input type="hidden" name="Profile Type" value="Band">
 
       <p style="display:none;">
@@ -157,11 +175,18 @@
       </p>
 
       <label for="band-image">Band Logo or Photo *</label>
-      <input type="file" id="band-image" name="attachment" accept="image/*" required>
+<input type="file" id="band-image" name="attachment" accept="image/*" required>
 
-      <p class="helper-text">
-        Upload a clear band photo or logo. No image links needed.
-      </p>
+<p class="helper-text">
+  Upload a clear band photo or logo. No image links needed.
+</p>
+
+<label for="band-banner-image">Banner / Header Image</label>
+<input type="file" id="band-banner-image" name="Band Banner Image" accept="image/*">
+
+<p class="helper-text">
+  Optional but recommended. Upload a wide banner image for the top of your profile page.
+</p>
 
       <label for="band-bio">Short Band Bio *</label>
       <textarea id="band-bio" name="Band Bio" rows="6" required></textarea>
@@ -208,7 +233,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Musician Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
+      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
       <input type="hidden" name="Profile Type" value="Musician">
 
       <p style="display:none;">
@@ -264,11 +289,18 @@
       </p>
 
       <label for="musician-photo">Profile Photo *</label>
-      <input type="file" id="musician-photo" name="attachment" accept="image/*" required>
+<input type="file" id="musician-photo" name="attachment" accept="image/*" required>
 
-      <p class="helper-text">
-        Upload a clear profile photo. No image links needed.
-      </p>
+<p class="helper-text">
+  Upload a clear profile photo. No image links needed.
+</p>
+
+<label for="musician-banner-image">Banner / Header Image</label>
+<input type="file" id="musician-banner-image" name="Musician Banner Image" accept="image/*">
+
+<p class="helper-text">
+  Optional but recommended. Upload a wide banner image for the top of your profile page.
+</p>
 
       <label for="musician-bio">Short Bio *</label>
       <textarea id="musician-bio" name="Bio" rows="6" required></textarea>
@@ -315,7 +347,7 @@
       <input type="hidden" name="_subject" value="New BANDtroductions Venue Submission">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="https://bandtroductions.com/thank-you.html">
+      <input type="hidden" name="_next" value="https://curiositydrop.com/bandtroductions/thank-you.html">
       <input type="hidden" name="Profile Type" value="Venue">
 
       <p style="display:none;">
@@ -360,11 +392,18 @@
       </p>
 
       <label for="venue-photo">Venue Photo or Logo *</label>
-      <input type="file" id="venue-photo" name="attachment" accept="image/*" required>
+<input type="file" id="venue-photo" name="attachment" accept="image/*" required>
 
-      <p class="helper-text">
-        Upload a clear venue photo or logo. No image links needed.
-      </p>
+<p class="helper-text">
+  Upload a clear venue photo or logo. No image links needed.
+</p>
+
+<label for="venue-banner-image">Banner / Header Image</label>
+<input type="file" id="venue-banner-image" name="Venue Banner Image" accept="image/*">
+
+<p class="helper-text">
+  Optional but recommended. Upload a wide banner image for the top of your venue profile page.
+</p>
 
       <label for="venue-description">Short Venue Description *</label>
       <textarea id="venue-description" name="Venue Description" rows="6" required></textarea>
@@ -393,7 +432,9 @@
 
 </section>
 
-<div id="global-footer"></div>
+<footer>
+  <p>© BANDtroductions</p>
+</footer>
 
 <script>
   function showSelectedForm() {
@@ -538,8 +579,6 @@
     return true;
   }
 </script>
-
-<script src="global.js?v=2"></script>
 
 </body>
 </html>

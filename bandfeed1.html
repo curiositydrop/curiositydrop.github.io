@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watch Maine Music | BANDtroductions</title>
 
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=4">
 
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-60112G8RH3"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -17,225 +18,85 @@
 
 <style>
 .loading-message {
-  text-align:center;
-  padding:20px;
-  font-size:1rem;
-  opacity:0.85;
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+  opacity: 0.85;
 }
 
 .watch-psa {
-  text-align:center;
-  margin-top:25px;
-  opacity:0.85;
+  text-align: center;
+  margin-top: 25px;
+  opacity: 0.85;
 }
 
 .video-item.hidden-item {
-  display:none;
-}
-
-.video-item {
-  overflow:hidden;
-  position:relative;
+  display: none;
 }
 
 .video-item.active-video {
-  outline:2px solid #00c8b4;
-  box-shadow:0 0 12px rgba(0,200,180,0.45);
+  outline: 2px solid teal;
+  box-shadow: 0 0 12px rgba(0, 128, 128, 0.45);
 }
 
 .video-actions {
-  grid-column:1 / -1;
-  display:flex;
-  flex-direction:row;
-  justify-content:space-between;
-  align-items:center;
-  gap:6px;
-  width:100%;
-  margin-top:8px;
-}
-
-.video-actions .button,
-.video-actions button.button {
-  flex:1;
-  width:auto;
-  box-sizing:border-box;
-  text-align:center;
-  background:#00c8b4;
-  color:#000;
-  border:none;
-  font-weight:bold;
-  padding:8px 6px;
-  font-size:12px;
-  border-radius:6px;
-}
-
-.vote-message {
-  grid-column:1 / -1;
-  width:100%;
-  color:#00c8b4;
-  font-size:11px;
-  font-weight:bold;
-  text-align:center;
-  margin:4px 0 0;
-  line-height:1.2;
-}
-
-.vote-btn:disabled {
-  opacity:0.65;
-  cursor:not-allowed;
-}
-
-.genre-filter-wrap {
-  text-align:center;
-  margin:18px auto 22px;
-}
-
-.genre-filter-wrap label {
-  display:block;
-  margin-bottom:8px;
-  color:#ccc;
-  font-weight:bold;
-}
-
-.genre-filter-wrap select {
-  background:#1b1b1b;
-  color:#fff;
-  border:1px solid rgba(0,200,180,0.45);
-  border-radius:8px;
-  padding:10px 14px;
-  font-size:16px;
-  max-width:280px;
-  width:90%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
 }
 
 .main-video {
-  position:relative;
-  width:100%;
-  aspect-ratio:16 / 9;
-  background:#000;
-  overflow:hidden;
-  border-radius:8px;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 #mainPlayer {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 }
 
 .now-playing-meta {
-  margin-top:10px;
-  opacity:0.85;
-  font-size:0.95rem;
+  margin-top: 10px;
+  opacity: 0.85;
+  font-size: 0.95rem;
 }
 
 .feed-intro {
-  text-align:center;
-  margin-bottom:10px;
-  opacity:0.92;
+  text-align: center;
+  margin-bottom: 20px;
+  opacity: 0.92;
 }
 
 .now-playing-links {
-  text-align:center;
-  margin-top:15px;
+  text-align: center;
+  margin-top: 15px;
 }
 
 .now-playing-links a {
-  color:#00c8b4;
-  font-weight:bold;
-  text-decoration:none;
-  margin:0 10px;
+  color: teal;
+  font-weight: bold;
+  text-decoration: none;
+  margin: 0 10px;
 }
 
 .now-playing-links a:hover {
-  text-decoration:underline;
+  text-decoration: underline;
 }
 
+/* 🔥 Scroller visibility override for BANDfeed only */
 .watch-page .news-scroller {
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .watch-page .watch-nav-toggle {
-  display:block !important;
-}
-
-.watch-page .video-item {
-  display:grid !important;
-  grid-template-columns:90px minmax(0, 1fr);
-  gap:12px;
-  align-items:center;
-  padding:12px;
-}
-
-.watch-page .video-item img {
-  width:90px;
-  height:70px;
-  object-fit:cover;
-  border-radius:8px;
-  margin:0;
-}
-
-.watch-page .video-item .video-meta {
-  min-width:0;
-  text-align:left;
-}
-
-.watch-page .video-item .video-meta h3 {
-  font-size:16px;
-  line-height:1.2;
-  margin:0 0 4px;
-}
-
-.watch-page .video-item .video-meta p {
-  font-size:13px;
-  line-height:1.25;
-  margin:0;
-  opacity:0.9;
-}
-
-@media (max-width:768px) {
-  .watch-page .video-item {
-    grid-template-columns:86px minmax(0, 1fr);
-    gap:10px;
-    padding:10px;
-  }
-
-  .watch-page .video-item img {
-    width:86px;
-    height:64px;
-  }
-
-  .watch-page .video-item .video-meta h3 {
-    font-size:15px;
-  }
-
-  .watch-page .video-item .video-meta p {
-    font-size:12px;
-  }
-
-  .watch-page .video-actions .button,
-  .watch-page .video-actions button.button {
-    font-size:11px;
-    padding:7px 5px;
-  }
-}
-.watch-page .video-item .video-actions{
-  grid-column:1 / -1 !important;
-  display:grid !important;
-  grid-template-columns:repeat(4, 1fr) !important;
-  gap:6px !important;
-  width:100% !important;
-  margin-top:8px !important;
-}
-
-.watch-page .video-item .video-actions .button,
-.watch-page .video-item .video-actions button.button{
-  width:100% !important;
-  min-width:0 !important;
-  font-size:11px !important;
-  padding:8px 4px !important;
-  margin:0 !important;
+  display: block !important;
 }
 </style>
 </head>
@@ -267,22 +128,13 @@
 
 <section class="band-main">
   <p class="feed-intro">
-    🎸 Discover local bands. Watch. Share. Vote.
+    🎸 Discover local bands. Watch. Share. Repeat.
   </p>
 
-  <!--
   <p class="video-cta">
     Want your video featured here?
     <a href="https://venmo.com/Telis-Bergeron" target="_blank">💙 Boost your video for $10</a>.
   </p>
-  -->
-
-  <div class="genre-filter-wrap">
-    <label for="genreFilter">Filter by genre</label>
-    <select id="genreFilter">
-      <option value="all">All Genres</option>
-    </select>
-  </div>
 
   <div id="loadingMessage" class="loading-message">
     Loading BANDfeed...
@@ -310,22 +162,12 @@ const loadingMessage = document.getElementById("loadingMessage");
 const videoTitle = document.getElementById("videoTitle");
 const videoMeta = document.getElementById("videoMeta");
 const profileLink = document.getElementById("profileLink");
-const genreFilter = document.getElementById("genreFilter");
 
 let bandfeedItems = [];
 let currentIndex = -1;
 let player = null;
 let youtubeApiReady = false;
 let playerReady = false;
-
-function slugify(text) {
-  return (text || "unknown-band")
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 function normalizeYouTubeUrl(url) {
   if (!url) return null;
@@ -411,10 +253,8 @@ function updateNowPlaying(item) {
 
 function highlightActiveItem() {
   const cards = browserContainer.querySelectorAll(".video-item");
-  cards.forEach(card => {
-    const cardIndex = Number(card.dataset.index);
-
-    if (cardIndex === currentIndex) {
+  cards.forEach((card, index) => {
+    if (index === currentIndex) {
       card.classList.add("active-video");
     } else {
       card.classList.remove("active-video");
@@ -491,132 +331,9 @@ function buildPlayerIfReady() {
   });
 }
 
-function handleVote(button) {
-  const bandId = button.dataset.band;
-  const bandName = button.dataset.name;
-  const voteKey = "bandtroductions_vote_" + bandId;
-  const message = button.parentElement.querySelector(".vote-message");
-
-  if (localStorage.getItem(voteKey)) {
-    button.textContent = "Voted 🤘";
-    button.disabled = true;
-
-    if (message) {
-      message.textContent = "You already voted for " + bandName + " on this device.";
-    }
-
-    return;
-  }
-
-  localStorage.setItem(voteKey, "true");
-
-  button.textContent = "Voted 🤘";
-  button.disabled = true;
-
-  if (message) {
-    message.textContent = "Vote counted for " + bandName + "! 🤘";
-  }
-}
-
-function refreshVoteButtons() {
-  const buttons = document.querySelectorAll(".vote-btn");
-
-  buttons.forEach(button => {
-    const bandId = button.dataset.band;
-    const bandName = button.dataset.name;
-    const voteKey = "bandtroductions_vote_" + bandId;
-    const message = button.parentElement.querySelector(".vote-message");
-
-    if (localStorage.getItem(voteKey)) {
-      button.textContent = "Voted 🤘";
-      button.disabled = true;
-
-      if (message) {
-        message.textContent = "You already voted for " + bandName + " on this device.";
-      }
-    }
-  });
-}
-
-function extractCleanMeta(card) {
-  const paragraphs = [...card.querySelectorAll("p")].map(p => p.textContent.trim());
-
-  let location = "";
-  let genre = "";
-
-  paragraphs.forEach(text => {
-    const lower = text.toLowerCase();
-
-    if (lower.includes("location")) {
-      location = text
-        .replace(/location\s*:/i, "")
-        .replace(/location/i, "")
-        .trim();
-    }
-
-    if (lower.includes("genre")) {
-      genre = text
-        .replace(/genre\s*:/i, "")
-        .replace(/genre/i, "")
-        .trim();
-    }
-  });
-
-  return [location, genre].filter(Boolean).join(" • ");
-}
-
-function getGenreFromMeta(meta) {
-  const text = (meta || "").toLowerCase();
-
-  if (text.includes("metal")) return "Metal";
-  if (text.includes("hard rock")) return "Hard Rock";
-  if (text.includes("blues rock")) return "Blues Rock";
-  if (text.includes("rock")) return "Rock";
-  if (text.includes("country")) return "Country";
-  if (text.includes("punk")) return "Punk";
-  if (text.includes("folk")) return "Folk";
-  if (text.includes("acoustic")) return "Acoustic";
-  if (text.includes("hip hop") || text.includes("rap")) return "Hip Hop";
-  if (text.includes("pop")) return "Pop";
-  if (text.includes("blues")) return "Blues";
-  if (text.includes("jazz")) return "Jazz";
-
-  return "Other";
-}
-
-function populateGenreFilter() {
-  const genres = [...new Set(bandfeedItems.map(item => item.genre || "Other"))].sort();
-
-  genreFilter.innerHTML = `<option value="all">All Genres</option>`;
-
-  genres.forEach(genre => {
-    const option = document.createElement("option");
-    option.value = genre;
-    option.textContent = genre;
-    genreFilter.appendChild(option);
-  });
-}
-
-function applyGenreFilter() {
-  const selected = genreFilter.value;
-  const cards = browserContainer.querySelectorAll(".video-item");
-
-  cards.forEach(card => {
-    const genre = card.dataset.genre;
-
-    if (selected === "all" || genre === selected) {
-      card.style.display = "";
-    } else {
-      card.style.display = "none";
-    }
-  });
-}
-
 function createVideoItem(item, index) {
   const div = document.createElement("div");
   div.className = "video-item";
-  div.dataset.index = index;
-  div.dataset.genre = item.genre || "Other";
 
   if (item.videoId) {
     div.style.cursor = "pointer";
@@ -627,9 +344,6 @@ function createVideoItem(item, index) {
 
   const safeMeta = item.meta ? item.meta : "Maine Music";
   const imageSrc = item.image || "IMG_9383.jpeg";
-  const bandSlug = item.bandId || slugify(item.title);
-  const safeTitle = item.title.replace(/'/g, "\\'");
-  const safeProfileUrl = item.profileUrl.replace(/'/g, "\\'");
 
   const watchButtonHtml = `
     <a class="button" href="#"
@@ -646,15 +360,8 @@ function createVideoItem(item, index) {
     </div>
     <div class="video-actions">
       ${watchButtonHtml}
-      <a class="button" href="${item.profileUrl}" onclick="event.stopPropagation();">Profile</a>
-      <button class="button vote-btn"
-        data-band="${bandSlug}"
-        data-name="${item.title}"
-        onclick="event.stopPropagation(); handleVote(this);">
-        Vote 🤘
-      </button>
-      <a class="button" href="#" onclick="event.stopPropagation(); shareSpecificPage('${safeProfileUrl}','${safeTitle}'); return false;">Share</a>
-      <p class="vote-message"></p>
+      <a class="button" href="${item.profileUrl}" onclick="event.stopPropagation();">View Profile</a>
+      <a class="button" href="#" onclick="event.stopPropagation(); shareSpecificPage('${item.profileUrl.replace(/'/g, "\\'")}','${item.title.replace(/'/g, "\\'")}'); return false;">Share</a>
     </div>
   `;
 
@@ -675,17 +382,16 @@ function parseCardsFromPage(html) {
     const title = card.querySelector("h3")?.textContent?.trim() || "Untitled Artist";
     const image = card.querySelector("img")?.getAttribute("src") || "";
     const profileUrl = card.querySelector("a.button")?.getAttribute("href") || "";
-    const meta = extractCleanMeta(card);
+    const metaLines = [...card.querySelectorAll("p")].map(p => p.textContent.trim());
+    const meta = metaLines.join(" • ");
     const dataVideo = card.getAttribute("data-video") || "";
-    const bandId = card.getAttribute("data-band") || slugify(title);
 
     return {
       title,
       image,
       profileUrl,
       meta,
-      dataVideo,
-      bandId
+      dataVideo
     };
   }).filter(item => item.profileUrl);
 }
@@ -763,8 +469,6 @@ async function loadBandfeed() {
     const videoData = await extractVideoFromProfile(card.profileUrl, card.dataVideo);
     if (!videoData || !videoData.videoId) continue;
 
-    const genre = getGenreFromMeta(card.meta);
-
     finalItems.push({
       title: card.title,
       image: card.image,
@@ -772,9 +476,7 @@ async function loadBandfeed() {
       meta: card.meta,
       embedUrl: videoData.embedUrl,
       videoId: videoData.videoId,
-      fallbackUrl: null,
-      bandId: card.bandId,
-      genre
+      fallbackUrl: null
     });
   }
 
@@ -795,12 +497,8 @@ async function loadBandfeed() {
     browserContainer.appendChild(el);
   });
 
-  populateGenreFilter();
-  refreshVoteButtons();
   buildPlayerIfReady();
 }
-
-genreFilter.addEventListener("change", applyGenreFilter);
 
 function onYouTubeIframeAPIReady() {
   youtubeApiReady = true;

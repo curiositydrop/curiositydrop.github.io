@@ -48,3 +48,13 @@ function shareCurrentPage() {
     'width=600,height=500'
   );
 }
+
+/* Temporary popup kill switch — remove when the release is ready. */
+document.addEventListener('DOMContentLoaded', function () {
+  const featuredPopup = document.getElementById('featured-popup');
+
+  if (featuredPopup) {
+    featuredPopup.classList.add('is-hidden');
+    featuredPopup.style.display = 'none';
+  }
+});
