@@ -1,4 +1,4 @@
-fetch('global.html?v=3')
+fetch('global.html?v=4')
   .then(response => response.text())
   .then(async data => {
     const temp = document.createElement('div');
@@ -24,13 +24,14 @@ fetch('global.html?v=3')
   });
 
 async function initializeAuthNavigation() {
+  const accountBar = document.getElementById('auth-account-bar');
   const loginLink = document.getElementById('auth-login-link');
   const accountLink = document.getElementById('auth-account-link');
   const profileLink = document.getElementById('auth-profile-link');
   const logoutLink = document.getElementById('auth-logout-link');
   const accountStatus = document.getElementById('auth-account-status');
 
-  if (!loginLink || !accountLink || !profileLink || !logoutLink) return;
+  if (!accountBar || !loginLink || !accountLink || !profileLink || !logoutLink) return;
 
   try {
     const [{ auth }, { onAuthStateChanged, signOut }] = await Promise.all([
@@ -40,20 +41,22 @@ async function initializeAuthNavigation() {
 
     onAuthStateChanged(auth, (user) => {
       const signedIn = Boolean(user);
+
       loginLink.hidden = signedIn;
       accountLink.hidden = signedIn;
       profileLink.hidden = !signedIn;
       logoutLink.hidden = !signedIn;
 
       if (accountStatus) {
-        accountStatus.textContent = user
-          ? `Signed in${user.displayName ? ` as ${user.displayName}` : ''}`
-          : 'You are browsing as a guest';
+        accountStatus.textContent = signedIn ? 'Signed in' : 'Browsing as a guest';
       }
 
       if (user) {
         profileLink.href = `profile.html?id=${encodeURIComponent(user.uid)}`;
       }
+
+      accountBar.hidden = false;
+      accountBar.style.display = 'flex';
     });
 
     logoutLink.addEventListener('click', async (event) => {
@@ -73,7 +76,7 @@ async function initializeAuthNavigation() {
     });
   } catch (error) {
     console.error('Error loading account navigation:', error);
-    if (accountStatus) accountStatus.textContent = 'Account status unavailable';
+    accountBar.hidden = true;
   }
 }
 
