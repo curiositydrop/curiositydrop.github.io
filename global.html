@@ -24,11 +24,6 @@
   <a href="band-of-the-week.html">Band of the Week</a>
   <a href="bandfeed1.html">Watch Bands</a>
 
-  <a id="auth-login-link" href="login.html">Log In</a>
-  <a id="auth-account-link" href="signup.html">Create Account</a>
-  <a id="auth-profile-link" href="profile.html" hidden>My Profile</a>
-  <a id="auth-logout-link" href="#" hidden>Log Out</a>
-
   <!-- 🔥 SHARE LINK -->
    <a href="#" onclick="shareCurrentPage(); return false;" style="margin-left:10px; color:#ffffff; font-weight:bold; display:flex; align-items:center; gap:6px;">
 <img src="facebook.png" alt="Facebook" style="width:16px; height:16px;">
@@ -62,6 +57,14 @@
 
     </div>
 
+  </div>
+
+  <div id="auth-account-bar" style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; padding:9px 12px; background:#101010; border-bottom:1px solid rgba(0,200,180,.35);">
+    <span id="auth-account-status" style="color:#aaa; font-size:.86rem;">Checking account…</span>
+    <a id="auth-login-link" href="login.html" style="color:#00c8b4; font-weight:800;">Log In</a>
+    <a id="auth-account-link" href="signup.html" style="color:#00c8b4; font-weight:800;">Create Account</a>
+    <a id="auth-profile-link" href="profile.html" hidden style="color:#00c8b4; font-weight:800;">My Profile</a>
+    <a id="auth-logout-link" href="#" hidden style="display:inline-flex; align-items:center; justify-content:center; padding:7px 14px; border:1px solid #7a3f3f; border-radius:999px; color:#ffb4b4; background:#171010; font-weight:900; text-decoration:none;">Log Out</a>
   </div>
 
 </div>
