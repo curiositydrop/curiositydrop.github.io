@@ -77,9 +77,10 @@ body.auth-page {
 .comment-list { display: grid; gap: 10px; }
 .comment-item { padding: 12px 14px; background: #0d0d0d; border-radius: 13px; border: 1px solid #2d2d2d; }
 .comment-item p { margin: 7px 0 0; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-.comment-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.comment-top { display: flex; justify-content: flex-start; gap: 0; flex-wrap: wrap; align-items: baseline; }
 .comment-top a { color: #00c8b4; font-weight: 900; text-decoration: none; }
 .comment-top span { color: #888; font-size: .78rem; text-transform: capitalize; }
+.comment-top span::before { content: " · "; white-space: pre; }
 .comment-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: end; }
 .comment-form textarea { min-height: 54px; resize: vertical; }
 .comment-form .auth-message { grid-column: 1 / -1; }
