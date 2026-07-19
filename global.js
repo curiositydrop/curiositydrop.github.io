@@ -1,4 +1,4 @@
-fetch('global.html?v=2')
+fetch('global.html?v=3')
   .then(response => response.text())
   .then(async data => {
     const temp = document.createElement('div');
@@ -28,6 +28,7 @@ async function initializeAuthNavigation() {
   const accountLink = document.getElementById('auth-account-link');
   const profileLink = document.getElementById('auth-profile-link');
   const logoutLink = document.getElementById('auth-logout-link');
+  const accountStatus = document.getElementById('auth-account-status');
 
   if (!loginLink || !accountLink || !profileLink || !logoutLink) return;
 
@@ -43,6 +44,12 @@ async function initializeAuthNavigation() {
       accountLink.hidden = signedIn;
       profileLink.hidden = !signedIn;
       logoutLink.hidden = !signedIn;
+
+      if (accountStatus) {
+        accountStatus.textContent = user
+          ? `Signed in${user.displayName ? ` as ${user.displayName}` : ''}`
+          : 'You are browsing as a guest';
+      }
 
       if (user) {
         profileLink.href = `profile.html?id=${encodeURIComponent(user.uid)}`;
@@ -66,6 +73,7 @@ async function initializeAuthNavigation() {
     });
   } catch (error) {
     console.error('Error loading account navigation:', error);
+    if (accountStatus) accountStatus.textContent = 'Account status unavailable';
   }
 }
 
