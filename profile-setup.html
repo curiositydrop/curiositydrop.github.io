@@ -5,36 +5,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Set Up Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=1">
+  <link rel="stylesheet" href="auth.css?v=2">
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
 
-  <main class="auth-shell">
-    <section class="auth-form">
-      <h1>Set Up Your Profile</h1>
-      <p id="setup-message" class="auth-subtitle">Loading your account type…</p>
+  <main class="auth-shell auth-shell-wide">
+    <h1 id="page-title">Set Up Your Profile</h1>
+    <p id="setup-message" class="auth-subtitle">Loading your account…</p>
 
-      <div id="setup-preview" hidden>
-        <p>Your account is connected correctly.</p>
-        <p>The full self-editing profile form for your account type is the next piece being built.</p>
-        <a class="auth-button" href="index.html" style="display:inline-flex; text-decoration:none; justify-content:center; margin-top:16px;">Return to Test Site</a>
+    <form id="profile-form" class="auth-form" hidden>
+      <div class="auth-grid">
+        <label>
+          Public display name
+          <input id="display-name" type="text" maxlength="80" required>
+        </label>
+
+        <label>
+          Location
+          <input id="location" type="text" maxlength="100" placeholder="Portland, Maine">
+        </label>
       </div>
 
+      <label>
+        Profile image URL
+        <input id="image-url" type="url" placeholder="https://...">
+        <small>Temporary until Firebase Storage uploads are enabled.</small>
+      </label>
+
+      <label>
+        About
+        <textarea id="bio" maxlength="2000" rows="7" required placeholder="Tell the music community about yourself..."></textarea>
+      </label>
+
+      <div id="band-fields" class="account-fields" hidden>
+        <div class="auth-grid">
+          <label>Genre<input id="genre" type="text" maxlength="120" placeholder="Rock / Metal"></label>
+          <label>Year formed<input id="year-formed" type="number" min="1900" max="2100"></label>
+        </div>
+        <label>Band members<textarea id="members" rows="4" maxlength="800" placeholder="Names and roles"></textarea></label>
+        <label>Booking/contact email<input id="booking-email" type="email"></label>
+      </div>
+
+      <div id="musician-fields" class="account-fields" hidden>
+        <label>Instrument(s) / role<input id="instruments" type="text" maxlength="200" placeholder="Guitar, vocals, drums..."></label>
+        <div class="auth-grid">
+          <label>Experience level<input id="experience" type="text" maxlength="120"></label>
+          <label>Looking for a band?
+            <select id="looking-for-band">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+              <option value="maybe">Open to opportunities</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="venue-fields" class="account-fields" hidden>
+        <div class="auth-grid">
+          <label>Venue capacity<input id="capacity" type="number" min="0"></label>
+          <label>Venue type<input id="venue-type" type="text" maxlength="120" placeholder="Club, bar, theater..."></label>
+        </div>
+        <label>Booking information<textarea id="venue-booking" rows="4" maxlength="1000"></textarea></label>
+      </div>
+
+      <div id="fan-fields" class="account-fields" hidden>
+        <label>Favorite genres<input id="favorite-genres" type="text" maxlength="250" placeholder="Metal, punk, country..."></label>
+        <label>What brings you to BANDtroductions?<textarea id="fan-interests" rows="4" maxlength="800"></textarea></label>
+      </div>
+
+      <label>Website or main link<input id="website" type="url" placeholder="https://..."></label>
+      <label>Music/video link<input id="media-link" type="url" placeholder="YouTube, Spotify, Bandcamp, etc."></label>
+
+      <button id="save-button" class="auth-button" type="submit">Save & Publish Profile</button>
       <p id="setup-status" class="auth-message" role="status"></p>
-    </section>
+    </form>
   </main>
 
   <div id="global-footer"></div>
   <script src="global.js?v=2"></script>
   <script type="module">
     import { auth, db } from './firebase-dev.js';
-    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
+    const form = document.getElementById('profile-form');
     const message = document.getElementById('setup-message');
-    const preview = document.getElementById('setup-preview');
     const status = document.getElementById('setup-status');
+    const saveButton = document.getElementById('save-button');
+    let currentUser;
+    let accountType;
+
+    const value = (id) => document.getElementById(id)?.value.trim() || '';
+
+    function showFields(type) {
+      document.querySelectorAll('.account-fields').forEach((section) => section.hidden = true);
+      const section = document.getElementById(`${type}-fields`);
+      if (section) section.hidden = false;
+    }
+
+    function fillProfile(data = {}) {
+      const ids = ['display-name','location','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','favorite-genres','fan-interests','website','media-link'];
+      ids.forEach((id) => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        const key = id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+        if (data[key] !== undefined && data[key] !== null) element.value = data[key];
+      });
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -42,15 +120,70 @@
         return;
       }
 
+      currentUser = user;
       try {
-        const snapshot = await getDoc(doc(db, 'users', user.uid));
-        const data = snapshot.exists() ? snapshot.data() : {};
-        const accountType = data.accountType || 'member';
-        message.textContent = `Your ${accountType} profile setup is ready for the next build stage.`;
-        preview.hidden = false;
+        const userSnapshot = await getDoc(doc(db, 'users', user.uid));
+        const userData = userSnapshot.exists() ? userSnapshot.data() : {};
+        accountType = userData.accountType || 'fan';
+        message.textContent = `Build and publish your ${accountType} profile. You can return and edit it anytime.`;
+        showFields(accountType);
+
+        const profileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
+        fillProfile(profileSnapshot.exists() ? profileSnapshot.data() : { displayName: userData.displayName || user.displayName || '' });
+        form.hidden = false;
       } catch (error) {
         console.error(error);
-        status.textContent = 'We could not load your account information.';
+        status.textContent = 'We could not load your profile information.';
+      }
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!currentUser) return;
+
+      saveButton.disabled = true;
+      status.textContent = 'Saving your profile…';
+
+      const profileData = {
+        ownerId: currentUser.uid,
+        accountType,
+        displayName: value('display-name'),
+        location: value('location'),
+        imageUrl: value('image-url'),
+        bio: value('bio'),
+        genre: value('genre'),
+        yearFormed: value('year-formed'),
+        members: value('members'),
+        bookingEmail: value('booking-email'),
+        instruments: value('instruments'),
+        experience: value('experience'),
+        lookingForBand: value('looking-for-band'),
+        capacity: value('capacity'),
+        venueType: value('venue-type'),
+        venueBooking: value('venue-booking'),
+        favoriteGenres: value('favorite-genres'),
+        fanInterests: value('fan-interests'),
+        website: value('website'),
+        mediaLink: value('media-link'),
+        published: true,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        await setDoc(doc(db, 'profiles', currentUser.uid), profileData, { merge: true });
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          displayName: profileData.displayName,
+          profileComplete: true,
+          updatedAt: serverTimestamp()
+        });
+        await updateProfile(currentUser, { displayName: profileData.displayName });
+        window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`;
+      } catch (error) {
+        console.error(error);
+        status.textContent = error.code === 'permission-denied'
+          ? 'Profile permissions are not enabled yet.'
+          : 'Your profile could not be saved. Please try again.';
+        saveButton.disabled = false;
       }
     });
   </script>
