@@ -1,0 +1,49 @@
+name: Sync BANDtroductions Test Site
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/sync-bandtroductions-test.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out test repository
+        uses: actions/checkout@v4
+        with:
+          path: test-site
+          fetch-depth: 0
+
+      - name: Check out live BANDtroductions repository
+        uses: actions/checkout@v4
+        with:
+          repository: curiositydrop/affirmagram
+          ref: main
+          path: live-site
+
+      - name: Replace test site with current live BANDtroductions files
+        run: |
+          set -euo pipefail
+          test -d live-site/bandtroductions
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            live-site/bandtroductions/ test-site/
+
+      - name: Commit synchronized test site
+        working-directory: test-site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Test repository is already synchronized."
+            exit 0
+          fi
+          git commit -m "Sync test site with live BANDtroductions"
+          git push
