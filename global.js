@@ -108,26 +108,34 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-function removeDuplicateComposerAvatars() {
+function removeLegacyComposerAvatar() {
   const heading = document.querySelector('.community-composer-heading');
   if (!heading) return;
 
-  const avatars = [...heading.querySelectorAll('.community-author-avatar')];
-  if (avatars.length <= 1) return;
+  heading.querySelectorAll('.community-composer-identity').forEach((legacy) => {
+    const nameBlock = legacy.querySelector('#composer-name')?.parentElement;
+    const currentPerson = heading.querySelector('.community-composer-person');
 
-  const name = document.getElementById('composer-name');
-  const preferred = avatars.find((avatar) => avatar.parentElement?.contains(name)) || avatars[avatars.length - 1];
+    if (nameBlock && currentPerson && !currentPerson.contains(nameBlock)) {
+      currentPerson.appendChild(nameBlock);
+    }
+
+    legacy.remove();
+  });
+
+  const avatars = [...heading.querySelectorAll('.community-author-avatar')];
+  const preferred = heading.querySelector('.community-composer-person > .community-author-avatar');
   avatars.forEach((avatar) => {
-    if (avatar !== preferred) avatar.remove();
+    if (preferred && avatar !== preferred) avatar.remove();
   });
 }
 
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=4').then(() => {
-    removeDuplicateComposerAvatars();
+  import('./post-owner-controls.js?v=7').then(() => {
+    removeLegacyComposerAvatar();
     const composer = document.getElementById('post-composer');
     if (composer) {
-      new MutationObserver(removeDuplicateComposerAvatars).observe(composer, {
+      new MutationObserver(removeLegacyComposerAvatar).observe(composer, {
         childList: true,
         subtree: true
       });
