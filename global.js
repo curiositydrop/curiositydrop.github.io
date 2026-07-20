@@ -148,3 +148,9 @@ if (window.location.pathname.endsWith('/community.html')) {
     console.error('Error loading comment controls:', error);
   });
 }
+
+if (window.location.pathname.endsWith('/profile.html')) {
+  import('./profile-owner-guard.js?v=1').catch((error) => {
+    console.error('Error loading profile ownership guard:', error);
+  });
+}
