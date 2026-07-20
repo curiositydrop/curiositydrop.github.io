@@ -107,40 +107,22 @@ async function addComposerAvatar(user) {
   const name = document.getElementById('composer-name');
   if (!heading || !name) return;
 
-  let person = heading.querySelector('.community-composer-person');
-  let avatar;
+  const profile = await getProfile(user.uid);
+  const correctName = profile.displayName || user.displayName || name.textContent || 'Member';
+  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
 
+  let person = heading.querySelector('.community-composer-person');
   if (!person) {
     const original = name.parentElement;
     person = document.createElement('div');
     person.className = 'community-composer-person';
-    avatar = makeAvatar(user.displayName || name.textContent || 'Member');
     heading.insertBefore(person, original);
-    person.append(avatar, original);
+    person.append(makeAvatar(correctName, imageUrl), original);
   } else {
-    avatar = person.querySelector('.community-author-avatar');
-  }
-
-  const updateFallback = () => {
     const currentAvatar = person.querySelector('.community-author-avatar');
-    if (currentAvatar && currentAvatar.tagName !== 'IMG') {
-      currentAvatar.textContent = initialsFor(name.textContent || user.displayName || 'Member');
-    }
-  };
-
-  updateFallback();
-  new MutationObserver(updateFallback).observe(name, { childList:true, characterData:true, subtree:true });
-
-  const profile = await getProfile(user.uid);
-  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
-  const correctName = profile.displayName || name.textContent || user.displayName || 'Member';
-  const currentAvatar = person.querySelector('.community-author-avatar');
-
-  if (!currentAvatar) return;
-  if (imageUrl) {
-    currentAvatar.replaceWith(makeAvatar(correctName, imageUrl));
-  } else {
-    currentAvatar.textContent = initialsFor(correctName);
+    const freshAvatar = makeAvatar(correctName, imageUrl);
+    if (currentAvatar) currentAvatar.replaceWith(freshAvatar);
+    else person.prepend(freshAvatar);
   }
 }
 
@@ -256,7 +238,7 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   currentUserIsAdmin = false;
   if (user) {
-    addComposerAvatar(user);
+    await addComposerAvatar(user);
     try {
       const adminSnapshot = await getDoc(doc(db, 'admins', user.uid));
       currentUserIsAdmin = adminSnapshot.exists();
