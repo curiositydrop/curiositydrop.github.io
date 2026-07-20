@@ -19,17 +19,19 @@ style.textContent = `
     width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-    padding: 18px !important;
     border: 1px solid #3b3b3b !important;
     border-radius: 16px !important;
-    background: linear-gradient(145deg, #1a1a1a, #121212) !important;
     box-shadow: 0 8px 20px rgba(0,0,0,.28) !important;
+  }
+
+  .profile-card:not(.profile-cover) {
+    padding: 18px !important;
+    background: linear-gradient(145deg, #1a1a1a, #121212) !important;
   }
 
   .profile-cover {
     padding: 0 !important;
     border-color: #343434 !important;
-    background-color: #111 !important;
   }
 
   .profile-cover::after {
@@ -70,8 +72,11 @@ style.textContent = `
     }
 
     .profile-card {
-      padding: 16px !important;
       border-radius: 15px !important;
+    }
+
+    .profile-card:not(.profile-cover) {
+      padding: 16px !important;
     }
 
     .profile-cover {
