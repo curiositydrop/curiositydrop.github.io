@@ -3,20 +3,33 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/f
 
 const style = document.createElement('style');
 style.textContent = `
+  html, body {
+    overflow-x: hidden !important;
+  }
+
   .profile-page {
+    display: block !important;
     width: 100% !important;
     max-width: none !important;
+    margin: 0 !important;
     padding: 14px 0 30px !important;
+    box-sizing: border-box !important;
   }
 
   #profile-content {
-    width: min(calc(100% - 16px), 760px) !important;
-    margin-inline: auto !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(calc(100vw - 16px), 760px) !important;
+    max-width: calc(100vw - 16px) !important;
+    margin: 0 !important;
     gap: 10px !important;
+    box-sizing: border-box !important;
   }
 
   .profile-card {
     width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     border: 1px solid #3b3b3b !important;
@@ -60,14 +73,22 @@ style.textContent = `
     background: #111 !important;
   }
 
+  .profile-actions,
+  .profile-links {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   .profile-actions .auth-button,
   .profile-links .auth-button {
+    max-width: 100% !important;
     border-radius: 999px !important;
   }
 
   @media (max-width: 650px) {
     #profile-content {
-      width: calc(100% - 16px) !important;
+      width: calc(100vw - 16px) !important;
+      max-width: calc(100vw - 16px) !important;
       gap: 10px !important;
     }
 
