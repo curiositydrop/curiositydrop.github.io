@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Set Up Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=3">
+  <link rel="stylesheet" href="auth.css?v=4">
+  <style>
+    .emoji-select-row{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:end}
+    .emoji-preview{height:54px;border:1px solid #3a3a3a;border-radius:12px;background:#101010;display:grid;place-items:center;font-size:1.9rem}
+  </style>
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
@@ -64,6 +68,35 @@
       </div>
 
       <div id="fan-fields" class="account-fields" hidden>
+        <div class="emoji-select-row">
+          <div id="emoji-preview" class="emoji-preview" aria-hidden="true">🎵</div>
+          <label>Profile emoji <span style="font-weight:400;color:#aaa">(optional)</span>
+            <select id="profile-emoji">
+              <option value="">No emoji</option>
+              <option value="🎵">🎵 Music note</option>
+              <option value="🎸">🎸 Guitar</option>
+              <option value="🤘">🤘 Rock on</option>
+              <option value="🔥">🔥 Fire</option>
+              <option value="💀">💀 Skull</option>
+              <option value="🖤">🖤 Black heart</option>
+              <option value="🎧">🎧 Headphones</option>
+              <option value="🎤">🎤 Microphone</option>
+              <option value="🥁">🥁 Drums</option>
+              <option value="⚡">⚡ Lightning</option>
+              <option value="🦇">🦇 Bat</option>
+              <option value="👽">👽 Alien</option>
+              <option value="😈">😈 Devil</option>
+              <option value="🌙">🌙 Moon</option>
+              <option value="🕸️">🕸️ Web</option>
+              <option value="🧨">🧨 Dynamite</option>
+              <option value="🚀">🚀 Rocket</option>
+              <option value="🍺">🍺 Beer</option>
+              <option value="☕">☕ Coffee</option>
+              <option value="😎">😎 Cool</option>
+            </select>
+          </label>
+        </div>
+        <small>Pick a little piece of personality to display beside your name.</small>
         <label>Favorite genres<input id="favorite-genres" type="text" maxlength="250" placeholder="Metal, punk, country..."></label>
         <label>What brings you to BANDtroductions?<textarea id="fan-interests" rows="4" maxlength="800"></textarea></label>
       </div>
@@ -87,15 +120,20 @@
     const message=document.getElementById('setup-message');
     const status=document.getElementById('setup-status');
     const saveButton=document.getElementById('save-button');
+    const emojiSelect=document.getElementById('profile-emoji');
+    const emojiPreview=document.getElementById('emoji-preview');
     let currentUser;
     let accountType;
 
     const value=(id)=>document.getElementById(id)?.value.trim()||'';
     const normalizeUrl=(raw)=>{ const url=raw.trim(); if(!url) return ''; return /^https?:\/\//i.test(url)?url:`https://${url}`; };
     function showFields(type){ document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true); const section=document.getElementById(`${type}-fields`); if(section) section.hidden=false; }
+    function updateEmojiPreview(){ emojiPreview.textContent=emojiSelect.value||'🎵'; emojiPreview.style.opacity=emojiSelect.value?'1':'.35'; }
+    emojiSelect.addEventListener('change',updateEmojiPreview);
     function fillProfile(data={}){
-      const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','favorite-genres','fan-interests','website','media-link'];
+      const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
       ids.forEach(id=>{ const element=document.getElementById(id); if(!element) return; const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase()); if(data[key]!==undefined&&data[key]!==null) element.value=data[key]; });
+      updateEmojiPreview();
     }
 
     onAuthStateChanged(auth,async(user)=>{
@@ -139,6 +177,7 @@
         capacity:value('capacity'),
         venueType:value('venue-type'),
         venueBooking:value('venue-booking'),
+        profileEmoji:value('profile-emoji'),
         favoriteGenres:value('favorite-genres'),
         fanInterests:value('fan-interests'),
         website:normalizeUrl(value('website')),
