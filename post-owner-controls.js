@@ -39,7 +39,11 @@ const formatDate = (timestamp) => {
   }).format(timestamp.toDate());
 };
 
-const initialsFor = (name) => (name || 'BT').trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('') || 'BT';
+const initialsFor = (name) => {
+  const cleaned = (name || '').trim();
+  if (!cleaned || cleaned === 'Create a post') return 'BT';
+  return cleaned.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase() || 'BT';
+};
 
 async function getProfile(userId) {
   if (!userId) return {};
@@ -90,22 +94,54 @@ async function addPostAvatar(article) {
   wrap.append(placeholder, author);
   const profile = await getProfile(userId);
   const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
-  if (imageUrl && placeholder.isConnected) placeholder.replaceWith(makeAvatar(profile.displayName || author.textContent, imageUrl));
+  const correctName = profile.displayName || author.textContent || 'Member';
+  if (imageUrl && placeholder.isConnected) {
+    placeholder.replaceWith(makeAvatar(correctName, imageUrl));
+  } else if (placeholder.isConnected) {
+    placeholder.textContent = initialsFor(correctName);
+  }
 }
 
 async function addComposerAvatar(user) {
   const heading = document.querySelector('.community-composer-heading');
   const name = document.getElementById('composer-name');
-  if (!heading || !name || heading.querySelector('.community-composer-person')) return;
-  const original = name.parentElement;
-  const person = document.createElement('div');
-  person.className = 'community-composer-person';
-  const placeholder = makeAvatar(name.textContent || user.displayName || 'Member');
-  heading.insertBefore(person, original);
-  person.append(placeholder, original);
+  if (!heading || !name) return;
+
+  let person = heading.querySelector('.community-composer-person');
+  let avatar;
+
+  if (!person) {
+    const original = name.parentElement;
+    person = document.createElement('div');
+    person.className = 'community-composer-person';
+    avatar = makeAvatar(user.displayName || name.textContent || 'Member');
+    heading.insertBefore(person, original);
+    person.append(avatar, original);
+  } else {
+    avatar = person.querySelector('.community-author-avatar');
+  }
+
+  const updateFallback = () => {
+    const currentAvatar = person.querySelector('.community-author-avatar');
+    if (currentAvatar && currentAvatar.tagName !== 'IMG') {
+      currentAvatar.textContent = initialsFor(name.textContent || user.displayName || 'Member');
+    }
+  };
+
+  updateFallback();
+  new MutationObserver(updateFallback).observe(name, { childList:true, characterData:true, subtree:true });
+
   const profile = await getProfile(user.uid);
   const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
-  if (imageUrl && placeholder.isConnected) placeholder.replaceWith(makeAvatar(profile.displayName || name.textContent, imageUrl));
+  const correctName = profile.displayName || name.textContent || user.displayName || 'Member';
+  const currentAvatar = person.querySelector('.community-author-avatar');
+
+  if (!currentAvatar) return;
+  if (imageUrl) {
+    currentAvatar.replaceWith(makeAvatar(correctName, imageUrl));
+  } else {
+    currentAvatar.textContent = initialsFor(correctName);
+  }
 }
 
 function findPostForArticle(article) {
