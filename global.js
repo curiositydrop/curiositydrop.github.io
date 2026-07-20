@@ -143,4 +143,8 @@ if (window.location.pathname.endsWith('/community.html')) {
   }).catch((error) => {
     console.error('Error loading post owner controls:', error);
   });
+
+  import('./admin-comment-controls.js?v=1').catch((error) => {
+    console.error('Error loading admin comment controls:', error);
+  });
 }
