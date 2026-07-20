@@ -5,40 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=7">
+  <link rel="stylesheet" href="auth.css?v=8">
   <style>
-    .profile-page { display:grid; gap:22px; }
-    .profile-hero { position:relative; overflow:hidden; border:1px solid rgba(0,200,180,.35); border-radius:24px; background:linear-gradient(145deg,#121212,#080808); box-shadow:0 18px 45px rgba(0,0,0,.35); }
-    .profile-hero::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at top right,rgba(0,200,180,.17),transparent 42%); pointer-events:none; }
-    .profile-hero-inner { position:relative; display:grid; grid-template-columns:170px minmax(0,1fr); gap:26px; align-items:center; padding:30px; }
-    .profile-avatar { width:160px; height:160px; display:flex; align-items:center; justify-content:center; border-radius:22px; border:1px solid rgba(0,200,180,.65); background:#090909; color:#00c8b4; font-size:2.65rem; font-weight:900; letter-spacing:.03em; overflow:hidden; }
+    .profile-page { display:grid; gap:14px; max-width:980px; }
+    .profile-card { border:1px solid rgba(255,255,255,.11); border-radius:18px; background:#121212; padding:20px; box-shadow:0 12px 30px rgba(0,0,0,.2); }
+    .profile-cover { min-height:230px; display:grid; place-items:center; overflow:hidden; position:relative; background:radial-gradient(circle at 50% 30%,rgba(0,200,180,.18),transparent 45%),linear-gradient(145deg,#171717,#070707); }
+    .profile-cover::after { content:""; position:absolute; inset:0; border:1px solid rgba(0,200,180,.24); border-radius:inherit; pointer-events:none; }
+    .profile-avatar { width:150px; height:150px; display:grid; place-items:center; overflow:hidden; border-radius:20px; border:1px solid rgba(0,200,180,.7); background:#080808; color:#00c8b4; font-size:2.8rem; font-weight:900; box-shadow:0 10px 30px rgba(0,0,0,.45); }
     .profile-avatar img { width:100%; height:100%; object-fit:cover; }
-    .profile-kicker { margin:0 0 8px; color:#00c8b4; font-weight:900; letter-spacing:.13em; text-transform:uppercase; font-size:.8rem; }
-    .profile-title { margin:0; font-size:clamp(2rem,7vw,4.5rem); line-height:.95; text-wrap:balance; }
-    .profile-location { margin:12px 0 0; color:#bbb; font-size:1.05rem; }
-    .profile-badges { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; }
-    .profile-badge { border:1px solid #3b3b3b; border-radius:999px; padding:7px 11px; background:#0b0b0b; color:#ddd; font-size:.82rem; font-weight:800; }
-    .profile-layout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(260px,.8fr); gap:22px; }
-    .profile-panel { border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:24px; background:#101010; }
-    .profile-panel h2 { margin:0 0 14px; }
-    .profile-bio { margin:0; white-space:pre-wrap; line-height:1.75; color:#ddd; }
-    .profile-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-    .profile-detail { padding:16px; border:1px solid rgba(0,200,180,.25); border-radius:14px; background:#0b0b0b; }
-    .profile-detail strong { display:block; color:#00c8b4; margin-bottom:6px; }
-    .profile-actions,.profile-links { display:flex; gap:10px; flex-wrap:wrap; }
-    .profile-links:empty { display:none; }
-    .profile-side-note { color:#aaa; line-height:1.6; }
-    .profile-type-band .profile-hero { border-color:rgba(0,200,180,.55); }
-    .profile-type-musician .profile-hero { border-color:rgba(255,255,255,.2); }
-    .profile-type-venue .profile-hero { border-color:rgba(255,184,77,.4); }
-    .profile-type-fan .profile-hero { border-color:rgba(167,116,255,.4); }
-    .share-panel { margin-top:22px; }
-    @media (max-width:760px) {
-      .profile-hero-inner { grid-template-columns:1fr; text-align:center; justify-items:center; padding:24px 18px; }
-      .profile-avatar { width:132px; height:132px; }
-      .profile-badges,.profile-actions,.profile-links { justify-content:center; }
-      .profile-layout { grid-template-columns:1fr; }
+    .profile-support { text-align:center; padding:15px 18px; border-color:rgba(0,200,180,.35); }
+    .profile-support p { margin:0 0 10px; color:#bbb; }
+    .profile-support-line { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    .profile-support-pill { border:1px solid #3d3d3d; border-radius:999px; padding:7px 11px; color:#aaa; font-size:.78rem; }
+    .profile-feature h2,.profile-card h2 { margin:0 0 12px; }
+    .profile-feature-link { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px; border:1px solid rgba(0,200,180,.28); border-radius:14px; background:#0a0a0a; text-decoration:none; color:#fff; }
+    .profile-feature-link strong { display:block; font-size:1.05rem; }
+    .profile-feature-link span { color:#00c8b4; font-weight:800; }
+    .profile-identity { text-align:center; }
+    .profile-kicker { margin:0 0 8px; color:#00c8b4; font-size:.78rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+    .profile-title { margin:0; font-size:clamp(2rem,8vw,3.8rem); line-height:1; }
+    .profile-location { margin:10px 0 0; color:#bbb; }
+    .profile-badges,.profile-actions,.profile-links { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-top:16px; }
+    .profile-badge { border:1px solid #3c3c3c; border-radius:999px; padding:7px 11px; background:#090909; color:#ddd; font-size:.82rem; font-weight:800; }
+    .profile-bio { white-space:pre-wrap; line-height:1.75; color:#ddd; margin:0; }
+    .profile-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .profile-detail { padding:15px; border:1px solid rgba(0,200,180,.24); border-radius:13px; background:#0a0a0a; }
+    .profile-detail strong { display:block; color:#00c8b4; margin-bottom:5px; }
+    .profile-side-note { color:#aaa; margin:0; }
+    .share-panel { margin-top:18px; }
+    .profile-actions .auth-button,.profile-links .auth-button { text-decoration:none; justify-content:center; }
+    @media (max-width:650px) {
+      .profile-card { padding:16px; }
+      .profile-cover { min-height:205px; }
+      .profile-avatar { width:128px; height:128px; }
       .profile-details-grid { grid-template-columns:1fr; }
+      .profile-feature-link { align-items:flex-start; flex-direction:column; }
     }
   </style>
 </head>
@@ -46,43 +47,40 @@
   <div id="global-header"></div>
 
   <main class="auth-shell auth-shell-wide profile-page">
-    <section id="profile-card" hidden>
-      <div class="profile-hero">
-        <div class="profile-hero-inner">
-          <div id="profile-avatar" class="profile-avatar" aria-hidden="true">BT</div>
-          <div>
-            <p id="profile-type" class="profile-kicker"></p>
-            <h1 id="profile-name" class="profile-title"></h1>
-            <p id="profile-location" class="profile-location"></p>
-            <div id="profile-badges" class="profile-badges"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-layout">
-        <div class="profile-panel">
-          <h2 id="about-heading">About</h2>
-          <p id="profile-bio" class="profile-bio"></p>
-        </div>
-
-        <aside class="profile-panel">
-          <h2 id="snapshot-heading">Profile Snapshot</h2>
-          <div id="profile-details" class="profile-details-grid"></div>
-          <p id="empty-details" class="profile-side-note" hidden>This member has not added more profile details yet.</p>
-        </aside>
-      </div>
-
-      <section class="profile-panel">
-        <h2>Listen, Watch & Connect</h2>
-        <div id="profile-links" class="profile-links"></div>
-        <p id="empty-links" class="profile-side-note" hidden>No outside links have been added yet.</p>
+    <section id="profile-content" hidden>
+      <section class="profile-card profile-cover">
+        <div id="profile-avatar" class="profile-avatar" aria-hidden="true">BT</div>
       </section>
 
-      <section class="profile-panel">
+      <section class="profile-card profile-support">
+        <p>This profile is supported by the BANDtroductions community.</p>
+        <div class="profile-support-line">
+          <span class="profile-support-pill">Your business here</span>
+          <span class="profile-support-pill">Support local music</span>
+          <span class="profile-support-pill">Support this profile</span>
+        </div>
+      </section>
+
+      <section id="featured-section" class="profile-card profile-feature" hidden>
+        <h2 id="featured-heading">Featured Media</h2>
+        <a id="featured-link" class="profile-feature-link" target="_blank" rel="noopener">
+          <div>
+            <strong id="featured-title">Listen or watch</strong>
+            <small id="featured-copy">Open this profile's featured link.</small>
+          </div>
+          <span>Open ↗</span>
+        </a>
+      </section>
+
+      <section class="profile-card profile-identity">
+        <p id="profile-type" class="profile-kicker"></p>
+        <h1 id="profile-name" class="profile-title"></h1>
+        <p id="profile-location" class="profile-location"></p>
+        <div id="profile-badges" class="profile-badges"></div>
         <div class="profile-actions">
-          <a id="edit-profile" class="auth-button" href="profile-setup.html" hidden style="text-decoration:none;justify-content:center;">Edit Profile</a>
-          <button id="share-profile" class="auth-button" type="button" hidden>Share to BANDtroductions</button>
-          <a class="auth-button auth-button-secondary" href="community.html" style="text-decoration:none;justify-content:center;">Back to Community</a>
+          <button id="share-profile" class="auth-button" type="button" hidden>Share Profile</button>
+          <a id="edit-profile" class="auth-button" href="profile-setup.html" hidden>Edit Profile</a>
+          <a class="auth-button auth-button-secondary" href="community.html">Community</a>
         </div>
 
         <section id="share-panel" class="share-panel" hidden>
@@ -94,66 +92,76 @@
           <p id="share-status" class="auth-message" role="status"></p>
         </section>
       </section>
+
+      <section class="profile-card">
+        <h2 id="about-heading">About</h2>
+        <p id="profile-bio" class="profile-bio"></p>
+      </section>
+
+      <section class="profile-card">
+        <h2 id="snapshot-heading">Profile Details</h2>
+        <div id="profile-details" class="profile-details-grid"></div>
+        <p id="empty-details" class="profile-side-note" hidden>No additional profile details have been added yet.</p>
+      </section>
+
+      <section class="profile-card">
+        <h2 id="links-heading">Links & Contact</h2>
+        <div id="profile-links" class="profile-links"></div>
+        <p id="empty-links" class="profile-side-note" hidden>No outside links have been added yet.</p>
+      </section>
     </section>
 
     <p id="profile-status" class="auth-message">Loading profile…</p>
   </main>
 
   <div id="global-footer"></div>
-  <script src="global.js?v=5"></script>
+  <script src="global.js?v=6"></script>
   <script type="module">
     import { auth, db } from './firebase-dev.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { addDoc, collection, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
-    const params = new URLSearchParams(window.location.search);
-    const profileId = params.get('id');
-    const card = document.getElementById('profile-card');
+    const profileId = new URLSearchParams(window.location.search).get('id');
+    const content = document.getElementById('profile-content');
     const status = document.getElementById('profile-status');
     const shareButton = document.getElementById('share-profile');
     const sharePanel = document.getElementById('share-panel');
     const shareStatus = document.getElementById('share-status');
+    const editButton = document.getElementById('edit-profile');
     let loadedProfile = null;
     let signedInUser = null;
     let signedInProfile = null;
 
     const layouts = {
       band: {
-        kicker: 'BAND PROFILE',
-        about: 'About the Band',
-        snapshot: 'Band Snapshot',
-        details: [['genre','Genre'],['yearFormed','Year formed'],['members','Members'],['bookingEmail','Booking']],
-        badges: ['genre','location']
+        kicker:'BAND PROFILE', about:'About the Band', snapshot:'Band Status & Information', links:'Links & Booking', featured:'Featured Music / Video',
+        details:[['genre','Genre'],['yearFormed','Year formed'],['members','Members'],['bookingEmail','Booking email']], badges:['genre','location']
       },
       musician: {
-        kicker: 'MUSICIAN PROFILE',
-        about: 'About the Musician',
-        snapshot: 'Musician Snapshot',
-        details: [['instruments','Instrument(s) / Role'],['experience','Experience'],['lookingForBand','Looking for a band']],
-        badges: ['instruments','location']
+        kicker:'MUSICIAN PROFILE', about:'About the Musician', snapshot:'Musician Status & Information', links:'Links & Contact', featured:'Featured Music / Video',
+        details:[['instruments','Instrument(s) / Role'],['experience','Experience'],['lookingForBand','Availability']], badges:['instruments','location']
       },
       venue: {
-        kicker: 'VENUE PROFILE',
-        about: 'About the Venue',
-        snapshot: 'Venue Snapshot',
-        details: [['venueType','Venue type'],['capacity','Capacity'],['venueBooking','Booking information']],
-        badges: ['venueType','location']
+        kicker:'VENUE PROFILE', about:'About the Venue', snapshot:'Venue Status & Information', links:'Links & Booking', featured:'Featured Venue Media',
+        details:[['venueType','Venue type'],['capacity','Capacity'],['venueBooking','Booking information']], badges:['venueType','location']
       },
       fan: {
-        kicker: 'FAN PROFILE',
-        about: 'About This Fan',
-        snapshot: 'Fan Snapshot',
-        details: [['favoriteGenres','Favorite genres'],['fanInterests','Interests']],
-        badges: ['favoriteGenres','location']
+        kicker:'FAN PROFILE', about:'About This Fan', snapshot:'Fan Profile Information', links:'Links', featured:'Featured Link',
+        details:[['favoriteGenres','Favorite genres'],['fanInterests','Interests']], badges:['favoriteGenres','location']
       }
     };
 
-    const initialsFor = (name) => {
-      const parts = (name || '').trim().split(/\s+/).filter(Boolean).slice(0,2);
-      return parts.map((part) => part[0]).join('').toUpperCase() || 'BT';
-    };
+    const initialsFor = (name) => (name || '').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() || 'BT';
 
-    function addDetail(label, value) {
+    function addBadge(value) {
+      if (!value) return;
+      const badge = document.createElement('span');
+      badge.className = 'profile-badge';
+      badge.textContent = value;
+      document.getElementById('profile-badges').appendChild(badge);
+    }
+
+    function addDetail(label,value) {
       if (!value) return false;
       const item = document.createElement('div');
       item.className = 'profile-detail';
@@ -173,22 +181,14 @@
       link.target = '_blank';
       link.rel = 'noopener';
       link.className = 'auth-button';
-      link.style.textDecoration = 'none';
       link.textContent = label;
       document.getElementById('profile-links').appendChild(link);
       return true;
     }
 
-    function addBadge(value) {
-      if (!value) return;
-      const badge = document.createElement('span');
-      badge.className = 'profile-badge';
-      badge.textContent = value;
-      document.getElementById('profile-badges').appendChild(badge);
-    }
-
     async function loadProfile(user) {
       signedInUser = user;
+      editButton.hidden = true;
       if (!profileId) { status.textContent = 'No profile was selected.'; return; }
 
       try {
@@ -201,7 +201,6 @@
         loadedProfile = snapshot.data();
         const accountType = loadedProfile.accountType || 'fan';
         const layout = layouts[accountType] || layouts.fan;
-        document.body.classList.add(`profile-type-${accountType}`);
         document.title = `${loadedProfile.displayName || 'Profile'} | BANDtroductions`;
         document.getElementById('profile-name').textContent = loadedProfile.displayName || 'BANDtroductions Member';
         document.getElementById('profile-type').textContent = layout.kicker;
@@ -209,6 +208,7 @@
         document.getElementById('profile-bio').textContent = loadedProfile.bio || 'No bio has been added yet.';
         document.getElementById('about-heading').textContent = layout.about;
         document.getElementById('snapshot-heading').textContent = layout.snapshot;
+        document.getElementById('links-heading').textContent = layout.links;
 
         const avatar = document.getElementById('profile-avatar');
         avatar.textContent = initialsFor(loadedProfile.displayName);
@@ -216,11 +216,11 @@
           const image = document.createElement('img');
           image.src = loadedProfile.imageUrl;
           image.alt = `${loadedProfile.displayName || 'Member'} profile image`;
-          image.addEventListener('error', () => image.replaceWith(initialsFor(loadedProfile.displayName)));
+          image.addEventListener('error', () => { avatar.textContent = initialsFor(loadedProfile.displayName); });
           avatar.replaceChildren(image);
         }
 
-        layout.badges.forEach((key) => addBadge(loadedProfile[key]));
+        layout.badges.forEach(key => addBadge(loadedProfile[key]));
         let detailCount = 0;
         layout.details.forEach(([key,label]) => { if (addDetail(label,loadedProfile[key])) detailCount += 1; });
         document.getElementById('empty-details').hidden = detailCount > 0;
@@ -228,18 +228,27 @@
         let linkCount = 0;
         if (addLink('Visit Website',loadedProfile.website)) linkCount += 1;
         if (addLink(accountType === 'venue' ? 'View Media' : 'Listen / Watch',loadedProfile.mediaLink)) linkCount += 1;
+        if (loadedProfile.bookingEmail && addLink('Email Booking',`mailto:${loadedProfile.bookingEmail}`)) linkCount += 1;
         document.getElementById('empty-links').hidden = linkCount > 0;
+
+        if (loadedProfile.mediaLink) {
+          document.getElementById('featured-heading').textContent = layout.featured;
+          document.getElementById('featured-link').href = loadedProfile.mediaLink;
+          document.getElementById('featured-title').textContent = loadedProfile.displayName || 'Featured media';
+          document.getElementById('featured-copy').textContent = accountType === 'fan' ? 'Open this fan’s featured music or link.' : 'Open this profile’s featured music or video.';
+          document.getElementById('featured-section').hidden = false;
+        }
 
         if (user) {
           const ownProfileSnapshot = await getDoc(doc(db,'profiles',user.uid));
           const ownUserSnapshot = await getDoc(doc(db,'users',user.uid));
           signedInProfile = ownProfileSnapshot.exists() ? ownProfileSnapshot.data() : (ownUserSnapshot.exists() ? ownUserSnapshot.data() : {});
           shareButton.hidden = false;
-          if (user.uid === profileId) document.getElementById('edit-profile').hidden = false;
+          editButton.hidden = user.uid !== profileId;
         }
 
         status.hidden = true;
-        card.hidden = false;
+        content.hidden = false;
       } catch (error) {
         console.error(error);
         status.textContent = 'We could not load this profile.';
@@ -291,7 +300,8 @@
       }
     });
 
-    onAuthStateChanged(auth,(user) => loadProfile(user));
+    onAuthStateChanged(auth, loadProfile);
   </script>
+  <script type="module" src="profile-owner-visibility.js?v=2"></script>
 </body>
 </html>
