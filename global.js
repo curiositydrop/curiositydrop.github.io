@@ -108,8 +108,31 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+function removeDuplicateComposerAvatars() {
+  const heading = document.querySelector('.community-composer-heading');
+  if (!heading) return;
+
+  const avatars = [...heading.querySelectorAll('.community-author-avatar')];
+  if (avatars.length <= 1) return;
+
+  const name = document.getElementById('composer-name');
+  const preferred = avatars.find((avatar) => avatar.parentElement?.contains(name)) || avatars[avatars.length - 1];
+  avatars.forEach((avatar) => {
+    if (avatar !== preferred) avatar.remove();
+  });
+}
+
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=3').catch((error) => {
+  import('./post-owner-controls.js?v=4').then(() => {
+    removeDuplicateComposerAvatars();
+    const composer = document.getElementById('post-composer');
+    if (composer) {
+      new MutationObserver(removeDuplicateComposerAvatars).observe(composer, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }).catch((error) => {
     console.error('Error loading post owner controls:', error);
   });
 }
