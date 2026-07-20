@@ -1,9 +1,11 @@
-import { db } from './firebase-dev.js';
+import { auth, db } from './firebase-dev.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const style = document.createElement('style');
 style.textContent = `
-  .community-author-wrap {
+  .community-author-wrap,
+  .community-composer-identity {
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -43,12 +45,16 @@ document.head.appendChild(style);
 const profileCache = new Map();
 
 function initialsFor(name) {
-  return (name || 'BT')
-    .trim()
+  const cleaned = (name || '').trim();
+  if (!cleaned || cleaned === 'Create a post') return 'BT';
+
+  return cleaned
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0))
-    .join('') || 'BT';
+    .join('')
+    .toUpperCase() || 'BT';
 }
 
 async function getProfile(userId) {
@@ -62,7 +68,7 @@ async function getProfile(userId) {
         const userSnapshot = await getDoc(doc(db, 'users', userId));
         return userSnapshot.exists() ? userSnapshot.data() : {};
       } catch (error) {
-        console.error('Could not load post author profile:', error);
+        console.error('Could not load community profile image:', error);
         return {};
       }
     })());
@@ -70,7 +76,28 @@ async function getProfile(userId) {
   return profileCache.get(userId);
 }
 
-async function addAvatar(article) {
+function makePlaceholder(name) {
+  const placeholder = document.createElement('span');
+  placeholder.className = 'community-author-avatar community-author-placeholder';
+  placeholder.textContent = initialsFor(name);
+  placeholder.setAttribute('aria-hidden', 'true');
+  return placeholder;
+}
+
+async function replaceWithProfileImage(placeholder, profile, fallbackName) {
+  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
+  if (!imageUrl || !placeholder.isConnected) return;
+
+  const image = document.createElement('img');
+  image.className = 'community-author-avatar';
+  image.src = imageUrl;
+  image.alt = `${profile.displayName || fallbackName || 'Member'} profile image`;
+  image.loading = 'lazy';
+  image.addEventListener('error', () => image.replaceWith(placeholder));
+  placeholder.replaceWith(image);
+}
+
+async function addPostAvatar(article) {
   if (article.dataset.authorAvatarReady === 'true') return;
 
   const author = article.querySelector('.community-author');
@@ -85,31 +112,64 @@ async function addAvatar(article) {
   const wrap = document.createElement('div');
   wrap.className = 'community-author-wrap';
 
-  const placeholder = document.createElement('span');
-  placeholder.className = 'community-author-avatar community-author-placeholder';
-  placeholder.textContent = initialsFor(author.textContent);
-  placeholder.setAttribute('aria-hidden', 'true');
-
+  const placeholder = makePlaceholder(author.textContent);
   author.parentNode.insertBefore(wrap, author);
   wrap.append(placeholder, author);
 
   const profile = await getProfile(userId);
-  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
-  if (!imageUrl || !placeholder.isConnected) return;
-
-  const image = document.createElement('img');
-  image.className = 'community-author-avatar';
-  image.src = imageUrl;
-  image.alt = `${profile.displayName || author.textContent || 'Member'} profile image`;
-  image.loading = 'lazy';
-  image.addEventListener('error', () => image.replaceWith(placeholder));
-  placeholder.replaceWith(image);
+  await replaceWithProfileImage(placeholder, profile, author.textContent);
 }
 
 function scanPosts() {
   document.querySelectorAll('.community-post').forEach((article) => {
-    addAvatar(article);
+    addPostAvatar(article);
   });
+}
+
+async function setupComposerAvatar(user) {
+  const heading = document.querySelector('.community-composer-heading');
+  const nameElement = document.getElementById('composer-name');
+  if (!heading || !nameElement || !user) return;
+
+  let identity = heading.querySelector('.community-composer-identity');
+  let placeholder;
+
+  if (!identity) {
+    const textBlock = nameElement.parentElement;
+    identity = document.createElement('div');
+    identity.className = 'community-composer-identity';
+    textBlock.parentNode.insertBefore(identity, textBlock);
+
+    placeholder = makePlaceholder(nameElement.textContent);
+    identity.append(placeholder, textBlock);
+  } else {
+    placeholder = identity.querySelector('.community-author-placeholder');
+  }
+
+  const updateInitials = () => {
+    const currentPlaceholder = identity.querySelector('.community-author-placeholder');
+    if (currentPlaceholder) {
+      currentPlaceholder.textContent = initialsFor(nameElement.textContent);
+    }
+  };
+
+  updateInitials();
+  new MutationObserver(updateInitials).observe(nameElement, {
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
+
+  const profile = await getProfile(user.uid);
+  const currentPlaceholder = identity.querySelector('.community-author-placeholder');
+  if (currentPlaceholder) {
+    currentPlaceholder.textContent = initialsFor(profile.displayName || nameElement.textContent);
+    await replaceWithProfileImage(
+      currentPlaceholder,
+      profile,
+      profile.displayName || nameElement.textContent
+    );
+  }
 }
 
 const feed = document.getElementById('feed');
@@ -117,3 +177,7 @@ if (feed) {
   new MutationObserver(scanPosts).observe(feed, { childList: true, subtree: true });
   scanPosts();
 }
+
+onAuthStateChanged(auth, (user) => {
+  if (user) setupComposerAvatar(user);
+});
