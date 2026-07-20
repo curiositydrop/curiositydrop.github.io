@@ -5,10 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Set Up Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=4">
+  <link rel="stylesheet" href="auth.css?v=5">
   <style>
-    .emoji-select-row{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:end}
+    .name-emoji-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:12px;align-items:end}
+    .emoji-select-wrap{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:end}
     .emoji-preview{height:54px;border:1px solid #3a3a3a;border-radius:12px;background:#101010;display:grid;place-items:center;font-size:1.9rem}
+    .auto-grow{min-height:48px;max-height:320px;resize:none;overflow-y:hidden}
+    .account-tools{margin-top:18px;padding-top:18px;border-top:1px solid #333}
+    .account-tools h2{margin:0 0 8px;font-size:1.1rem}
+    .account-tools p{margin:0 0 12px;color:#aaa}
+    @media(max-width:620px){.name-emoji-row{grid-template-columns:1fr}.emoji-select-wrap{grid-template-columns:54px minmax(0,1fr)}}
   </style>
 </head>
 <body class="hamburger-active auth-page">
@@ -19,84 +25,46 @@
     <p id="setup-message" class="auth-subtitle">Loading your account…</p>
 
     <form id="profile-form" class="auth-form" hidden>
-      <div class="auth-grid">
+      <div class="name-emoji-row">
         <label>Public display name<input id="display-name" type="text" maxlength="80" required></label>
-        <label>Location<input id="location" type="text" maxlength="100" placeholder="Portland, Maine"></label>
+        <div id="fan-emoji-editor" class="emoji-select-wrap" hidden>
+          <div id="emoji-preview" class="emoji-preview" aria-hidden="true">🎵</div>
+          <label>Profile emoji
+            <select id="profile-emoji">
+              <option value="">None</option>
+              <option value="🎵">🎵</option><option value="🎸">🎸</option><option value="🤘">🤘</option><option value="🔥">🔥</option><option value="💀">💀</option><option value="🖤">🖤</option><option value="🎧">🎧</option><option value="🎤">🎤</option><option value="🥁">🥁</option><option value="⚡">⚡</option><option value="🦇">🦇</option><option value="👽">👽</option><option value="😈">😈</option><option value="🌙">🌙</option><option value="🕸️">🕸️</option><option value="🧨">🧨</option><option value="🚀">🚀</option><option value="☕">☕</option><option value="😎">😎</option>
+            </select>
+          </label>
+        </div>
       </div>
 
+      <label>Location<input id="location" type="text" maxlength="100" placeholder="Portland, Maine"></label>
+
       <div class="auth-grid">
-        <label>
-          Banner image URL
-          <input id="banner-image-url" type="text" inputmode="url" placeholder="example.com/banner.jpg">
-          <small>Wide image shown across the top of your profile.</small>
-        </label>
-        <label>
-          Avatar image URL
-          <input id="image-url" type="text" inputmode="url" placeholder="example.com/avatar.jpg">
-          <small>Square profile image. Initials appear when this is blank.</small>
-        </label>
+        <label>Banner image URL<input id="banner-image-url" type="text" inputmode="url" placeholder="example.com/banner.jpg"><small>Wide image shown across the top of your profile.</small></label>
+        <label>Avatar image URL<input id="image-url" type="text" inputmode="url" placeholder="example.com/avatar.jpg"><small>Square profile image. Initials appear when this is blank.</small></label>
       </div>
       <small>These URL fields are temporary until Firebase Storage uploads are enabled. You may enter addresses with or without https://.</small>
 
-      <label>About<textarea id="bio" maxlength="2000" rows="7" required placeholder="Tell the music community about yourself..."></textarea></label>
+      <label>About<textarea id="bio" class="auto-grow" maxlength="1000" rows="1" required placeholder="Tell the music community about yourself..."></textarea><small><span id="bio-count">0</span>/1000 characters</small></label>
 
       <div id="band-fields" class="account-fields" hidden>
-        <div class="auth-grid">
-          <label>Genre<input id="genre" type="text" maxlength="120" placeholder="Rock / Metal"></label>
-          <label>Year formed<input id="year-formed" type="number" min="1900" max="2100"></label>
-        </div>
+        <div class="auth-grid"><label>Genre<input id="genre" type="text" maxlength="120" placeholder="Rock / Metal"></label><label>Year formed<input id="year-formed" type="number" min="1900" max="2100"></label></div>
         <label>Band members<textarea id="members" rows="4" maxlength="800" placeholder="Names and roles"></textarea></label>
         <label>Booking/contact email<input id="booking-email" type="email"></label>
       </div>
 
       <div id="musician-fields" class="account-fields" hidden>
         <label>Instrument(s) / role<input id="instruments" type="text" maxlength="200" placeholder="Guitar, vocals, drums..."></label>
-        <div class="auth-grid">
-          <label>Experience level<input id="experience" type="text" maxlength="120"></label>
-          <label>Looking for a band?
-            <select id="looking-for-band"><option value="no">No</option><option value="yes">Yes</option><option value="maybe">Open to opportunities</option></select>
-          </label>
-        </div>
+        <div class="auth-grid"><label>Experience level<input id="experience" type="text" maxlength="120"></label><label>Looking for a band?<select id="looking-for-band"><option value="no">No</option><option value="yes">Yes</option><option value="maybe">Open to opportunities</option></select></label></div>
       </div>
 
       <div id="venue-fields" class="account-fields" hidden>
-        <div class="auth-grid">
-          <label>Venue capacity<input id="capacity" type="number" min="0"></label>
-          <label>Venue type<input id="venue-type" type="text" maxlength="120" placeholder="Club, bar, theater..."></label>
-        </div>
+        <div class="auth-grid"><label>Venue capacity<input id="capacity" type="number" min="0"></label><label>Venue type<input id="venue-type" type="text" maxlength="120" placeholder="Club, bar, theater..."></label></div>
         <label>Booking information<textarea id="venue-booking" rows="4" maxlength="1000"></textarea></label>
       </div>
 
       <div id="fan-fields" class="account-fields" hidden>
-        <div class="emoji-select-row">
-          <div id="emoji-preview" class="emoji-preview" aria-hidden="true">🎵</div>
-          <label>Profile emoji <span style="font-weight:400;color:#aaa">(optional)</span>
-            <select id="profile-emoji">
-              <option value="">No emoji</option>
-              <option value="🎵">🎵 Music note</option>
-              <option value="🎸">🎸 Guitar</option>
-              <option value="🤘">🤘 Rock on</option>
-              <option value="🔥">🔥 Fire</option>
-              <option value="💀">💀 Skull</option>
-              <option value="🖤">🖤 Black heart</option>
-              <option value="🎧">🎧 Headphones</option>
-              <option value="🎤">🎤 Microphone</option>
-              <option value="🥁">🥁 Drums</option>
-              <option value="⚡">⚡ Lightning</option>
-              <option value="🦇">🦇 Bat</option>
-              <option value="👽">👽 Alien</option>
-              <option value="😈">😈 Devil</option>
-              <option value="🌙">🌙 Moon</option>
-              <option value="🕸️">🕸️ Web</option>
-              <option value="🧨">🧨 Dynamite</option>
-              <option value="🚀">🚀 Rocket</option>
-              <option value="🍺">🍺 Beer</option>
-              <option value="☕">☕ Coffee</option>
-              <option value="😎">😎 Cool</option>
-            </select>
-          </label>
-        </div>
-        <small>Pick a little piece of personality to display beside your name.</small>
         <label>Favorite genres<input id="favorite-genres" type="text" maxlength="250" placeholder="Metal, punk, country..."></label>
         <label>What brings you to BANDtroductions?<textarea id="fan-interests" rows="4" maxlength="800"></textarea></label>
       </div>
@@ -106,6 +74,13 @@
 
       <button id="save-button" class="auth-button" type="submit">Save & Publish Profile</button>
       <p id="setup-status" class="auth-message" role="status"></p>
+
+      <section class="account-tools">
+        <h2>Account security</h2>
+        <p>Need a new password? We’ll email you a secure Firebase reset link.</p>
+        <button id="password-reset-button" class="auth-button auth-button-secondary" type="button">Send Password Reset Email</button>
+        <p id="password-reset-status" class="auth-message" role="status"></p>
+      </section>
     </form>
   </main>
 
@@ -113,7 +88,7 @@
   <script src="global.js?v=2"></script>
   <script type="module">
     import { auth, db } from './firebase-dev.js';
-    import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { onAuthStateChanged, updateProfile, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
     const form=document.getElementById('profile-form');
@@ -122,22 +97,30 @@
     const saveButton=document.getElementById('save-button');
     const emojiSelect=document.getElementById('profile-emoji');
     const emojiPreview=document.getElementById('emoji-preview');
+    const emojiEditor=document.getElementById('fan-emoji-editor');
+    const bio=document.getElementById('bio');
+    const bioCount=document.getElementById('bio-count');
+    const resetButton=document.getElementById('password-reset-button');
+    const resetStatus=document.getElementById('password-reset-status');
     let currentUser;
     let accountType;
 
     const value=(id)=>document.getElementById(id)?.value.trim()||'';
-    const normalizeUrl=(raw)=>{ const url=raw.trim(); if(!url) return ''; return /^https?:\/\//i.test(url)?url:`https://${url}`; };
-    function showFields(type){ document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true); const section=document.getElementById(`${type}-fields`); if(section) section.hidden=false; }
-    function updateEmojiPreview(){ emojiPreview.textContent=emojiSelect.value||'🎵'; emojiPreview.style.opacity=emojiSelect.value?'1':'.35'; }
+    const normalizeUrl=(raw)=>{const url=raw.trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`;};
+    function showFields(type){document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true);const section=document.getElementById(`${type}-fields`);if(section)section.hidden=false;emojiEditor.hidden=type!=='fan';}
+    function updateEmojiPreview(){emojiPreview.textContent=emojiSelect.value||'🎵';emojiPreview.style.opacity=emojiSelect.value?'1':'.35';}
+    function growBio(){bio.style.height='auto';bio.style.height=`${Math.min(bio.scrollHeight,320)}px`;bio.style.overflowY=bio.scrollHeight>320?'auto':'hidden';bioCount.textContent=bio.value.length;}
     emojiSelect.addEventListener('change',updateEmojiPreview);
+    bio.addEventListener('input',growBio);
+
     function fillProfile(data={}){
       const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
-      ids.forEach(id=>{ const element=document.getElementById(id); if(!element) return; const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase()); if(data[key]!==undefined&&data[key]!==null) element.value=data[key]; });
-      updateEmojiPreview();
+      ids.forEach(id=>{const element=document.getElementById(id);if(!element)return;const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase());if(data[key]!==undefined&&data[key]!==null)element.value=data[key];});
+      updateEmojiPreview();growBio();
     }
 
     onAuthStateChanged(auth,async(user)=>{
-      if(!user){ window.location.href='login.html'; return; }
+      if(!user){window.location.href='login.html';return;}
       currentUser=user;
       try{
         const userSnapshot=await getDoc(doc(db,'users',user.uid));
@@ -146,51 +129,28 @@
         message.textContent=`Build and publish your ${accountType} profile. You can return and edit it anytime.`;
         showFields(accountType);
         let existingProfile={displayName:userData.displayName||user.displayName||''};
-        try{ const profileSnapshot=await getDoc(doc(db,'profiles',user.uid)); if(profileSnapshot.exists()) existingProfile=profileSnapshot.data(); }
-        catch(profileError){ if(profileError.code!=='permission-denied') throw profileError; }
+        try{const profileSnapshot=await getDoc(doc(db,'profiles',user.uid));if(profileSnapshot.exists())existingProfile=profileSnapshot.data();}
+        catch(profileError){if(profileError.code!=='permission-denied')throw profileError;}
         fillProfile(existingProfile);
         form.hidden=false;
         status.textContent='';
-      }catch(error){ console.error(error); status.textContent='We could not load your account information.'; }
+      }catch(error){console.error(error);status.textContent='We could not load your account information.';}
+    });
+
+    resetButton.addEventListener('click',async()=>{
+      if(!currentUser?.email)return;
+      resetButton.disabled=true;resetStatus.textContent='Sending reset email…';
+      try{await sendPasswordResetEmail(auth,currentUser.email);resetStatus.textContent=`Password reset email sent to ${currentUser.email}.`;}
+      catch(error){console.error(error);resetStatus.textContent='We could not send the reset email. Please try again.';}
+      finally{resetButton.disabled=false;}
     });
 
     form.addEventListener('submit',async(event)=>{
-      event.preventDefault();
-      if(!currentUser) return;
-      saveButton.disabled=true;
-      status.textContent='Saving your profile…';
-      const profileData={
-        ownerId:currentUser.uid,
-        accountType,
-        displayName:value('display-name'),
-        location:value('location'),
-        bannerImageUrl:normalizeUrl(value('banner-image-url')),
-        imageUrl:normalizeUrl(value('image-url')),
-        bio:value('bio'),
-        genre:value('genre'),
-        yearFormed:value('year-formed'),
-        members:value('members'),
-        bookingEmail:value('booking-email'),
-        instruments:value('instruments'),
-        experience:value('experience'),
-        lookingForBand:value('looking-for-band'),
-        capacity:value('capacity'),
-        venueType:value('venue-type'),
-        venueBooking:value('venue-booking'),
-        profileEmoji:value('profile-emoji'),
-        favoriteGenres:value('favorite-genres'),
-        fanInterests:value('fan-interests'),
-        website:normalizeUrl(value('website')),
-        mediaLink:normalizeUrl(value('media-link')),
-        published:true,
-        updatedAt:serverTimestamp()
-      };
-      try{
-        await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});
-        await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
-        await updateProfile(currentUser,{displayName:profileData.displayName});
-        window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;
-      }catch(error){ console.error(error); status.textContent=error.code==='permission-denied'?'Profile permissions are not enabled yet.':'Your profile could not be saved. Please try again.'; saveButton.disabled=false; }
+      event.preventDefault();if(!currentUser)return;
+      saveButton.disabled=true;status.textContent='Saving your profile…';
+      const profileData={ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl:normalizeUrl(value('banner-image-url')),imageUrl:normalizeUrl(value('image-url')),bio:value('bio'),genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),profileEmoji:value('profile-emoji'),favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),mediaLink:normalizeUrl(value('media-link')),published:true,updatedAt:serverTimestamp()};
+      try{await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});await updateProfile(currentUser,{displayName:profileData.displayName});window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;}
+      catch(error){console.error(error);status.textContent=error.code==='permission-denied'?'Profile permissions are not enabled yet.':'Your profile could not be saved. Please try again.';saveButton.disabled=false;}
     });
   </script>
 </body>
