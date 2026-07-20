@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Set Up Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=2">
+  <link rel="stylesheet" href="auth.css?v=3">
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
@@ -16,27 +16,25 @@
 
     <form id="profile-form" class="auth-form" hidden>
       <div class="auth-grid">
-        <label>
-          Public display name
-          <input id="display-name" type="text" maxlength="80" required>
-        </label>
-
-        <label>
-          Location
-          <input id="location" type="text" maxlength="100" placeholder="Portland, Maine">
-        </label>
+        <label>Public display name<input id="display-name" type="text" maxlength="80" required></label>
+        <label>Location<input id="location" type="text" maxlength="100" placeholder="Portland, Maine"></label>
       </div>
 
-      <label>
-        Profile image URL
-        <input id="image-url" type="text" inputmode="url" placeholder="example.com/photo.jpg">
-        <small>Temporary until Firebase Storage uploads are enabled. You may enter the address with or without https://.</small>
-      </label>
+      <div class="auth-grid">
+        <label>
+          Banner image URL
+          <input id="banner-image-url" type="text" inputmode="url" placeholder="example.com/banner.jpg">
+          <small>Wide image shown across the top of your profile.</small>
+        </label>
+        <label>
+          Avatar image URL
+          <input id="image-url" type="text" inputmode="url" placeholder="example.com/avatar.jpg">
+          <small>Square profile image. Initials appear when this is blank.</small>
+        </label>
+      </div>
+      <small>These URL fields are temporary until Firebase Storage uploads are enabled. You may enter addresses with or without https://.</small>
 
-      <label>
-        About
-        <textarea id="bio" maxlength="2000" rows="7" required placeholder="Tell the music community about yourself..."></textarea>
-      </label>
+      <label>About<textarea id="bio" maxlength="2000" rows="7" required placeholder="Tell the music community about yourself..."></textarea></label>
 
       <div id="band-fields" class="account-fields" hidden>
         <div class="auth-grid">
@@ -52,11 +50,7 @@
         <div class="auth-grid">
           <label>Experience level<input id="experience" type="text" maxlength="120"></label>
           <label>Looking for a band?
-            <select id="looking-for-band">
-              <option value="no">No</option>
-              <option value="yes">Yes</option>
-              <option value="maybe">Open to opportunities</option>
-            </select>
+            <select id="looking-for-band"><option value="no">No</option><option value="yes">Yes</option><option value="maybe">Open to opportunities</option></select>
           </label>
         </div>
       </div>
@@ -89,115 +83,75 @@
     import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
-    const form = document.getElementById('profile-form');
-    const message = document.getElementById('setup-message');
-    const status = document.getElementById('setup-status');
-    const saveButton = document.getElementById('save-button');
+    const form=document.getElementById('profile-form');
+    const message=document.getElementById('setup-message');
+    const status=document.getElementById('setup-status');
+    const saveButton=document.getElementById('save-button');
     let currentUser;
     let accountType;
 
-    const value = (id) => document.getElementById(id)?.value.trim() || '';
-    const normalizeUrl = (raw) => {
-      const url = raw.trim();
-      if (!url) return '';
-      return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-    };
-
-    function showFields(type) {
-      document.querySelectorAll('.account-fields').forEach((section) => section.hidden = true);
-      const section = document.getElementById(`${type}-fields`);
-      if (section) section.hidden = false;
+    const value=(id)=>document.getElementById(id)?.value.trim()||'';
+    const normalizeUrl=(raw)=>{ const url=raw.trim(); if(!url) return ''; return /^https?:\/\//i.test(url)?url:`https://${url}`; };
+    function showFields(type){ document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true); const section=document.getElementById(`${type}-fields`); if(section) section.hidden=false; }
+    function fillProfile(data={}){
+      const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','favorite-genres','fan-interests','website','media-link'];
+      ids.forEach(id=>{ const element=document.getElementById(id); if(!element) return; const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase()); if(data[key]!==undefined&&data[key]!==null) element.value=data[key]; });
     }
 
-    function fillProfile(data = {}) {
-      const ids = ['display-name','location','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','favorite-genres','fan-interests','website','media-link'];
-      ids.forEach((id) => {
-        const element = document.getElementById(id);
-        if (!element) return;
-        const key = id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-        if (data[key] !== undefined && data[key] !== null) element.value = data[key];
-      });
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      currentUser = user;
-      try {
-        const userSnapshot = await getDoc(doc(db, 'users', user.uid));
-        const userData = userSnapshot.exists() ? userSnapshot.data() : {};
-        accountType = userData.accountType || 'fan';
-        message.textContent = `Build and publish your ${accountType} profile. You can return and edit it anytime.`;
+    onAuthStateChanged(auth,async(user)=>{
+      if(!user){ window.location.href='login.html'; return; }
+      currentUser=user;
+      try{
+        const userSnapshot=await getDoc(doc(db,'users',user.uid));
+        const userData=userSnapshot.exists()?userSnapshot.data():{};
+        accountType=userData.accountType||'fan';
+        message.textContent=`Build and publish your ${accountType} profile. You can return and edit it anytime.`;
         showFields(accountType);
-
-        let existingProfile = { displayName: userData.displayName || user.displayName || '' };
-        try {
-          const profileSnapshot = await getDoc(doc(db, 'profiles', user.uid));
-          if (profileSnapshot.exists()) existingProfile = profileSnapshot.data();
-        } catch (profileError) {
-          if (profileError.code !== 'permission-denied') throw profileError;
-        }
-
+        let existingProfile={displayName:userData.displayName||user.displayName||''};
+        try{ const profileSnapshot=await getDoc(doc(db,'profiles',user.uid)); if(profileSnapshot.exists()) existingProfile=profileSnapshot.data(); }
+        catch(profileError){ if(profileError.code!=='permission-denied') throw profileError; }
         fillProfile(existingProfile);
-        form.hidden = false;
-        status.textContent = '';
-      } catch (error) {
-        console.error(error);
-        status.textContent = 'We could not load your account information.';
-      }
+        form.hidden=false;
+        status.textContent='';
+      }catch(error){ console.error(error); status.textContent='We could not load your account information.'; }
     });
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('submit',async(event)=>{
       event.preventDefault();
-      if (!currentUser) return;
-
-      saveButton.disabled = true;
-      status.textContent = 'Saving your profile…';
-
-      const profileData = {
-        ownerId: currentUser.uid,
+      if(!currentUser) return;
+      saveButton.disabled=true;
+      status.textContent='Saving your profile…';
+      const profileData={
+        ownerId:currentUser.uid,
         accountType,
-        displayName: value('display-name'),
-        location: value('location'),
-        imageUrl: normalizeUrl(value('image-url')),
-        bio: value('bio'),
-        genre: value('genre'),
-        yearFormed: value('year-formed'),
-        members: value('members'),
-        bookingEmail: value('booking-email'),
-        instruments: value('instruments'),
-        experience: value('experience'),
-        lookingForBand: value('looking-for-band'),
-        capacity: value('capacity'),
-        venueType: value('venue-type'),
-        venueBooking: value('venue-booking'),
-        favoriteGenres: value('favorite-genres'),
-        fanInterests: value('fan-interests'),
-        website: normalizeUrl(value('website')),
-        mediaLink: normalizeUrl(value('media-link')),
-        published: true,
-        updatedAt: serverTimestamp()
+        displayName:value('display-name'),
+        location:value('location'),
+        bannerImageUrl:normalizeUrl(value('banner-image-url')),
+        imageUrl:normalizeUrl(value('image-url')),
+        bio:value('bio'),
+        genre:value('genre'),
+        yearFormed:value('year-formed'),
+        members:value('members'),
+        bookingEmail:value('booking-email'),
+        instruments:value('instruments'),
+        experience:value('experience'),
+        lookingForBand:value('looking-for-band'),
+        capacity:value('capacity'),
+        venueType:value('venue-type'),
+        venueBooking:value('venue-booking'),
+        favoriteGenres:value('favorite-genres'),
+        fanInterests:value('fan-interests'),
+        website:normalizeUrl(value('website')),
+        mediaLink:normalizeUrl(value('media-link')),
+        published:true,
+        updatedAt:serverTimestamp()
       };
-
-      try {
-        await setDoc(doc(db, 'profiles', currentUser.uid), profileData, { merge: true });
-        await updateDoc(doc(db, 'users', currentUser.uid), {
-          displayName: profileData.displayName,
-          profileComplete: true,
-          updatedAt: serverTimestamp()
-        });
-        await updateProfile(currentUser, { displayName: profileData.displayName });
-        window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`;
-      } catch (error) {
-        console.error(error);
-        status.textContent = error.code === 'permission-denied'
-          ? 'Profile permissions are not enabled yet.'
-          : 'Your profile could not be saved. Please try again.';
-        saveButton.disabled = false;
-      }
+      try{
+        await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});
+        await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
+        await updateProfile(currentUser,{displayName:profileData.displayName});
+        window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;
+      }catch(error){ console.error(error); status.textContent=error.code==='permission-denied'?'Profile permissions are not enabled yet.':'Your profile could not be saved. Please try again.'; saveButton.disabled=false; }
     });
   </script>
 </body>
