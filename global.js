@@ -131,7 +131,7 @@ function removeLegacyComposerAvatar() {
 }
 
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=7').then(() => {
+  import('./post-owner-controls.js?v=8').then(() => {
     removeLegacyComposerAvatar();
     const composer = document.getElementById('post-composer');
     if (composer) {
