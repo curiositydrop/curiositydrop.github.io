@@ -117,9 +117,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-/* Test community controls: owners can edit/delete; admins can delete any post. */
+/* Test community controls and profile images. */
 if (window.location.pathname.endsWith('/community.html')) {
   import('./post-owner-controls.js').catch((error) => {
     console.error('Error loading post owner controls:', error);
+  });
+
+  import('./community-author-avatars.js').catch((error) => {
+    console.error('Error loading community author images:', error);
   });
 }
