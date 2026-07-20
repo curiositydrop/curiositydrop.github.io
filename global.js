@@ -41,7 +41,6 @@ async function initializeAuthNavigation() {
 
     onAuthStateChanged(auth, (user) => {
       const signedIn = Boolean(user);
-
       loginLink.hidden = signedIn;
       accountLink.hidden = signedIn;
       profileLink.hidden = !signedIn;
@@ -82,21 +81,15 @@ async function initializeAuthNavigation() {
 
 function toggleWatchNav() {
   const nav = document.getElementById('mainNav');
-  if (nav) {
-    nav.classList.toggle('show-watch-nav');
-  }
+  if (nav) nav.classList.toggle('show-watch-nav');
 }
 
-/* 🔥 UPDATED SHARE FUNCTION (mobile + desktop friendly) */
 function shareCurrentPage() {
   const path = window.location.pathname;
   const fullUrl = 'https://curiositydrop.com' + path;
 
   if (navigator.share) {
-    navigator.share({
-      title: document.title,
-      url: fullUrl
-    }).catch(() => {});
+    navigator.share({ title: document.title, url: fullUrl }).catch(() => {});
     return;
   }
 
@@ -107,23 +100,16 @@ function shareCurrentPage() {
   );
 }
 
-/* Temporary popup kill switch — remove when the release is ready. */
 document.addEventListener('DOMContentLoaded', function () {
   const featuredPopup = document.getElementById('featured-popup');
-
   if (featuredPopup) {
     featuredPopup.classList.add('is-hidden');
     featuredPopup.style.display = 'none';
   }
 });
 
-/* Test community controls and profile images. */
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=2').catch((error) => {
+  import('./post-owner-controls.js?v=3').catch((error) => {
     console.error('Error loading post owner controls:', error);
-  });
-
-  import('./community-author-avatars.js?v=4').catch((error) => {
-    console.error('Error loading community author images:', error);
   });
 }
