@@ -152,7 +152,7 @@ if (window.location.pathname.endsWith('/community.html')) {
     console.error('Error loading comment controls:', error);
   });
 
-  import('./community-guest-mode.js?v=2').catch((error) => {
+  import('./community-guest-mode.js?v=3').catch((error) => {
     console.error('Error loading community guest mode:', error);
   });
 }
