@@ -162,3 +162,9 @@ if (window.location.pathname.endsWith('/profile.html')) {
     console.error('Error loading profile ownership guard:', error);
   });
 }
+
+if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
+  import('./home-social-hero.js?v=1').catch((error) => {
+    console.error('Error loading home social hero:', error);
+  });
+}
