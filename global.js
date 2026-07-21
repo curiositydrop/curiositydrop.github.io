@@ -171,4 +171,8 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
   import('./home-sponsor-rotator.js?v=1').catch((error) => {
     console.error('Error loading home sponsor rotator:', error);
   });
+
+  import('./home-community-card.js?v=1').catch((error) => {
+    console.error('Error loading home community card:', error);
+  });
 }
