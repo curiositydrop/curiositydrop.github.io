@@ -67,20 +67,20 @@ function configureCommunityIntro() {
   const intro = document.querySelector('.community-intro');
   if (!intro) return;
 
-  const oldMeta = intro.querySelector('.profile-meta');
+  const oldMeta = intro.querySelector('.profile-meta, .social-welcome');
   const heading = intro.querySelector('h1');
-  const subtitle = intro.querySelector('.auth-subtitle');
+  const subtitle = intro.querySelector('.auth-subtitle, .social-tagline');
 
   if (heading) heading.textContent = 'BANDtroductions Social';
 
   if (oldMeta) {
     oldMeta.className = 'social-welcome';
-    oldMeta.textContent = 'Welcome to the community';
+    oldMeta.textContent = 'Welcome to';
   }
 
   if (subtitle) {
     subtitle.className = 'social-tagline';
-    subtitle.textContent = 'No Algorithms. No Politics. No Bullshit. Just a music community, united.';
+    subtitle.textContent = 'A music-scene community with no algorithms, no politics, and no bullshit. Just people connecting through music.';
   }
 }
 
