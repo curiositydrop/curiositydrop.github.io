@@ -1,4 +1,4 @@
-fetch('global.html?v=4')
+fetch('global.html?v=5')
   .then(response => response.text())
   .then(async data => {
     const temp = document.createElement('div');
@@ -66,7 +66,7 @@ async function initializeAuthNavigation() {
       try {
         await signOut(auth);
         if (window.location.pathname.endsWith('/community.html')) {
-          window.location.reload();
+          window.location.replace(`community.html?fresh=${Date.now()}`);
         } else {
           window.location.href = 'login.html';
         }
@@ -135,7 +135,7 @@ function removeLegacyComposerAvatar() {
 }
 
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=8').then(() => {
+  import('./post-owner-controls.js?v=9').then(() => {
     removeLegacyComposerAvatar();
     const composer = document.getElementById('post-composer');
     if (composer) {
@@ -148,17 +148,17 @@ if (window.location.pathname.endsWith('/community.html')) {
     console.error('Error loading post owner controls:', error);
   });
 
-  import('./admin-comment-controls.js?v=2').catch((error) => {
+  import('./admin-comment-controls.js?v=3').catch((error) => {
     console.error('Error loading comment controls:', error);
   });
 
-  import('./community-guest-mode.js?v=1').catch((error) => {
+  import('./community-guest-mode.js?v=2').catch((error) => {
     console.error('Error loading community guest mode:', error);
   });
 }
 
 if (window.location.pathname.endsWith('/profile.html')) {
-  import('./profile-owner-guard.js?v=1').catch((error) => {
+  import('./profile-owner-guard.js?v=2').catch((error) => {
     console.error('Error loading profile ownership guard:', error);
   });
 }
