@@ -164,7 +164,7 @@ if (window.location.pathname.endsWith('/profile.html')) {
 }
 
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
-  import('./home-social-hero.js?v=1').catch((error) => {
+  import('./home-social-hero.js?v=2').catch((error) => {
     console.error('Error loading home social hero:', error);
   });
 
