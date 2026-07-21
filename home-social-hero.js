@@ -5,7 +5,7 @@ if (hero) {
   hero.innerHTML = `
     <p class="social-hero-kicker">Now Featuring</p>
     <h1>BANDtroductions Social</h1>
-    <p class="social-hero-lead">Your connection to local music scenes everywhere.</p>
+    <p class="social-hero-lead">Connecting you to local music scenes everywhere.</p>
     <p class="social-hero-copy">Discover bands, connect with musicians, find venues, and join a community built entirely around music.</p>
     <a class="social-hero-cta" href="community.html">Join Our Community →</a>
     <p class="social-hero-types">Bands. Musicians. Venues. Scene Supporters. One community.</p>
