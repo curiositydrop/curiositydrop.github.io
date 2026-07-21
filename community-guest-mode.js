@@ -9,7 +9,11 @@ style.textContent = `
     padding: 11px 13px !important;
     border-radius: 13px !important;
   }
-  #guest-prompt[hidden] { display: none !important; }
+  #guest-prompt[hidden],
+  #post-composer[hidden],
+  body.community-read-only #post-composer {
+    display: none !important;
+  }
   #guest-prompt .community-guest-row {
     display: flex;
     align-items: center;
@@ -32,6 +36,14 @@ style.textContent = `
     min-height: 34px !important;
     padding: 7px 12px !important;
     font-size: .78rem !important;
+  }
+  .post-comments a[href*="login"] {
+    color: #0ccfbd !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+  }
+  .post-comments a[href*="login"]:hover {
+    text-decoration: underline !important;
   }
   @media (max-width: 520px) {
     #guest-prompt .community-actions { width: 100%; }
@@ -86,16 +98,16 @@ function applyCommunityState(user) {
 
   configureGuestPrompt();
 
+  document.body.classList.toggle('community-read-only', !user);
+
   if (prompt) prompt.hidden = Boolean(user);
-  if (composer && !user) composer.hidden = true;
+  if (composer) composer.hidden = !user;
 
   if (feed) {
     feed.hidden = false;
     feed.style.display = '';
   }
   if (toolsWrap) toolsWrap.hidden = false;
-
-  document.body.classList.toggle('community-read-only', !user);
 }
 
 onAuthStateChanged(auth, applyCommunityState);
