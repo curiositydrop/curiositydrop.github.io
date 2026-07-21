@@ -167,4 +167,8 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
   import('./home-social-hero.js?v=1').catch((error) => {
     console.error('Error loading home social hero:', error);
   });
+
+  import('./home-sponsor-rotator.js?v=1').catch((error) => {
+    console.error('Error loading home sponsor rotator:', error);
+  });
 }
