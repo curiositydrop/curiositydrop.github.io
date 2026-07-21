@@ -123,15 +123,20 @@
     onAuthStateChanged(auth,async(user)=>{
       if(!user){location.href='login.html';return;}
       currentUser=user;
+      const signedInEmail=String(user.email||'').toLowerCase();
+      if(signedInEmail!==AUTHORIZED_EMAIL){message.textContent='This account is not authorized to edit Burning Time.';return;}
+
+      fill(defaults);
+      form.hidden=false;
+      message.textContent=`Signed in as ${user.email}.`;
+
       try{
         const snapshot=await getDoc(doc(db,'bandProfiles',BAND_ID));
-        const existing=snapshot.exists()?snapshot.data():{};
-        const allowed=existing.ownerId===user.uid||String(user.email||'').toLowerCase()===String(existing.authorizedEmail||AUTHORIZED_EMAIL).toLowerCase();
-        if(!allowed){message.textContent='This account is not authorized to edit Burning Time.';return;}
-        fill({...defaults,...existing});
-        message.textContent=`Signed in as ${user.email}.`;
-        form.hidden=false;
-      }catch(error){console.error(error);message.textContent='We could not verify access to this profile.';}
+        if(snapshot.exists()) fill({...defaults,...snapshot.data()});
+      }catch(error){
+        console.error(error);
+        message.textContent=`Signed in as ${user.email}. Existing profile data could not be loaded yet, so the original page details are shown.`;
+      }
     });
 
     form.addEventListener('submit',async(event)=>{
@@ -145,7 +150,7 @@
         location.href='burning-time.html?updated=1';
       }catch(error){
         console.error(error);
-        status.textContent=error.code==='permission-denied'?'The editor is built, but Firestore permission for band profiles still needs to be enabled.':'The band profile could not be saved. Please try again.';
+        status.textContent=error.code==='permission-denied'?'The editor works, but Firestore permission for band profiles still needs to be enabled before changes can save.':'The band profile could not be saved. Please try again.';
         saveButton.disabled=false;
       }
     });
