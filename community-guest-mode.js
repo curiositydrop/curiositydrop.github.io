@@ -3,17 +3,28 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/f
 
 const style = document.createElement('style');
 style.textContent = `
+  .community-intro {
+    margin-bottom: 8px !important;
+  }
+  .community-intro .social-welcome {
+    margin: 0 0 4px;
+    color: #bdbdbd;
+    font-size: .86rem;
+    letter-spacing: .02em;
+  }
+  .community-intro .social-tagline {
+    margin: 8px 0 0;
+    color: #d7d7d7;
+    font-size: 1rem;
+    line-height: 1.45;
+  }
   #guest-prompt.community-guest {
     display: block;
     margin: 0 0 10px !important;
     padding: 11px 13px !important;
     border-radius: 13px !important;
   }
-  #guest-prompt[hidden],
-  #post-composer[hidden],
-  body.community-read-only #post-composer {
-    display: none !important;
-  }
+  #guest-prompt[hidden] { display: none !important; }
   #guest-prompt .community-guest-row {
     display: flex;
     align-items: center;
@@ -37,13 +48,13 @@ style.textContent = `
     padding: 7px 12px !important;
     font-size: .78rem !important;
   }
-  .post-comments a[href*="login"] {
+  body.community-read-only #post-composer {
+    display: none !important;
+  }
+  body.community-read-only .post-comments a[href*="login"] {
     color: #0ccfbd !important;
     font-weight: 900 !important;
-    text-decoration: none !important;
-  }
-  .post-comments a[href*="login"]:hover {
-    text-decoration: underline !important;
+    text-decoration-color: #0ccfbd !important;
   }
   @media (max-width: 520px) {
     #guest-prompt .community-actions { width: 100%; }
@@ -51,6 +62,27 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+function configureCommunityIntro() {
+  const intro = document.querySelector('.community-intro');
+  if (!intro) return;
+
+  const oldMeta = intro.querySelector('.profile-meta');
+  const heading = intro.querySelector('h1');
+  const subtitle = intro.querySelector('.auth-subtitle');
+
+  if (heading) heading.textContent = 'BANDtroductions Social';
+
+  if (oldMeta) {
+    oldMeta.className = 'social-welcome';
+    oldMeta.textContent = 'Welcome to the community';
+  }
+
+  if (subtitle) {
+    subtitle.className = 'social-tagline';
+    subtitle.textContent = 'No Algorithms. No Politics. No Bullshit. Just a music community, united.';
+  }
+}
 
 function configureGuestPrompt() {
   const prompt = document.getElementById('guest-prompt');
@@ -96,9 +128,8 @@ function applyCommunityState(user) {
   const feed = document.getElementById('feed');
   const toolsWrap = document.querySelector('.community-tools-wrap');
 
+  configureCommunityIntro();
   configureGuestPrompt();
-
-  document.body.classList.toggle('community-read-only', !user);
 
   if (prompt) prompt.hidden = Boolean(user);
   if (composer) composer.hidden = !user;
@@ -108,6 +139,9 @@ function applyCommunityState(user) {
     feed.style.display = '';
   }
   if (toolsWrap) toolsWrap.hidden = false;
+
+  document.body.classList.toggle('community-read-only', !user);
 }
 
+configureCommunityIntro();
 onAuthStateChanged(auth, applyCommunityState);
