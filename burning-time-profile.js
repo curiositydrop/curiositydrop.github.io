@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/f
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const BAND_ID = 'burning-time';
-const AUTHORIZED_EMAIL = 'kris@krishype.com';
+const AUTHORIZED_EMAIL = 'newleafpaintingcompany@gmail.com';
 
 const byId = (id) => document.getElementById(id);
 const setText = (id, value) => {
