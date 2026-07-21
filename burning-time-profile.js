@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/f
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const BAND_ID = 'burning-time';
-const AUTHORIZED_EMAIL = 'newleafpaintingcompany@gmail.com';
+const AUTHORIZED_EMAILS = ['kris@krishype.com', 'newleafpaintingcompany@gmail.com'];
 
 const byId = (id) => document.getElementById(id);
 const setText = (id, value) => {
@@ -101,14 +101,17 @@ function showEditButton() {
 }
 
 async function initialize(user) {
+  const email = String(user?.email || '').toLowerCase();
+  const authorizedByEmail = AUTHORIZED_EMAILS.includes(email);
+
+  if (user && authorizedByEmail) showEditButton();
+
   try {
     const snapshot = await getDoc(doc(db, 'bandProfiles', BAND_ID));
     const data = snapshot.exists() ? snapshot.data() : null;
     if (data) renderProfile(data);
 
-    const email = String(user?.email || '').toLowerCase();
-    const authorizedEmail = String(data?.authorizedEmail || AUTHORIZED_EMAIL).toLowerCase();
-    if (user && (data?.ownerId === user.uid || email === authorizedEmail)) showEditButton();
+    if (user && data?.ownerId === user.uid) showEditButton();
   } catch (error) {
     console.error('Could not load editable Burning Time profile:', error);
   }
