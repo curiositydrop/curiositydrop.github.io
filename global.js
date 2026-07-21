@@ -65,7 +65,11 @@ async function initializeAuthNavigation() {
 
       try {
         await signOut(auth);
-        window.location.href = 'login.html';
+        if (window.location.pathname.endsWith('/community.html')) {
+          window.location.reload();
+        } else {
+          window.location.href = 'login.html';
+        }
       } catch (error) {
         console.error('Could not log out:', error);
         logoutLink.textContent = 'Log Out';
@@ -146,6 +150,10 @@ if (window.location.pathname.endsWith('/community.html')) {
 
   import('./admin-comment-controls.js?v=2').catch((error) => {
     console.error('Error loading comment controls:', error);
+  });
+
+  import('./community-guest-mode.js?v=1').catch((error) => {
+    console.error('Error loading community guest mode:', error);
   });
 }
 
