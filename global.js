@@ -155,11 +155,19 @@ if (window.location.pathname.endsWith('/community.html')) {
   import('./community-guest-mode.js?v=5').catch((error) => {
     console.error('Error loading community guest mode:', error);
   });
+
+  import('./community-media.js?v=1').catch((error) => {
+    console.error('Error loading community media:', error);
+  });
 }
 
 if (window.location.pathname.endsWith('/profile.html')) {
   import('./profile-owner-guard.js?v=2').catch((error) => {
     console.error('Error loading profile ownership guard:', error);
+  });
+
+  import('./profile-media-section.js?v=1').catch((error) => {
+    console.error('Error loading profile media section:', error);
   });
 }
 
