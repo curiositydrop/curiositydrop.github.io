@@ -159,6 +159,10 @@ if (window.location.pathname.endsWith('/community.html')) {
   import('./community-media.js?v=1').catch((error) => {
     console.error('Error loading community media:', error);
   });
+
+  import('./community-sponsor-slot.js?v=1').catch((error) => {
+    console.error('Error loading community sponsor slot:', error);
+  });
 }
 
 if (window.location.pathname.endsWith('/profile.html')) {
