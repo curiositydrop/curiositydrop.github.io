@@ -184,3 +184,7 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
     console.error('Error loading home community card:', error);
   });
 }
+
+import('./social-interactions.js?v=1').catch((error) => {
+  console.error('Error loading social interactions:', error);
+});
