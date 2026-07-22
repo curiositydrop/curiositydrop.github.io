@@ -64,16 +64,41 @@ document.getElementById('upload-media').addEventListener('click',async()=>{
   if(!mediaType){uploadStatus.textContent='Only image and video files are supported.';return;}
   const max=mediaType==='video'?100*1024*1024:12*1024*1024;
   if(file.size>max){uploadStatus.textContent=mediaType==='video'?'Videos are currently limited to 100 MB.':'Images are currently limited to 12 MB.';return;}
-  const button=document.getElementById('upload-media');button.disabled=true;progress.hidden=false;progressBar.style.width='0%';uploadStatus.textContent='Uploading…';
+  const button=document.getElementById('upload-media');button.disabled=true;progress.hidden=false;progressBar.style.width='0%';uploadStatus.textContent='Connecting to Firebase Storage…';
   const storagePath=`profile-media/${ownerId}/${Date.now()}-${safeName(file.name)}`;
+  let task=null;
   try{
-    const task=uploadBytesResumable(ref(storage,storagePath),file,{contentType:file.type,customMetadata:{ownerId}});
-    const snapshot=await new Promise((resolve,reject)=>task.on('state_changed',s=>{progressBar.style.width=`${Math.round((s.bytesTransferred/s.totalBytes)*100)}%`;},reject,()=>resolve(task.snapshot)));
+    task=uploadBytesResumable(ref(storage,storagePath),file,{contentType:file.type,customMetadata:{ownerId}});
+    const snapshot=await new Promise((resolve,reject)=>{
+      let lastBytes=0;
+      let idleTimer;
+      const stopTimer=()=>clearTimeout(idleTimer);
+      const restartTimer=()=>{
+        stopTimer();
+        idleTimer=setTimeout(()=>{
+          task.cancel();
+          const error=new Error('Storage upload timed out before any data could be transferred.');
+          error.code='storage/setup-required';
+          reject(error);
+        },15000);
+      };
+      restartTimer();
+      task.on('state_changed',s=>{
+        progressBar.style.width=`${Math.round((s.bytesTransferred/s.totalBytes)*100)}%`;
+        uploadStatus.textContent=s.bytesTransferred>0?'Uploading…':'Connecting to Firebase Storage…';
+        if(s.bytesTransferred!==lastBytes){lastBytes=s.bytesTransferred;restartTimer();}
+      },error=>{stopTimer();reject(error);},()=>{stopTimer();resolve(task.snapshot);});
+    });
     const downloadUrl=await getDownloadURL(snapshot.ref);
     await addDoc(collection(db,'media'),{ownerId,ownerName:profile.displayName||currentUser.displayName||'BANDtroductions Member',mediaType,downloadUrl,storagePath,fileName:file.name,contentType:file.type,sizeBytes:file.size,caption:captionInput.value.trim(),published:true,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     fileInput.value='';captionInput.value='';uploadStatus.textContent='Uploaded to your Media Library.';
-  }catch(error){console.error(error);uploadStatus.textContent=error.code==='storage/unauthorized'||error.code==='storage/unknown'?'Firebase Storage is not active or its rules are not enabled yet.':'The upload could not be completed.';}
-  finally{button.disabled=false;}
+  }catch(error){
+    console.error(error);
+    const setupNeeded=['storage/unauthorized','storage/unknown','storage/setup-required','storage/canceled'].includes(error.code);
+    uploadStatus.textContent=setupNeeded?'Firebase Storage is not active yet, or its Storage rules still need to be published. No file was uploaded.':'The upload could not be completed.';
+    progressBar.style.width='0%';
+    progress.hidden=true;
+  }finally{button.disabled=false;}
 });
 
 onAuthStateChanged(auth,async user=>{
