@@ -160,7 +160,7 @@ if (window.location.pathname.endsWith('/community.html')) {
     console.error('Error loading community media:', error);
   });
 
-  import('./community-sponsor-slot.js?v=1').catch((error) => {
+  import('./community-sponsor-slot.js?v=2').catch((error) => {
     console.error('Error loading community sponsor slot:', error);
   });
 }
