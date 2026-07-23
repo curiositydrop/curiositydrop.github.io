@@ -183,6 +183,10 @@ if (window.location.pathname.endsWith('/profile-setup.html')) {
   import('./profile-image-processing.js?v=1').catch((error) => {
     console.error('Error loading profile image processing:', error);
   });
+
+  import('./profile-submission-flow.js?v=1').catch((error) => {
+    console.error('Error loading profile submission workflow:', error);
+  });
 }
 
 if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchParams(window.location.search).has('adminProfile')) {
@@ -204,6 +208,10 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
     console.error('Error loading home community card:', error);
   });
 }
+
+import('./admin-navigation.js?v=1').catch((error) => {
+  console.error('Error loading admin navigation:', error);
+});
 
 import('./social-interactions.js?v=1').catch((error) => {
   console.error('Error loading social interactions:', error);
