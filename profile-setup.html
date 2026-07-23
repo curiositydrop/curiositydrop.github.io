@@ -14,7 +14,14 @@
     .account-tools{margin-top:18px;padding-top:18px;border-top:1px solid #333}
     .account-tools h2{margin:0 0 8px;font-size:1.1rem}
     .account-tools p{margin:0 0 12px;color:#aaa}
-    @media(max-width:620px){.name-emoji-row{grid-template-columns:1fr}.emoji-select-wrap{grid-template-columns:54px minmax(0,1fr)}}
+    .profile-image-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .profile-image-field{display:grid;gap:8px}
+    .profile-image-preview{width:100%;height:150px;border:1px solid #3a3a3a;border-radius:14px;background:#0c0c0c;display:grid;place-items:center;overflow:hidden;color:#777;font-weight:800;text-align:center;padding:12px}
+    .profile-image-preview.avatar{width:150px;max-width:100%;border-radius:50%;justify-self:start}
+    .profile-image-preview img{width:100%;height:100%;object-fit:cover}
+    .profile-image-field input[type=file]{padding:12px;background:#0d0d0d;border:1px solid #3a3a3a;border-radius:12px;color:#ddd}
+    .upload-note{color:#999;font-size:.82rem;line-height:1.4}
+    @media(max-width:620px){.name-emoji-row,.profile-image-grid{grid-template-columns:1fr}.emoji-select-wrap{grid-template-columns:54px minmax(0,1fr)}}
   </style>
 </head>
 <body class="hamburger-active auth-page">
@@ -40,11 +47,22 @@
 
       <label>Location<input id="location" type="text" maxlength="100" placeholder="Portland, Maine"></label>
 
-      <div class="auth-grid">
-        <label>Banner image URL<input id="banner-image-url" type="text" inputmode="url" placeholder="example.com/banner.jpg"><small>Wide image shown across the top of your profile.</small></label>
-        <label>Avatar image URL<input id="image-url" type="text" inputmode="url" placeholder="example.com/avatar.jpg"><small>Square profile image. Initials appear when this is blank.</small></label>
+      <div class="profile-image-grid">
+        <div class="profile-image-field">
+          <strong>Banner image</strong>
+          <div id="banner-preview" class="profile-image-preview">No banner selected</div>
+          <input id="banner-image-file" type="file" accept="image/*">
+          <input id="banner-image-url" type="hidden">
+          <small class="upload-note">Wide image shown across the top of your profile. Images are limited to 12 MB.</small>
+        </div>
+        <div class="profile-image-field">
+          <strong>Avatar image</strong>
+          <div id="avatar-preview" class="profile-image-preview avatar">Initials will appear</div>
+          <input id="image-file" type="file" accept="image/*">
+          <input id="image-url" type="hidden">
+          <small class="upload-note">Square images work best. Images are limited to 12 MB.</small>
+        </div>
       </div>
-      <small>These URL fields are temporary until Firebase Storage uploads are enabled. You may enter addresses with or without https://.</small>
 
       <label>About<textarea id="bio" class="auto-grow" maxlength="1000" rows="1" required placeholder="Tell the music community about yourself..."></textarea><small><span id="bio-count">0</span>/1000 characters</small></label>
 
@@ -87,9 +105,10 @@
   <div id="global-footer"></div>
   <script src="global.js?v=2"></script>
   <script type="module">
-    import { auth, db } from './firebase-dev.js';
+    import { auth, db, storage } from './firebase-dev.js';
     import { onAuthStateChanged, updateProfile, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js';
 
     const form=document.getElementById('profile-form');
     const message=document.getElementById('setup-message');
@@ -102,20 +121,39 @@
     const bioCount=document.getElementById('bio-count');
     const resetButton=document.getElementById('password-reset-button');
     const resetStatus=document.getElementById('password-reset-status');
+    const bannerFile=document.getElementById('banner-image-file');
+    const avatarFile=document.getElementById('image-file');
+    const bannerPreview=document.getElementById('banner-preview');
+    const avatarPreview=document.getElementById('avatar-preview');
     let currentUser;
     let accountType;
 
     const value=(id)=>document.getElementById(id)?.value.trim()||'';
     const normalizeUrl=(raw)=>{const url=raw.trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`;};
+    const safeName=(name)=>String(name||'image').replace(/[^a-z0-9._-]+/gi,'-').replace(/-+/g,'-');
     function showFields(type){document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true);const section=document.getElementById(`${type}-fields`);if(section)section.hidden=false;emojiEditor.hidden=type!=='fan';}
     function updateEmojiPreview(){emojiPreview.textContent=emojiSelect.value||'🎵';emojiPreview.style.opacity=emojiSelect.value?'1':'.35';}
     function growBio(){bio.style.height='auto';bio.style.height=`${Math.min(bio.scrollHeight,320)}px`;bio.style.overflowY=bio.scrollHeight>320?'auto':'hidden';bioCount.textContent=bio.value.length;}
+    function setImagePreview(element,url,fallback){element.replaceChildren();if(!url){element.textContent=fallback;return;}const img=document.createElement('img');img.src=url;img.alt='Profile image preview';element.appendChild(img);}
+    function previewFile(input,element,fallback){const file=input.files?.[0];if(!file){setImagePreview(element,'',fallback);return;}setImagePreview(element,URL.createObjectURL(file),fallback);}
+    async function uploadProfileImage(file,kind){
+      if(!file)return '';
+      if(!file.type.startsWith('image/'))throw new Error(`${kind} must be an image file.`);
+      if(file.size>12*1024*1024)throw new Error(`${kind} must be smaller than 12 MB.`);
+      const path=`profile-media/${currentUser.uid}/${kind.toLowerCase()}-${Date.now()}-${safeName(file.name)}`;
+      const snapshot=await uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:currentUser.uid,profileImageType:kind.toLowerCase()}});
+      return getDownloadURL(snapshot.ref);
+    }
     emojiSelect.addEventListener('change',updateEmojiPreview);
     bio.addEventListener('input',growBio);
+    bannerFile.addEventListener('change',()=>previewFile(bannerFile,bannerPreview,'No banner selected'));
+    avatarFile.addEventListener('change',()=>previewFile(avatarFile,avatarPreview,'Initials will appear'));
 
     function fillProfile(data={}){
       const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
       ids.forEach(id=>{const element=document.getElementById(id);if(!element)return;const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase());if(data[key]!==undefined&&data[key]!==null)element.value=data[key];});
+      setImagePreview(bannerPreview,data.bannerImageUrl||'','No banner selected');
+      setImagePreview(avatarPreview,data.imageUrl||'','Initials will appear');
       updateEmojiPreview();growBio();
     }
 
@@ -148,9 +186,19 @@
     form.addEventListener('submit',async(event)=>{
       event.preventDefault();if(!currentUser)return;
       saveButton.disabled=true;status.textContent='Saving your profile…';
-      const profileData={ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl:normalizeUrl(value('banner-image-url')),imageUrl:normalizeUrl(value('image-url')),bio:value('bio'),genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),profileEmoji:value('profile-emoji'),favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),mediaLink:normalizeUrl(value('media-link')),published:true,updatedAt:serverTimestamp()};
-      try{await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});await updateProfile(currentUser,{displayName:profileData.displayName});window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;}
-      catch(error){console.error(error);status.textContent=error.code==='permission-denied'?'Profile permissions are not enabled yet.':'Your profile could not be saved. Please try again.';saveButton.disabled=false;}
+      try{
+        let bannerImageUrl=value('banner-image-url');
+        let imageUrl=value('image-url');
+        if(bannerFile.files?.[0]){status.textContent='Uploading banner image…';bannerImageUrl=await uploadProfileImage(bannerFile.files[0],'Banner');}
+        if(avatarFile.files?.[0]){status.textContent='Uploading avatar image…';imageUrl=await uploadProfileImage(avatarFile.files[0],'Avatar');}
+        status.textContent='Saving your profile…';
+        const profileData={ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),profileEmoji:value('profile-emoji'),favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),mediaLink:normalizeUrl(value('media-link')),published:true,updatedAt:serverTimestamp()};
+        await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});
+        await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
+        await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||null});
+        window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;
+      }
+      catch(error){console.error(error);status.textContent=error.message||'Your profile could not be saved. Please try again.';saveButton.disabled=false;}
     });
   </script>
 </body>
