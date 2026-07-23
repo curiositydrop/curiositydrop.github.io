@@ -195,6 +195,12 @@ if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchPar
   });
 }
 
+if (window.location.pathname.endsWith('/bands.html')) {
+  import('./bands-live-directory.js?v=1').catch((error) => {
+    console.error('Error loading live Bands directory:', error);
+  });
+}
+
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
   import('./home-social-hero.js?v=2').catch((error) => {
     console.error('Error loading home social hero:', error);
