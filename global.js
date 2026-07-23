@@ -213,6 +213,22 @@ if (window.location.pathname.endsWith('/venues.html')) {
   });
 }
 
+if (
+  window.location.pathname.endsWith('/bands.html') ||
+  window.location.pathname.endsWith('/musicians.html') ||
+  window.location.pathname.endsWith('/venues.html')
+) {
+  import('./legacy-profile-claim-links.js?v=1').catch((error) => {
+    console.error('Error loading legacy profile claim links:', error);
+  });
+}
+
+if (window.location.pathname.endsWith('/admin.html')) {
+  import('./admin-claims.js?v=1').catch((error) => {
+    console.error('Error loading ownership claims queue:', error);
+  });
+}
+
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
   import('./home-social-hero.js?v=2').catch((error) => {
     console.error('Error loading home social hero:', error);
