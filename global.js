@@ -173,6 +173,10 @@ if (window.location.pathname.endsWith('/profile.html')) {
   import('./profile-media-section.js?v=1').catch((error) => {
     console.error('Error loading profile media section:', error);
   });
+
+  import('./admin-profile-controls.js?v=1').catch((error) => {
+    console.error('Error loading profile admin controls:', error);
+  });
 }
 
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
