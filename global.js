@@ -179,6 +179,12 @@ if (window.location.pathname.endsWith('/profile.html')) {
   });
 }
 
+if (window.location.pathname.endsWith('/profile-setup.html')) {
+  import('./profile-image-processing.js?v=1').catch((error) => {
+    console.error('Error loading profile image processing:', error);
+  });
+}
+
 if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchParams(window.location.search).has('adminProfile')) {
   import('./profile-admin-edit.js?v=1').catch((error) => {
     console.error('Error loading admin profile editor:', error);
