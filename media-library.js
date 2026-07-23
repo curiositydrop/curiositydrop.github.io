@@ -1,6 +1,6 @@
 import { auth, db, storage } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js';
 
 const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
@@ -14,15 +14,38 @@ const fileInput=document.getElementById('media-file');
 const captionInput=document.getElementById('media-caption');
 const progress=document.querySelector('.upload-progress');
 const progressBar=document.getElementById('upload-progress-bar');
-let currentUser=null,ownerId=requestedOwner||'',profile={},items=[],activeFilter='all';
+let currentUser=null,ownerId=requestedOwner||'',profile={},items=[],activeFilter='all',currentUserIsAdmin=false;
 
-const isAdmin=()=>String(currentUser?.email||'').toLowerCase()===ADMIN_EMAIL;
-const canManage=()=>Boolean(currentUser&&(currentUser.uid===ownerId||isAdmin()));
+const canManage=()=>Boolean(currentUser&&(currentUser.uid===ownerId||currentUserIsAdmin));
 const safeName=name=>String(name||'media').replace(/[^a-z0-9._-]+/gi,'-').replace(/-+/g,'-');
 const formatDate=value=>value?.toDate?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(value.toDate()):'Just now';
 
+async function checkAdmin(user){
+  if(!user)return false;
+  if(String(user.email||'').toLowerCase()===ADMIN_EMAIL)return true;
+  try{return (await getDoc(doc(db,'admins',user.uid))).exists();}
+  catch(error){console.error('Could not check media-admin status:',error);return false;}
+}
+
+async function setProfileImage(field,item){
+  if(item.mediaType!=='image')return;
+  const label=field==='imageUrl'?'avatar':'banner';
+  if(!confirm(`Use this image as the profile ${label}?`))return;
+  try{
+    await updateDoc(doc(db,'profiles',ownerId),{[field]:item.downloadUrl,[`${field}StoragePath`]:item.storagePath||'',updatedAt:serverTimestamp()});
+    profile[field]=item.downloadUrl;
+    alert(`Profile ${label} updated.`);
+  }catch(error){console.error(error);alert(`The profile ${label} could not be updated.`);}
+}
+
+async function togglePublished(item){
+  const next=item.published===false;
+  try{await updateDoc(doc(db,'media',item.id),{published:next,updatedAt:serverTimestamp()});}
+  catch(error){console.error(error);alert('The media visibility could not be changed.');}
+}
+
 function render(){
-  const visible=items.filter(item=>activeFilter==='all'||item.mediaType===activeFilter);
+  const visible=items.filter(item=>(item.published!==false||canManage())&&(activeFilter==='all'||item.mediaType===activeFilter));
   grid.replaceChildren();
   pageStatus.hidden=visible.length>0;
   pageStatus.textContent=items.length?'No media matches this filter.':'No media has been uploaded yet.';
@@ -35,17 +58,23 @@ function render(){
     preview.appendChild(media);
     const copy=document.createElement('div');copy.className='media-card-copy';
     const caption=document.createElement('strong');caption.textContent=item.caption||item.fileName||'Untitled media';
-    const meta=document.createElement('p');meta.textContent=`${item.mediaType==='video'?'Video':'Image'} • ${formatDate(item.createdAt)}`;
+    const meta=document.createElement('p');meta.textContent=`${item.mediaType==='video'?'Video':'Image'} • ${formatDate(item.createdAt)}${item.published===false?' • Hidden':''}`;
     copy.append(caption,meta);
     const actions=document.createElement('div');actions.className='media-actions';
     const share=document.createElement('a');share.className='auth-button';share.href=`community.html?media=${encodeURIComponent(item.id)}`;share.textContent='Share to Community';actions.appendChild(share);
     if(canManage()){
-      const remove=document.createElement('button');remove.className='auth-button auth-button-secondary';remove.type='button';remove.textContent='Delete Permanently';
+      if(item.mediaType==='image'){
+        const avatar=document.createElement('button');avatar.className='auth-button auth-button-secondary';avatar.type='button';avatar.textContent='Use as Avatar';avatar.addEventListener('click',()=>setProfileImage('imageUrl',item));
+        const banner=document.createElement('button');banner.className='auth-button auth-button-secondary';banner.type='button';banner.textContent='Use as Banner';banner.addEventListener('click',()=>setProfileImage('bannerImageUrl',item));
+        actions.append(avatar,banner);
+      }
+      const visibility=document.createElement('button');visibility.className='auth-button auth-button-secondary';visibility.type='button';visibility.textContent=item.published===false?'Show Media':'Hide Media';visibility.addEventListener('click',()=>togglePublished(item));actions.appendChild(visibility);
+      const remove=document.createElement('button');remove.className='auth-button auth-button-secondary';remove.type='button';remove.textContent=currentUserIsAdmin&&currentUser.uid!==ownerId?'Admin Delete':'Delete Permanently';
       remove.addEventListener('click',async()=>{
-        if(!confirm('Permanently delete this file from your Media Library? Any community posts using it may lose the media.'))return;
+        if(!confirm('Permanently delete this file from the Media Library? Any community posts using it may lose the media.'))return;
         remove.disabled=true;
         try{if(item.storagePath)await deleteObject(ref(storage,item.storagePath));await deleteDoc(doc(db,'media',item.id));}
-        catch(error){console.error(error);alert(error.code==='storage/object-not-found'?'The stored file was already missing. Remove its database record after Storage is active.':'This media could not be deleted.');remove.disabled=false;}
+        catch(error){console.error(error);alert(error.code==='storage/object-not-found'?'The stored file was already missing.':'This media could not be deleted.');remove.disabled=false;}
       });actions.appendChild(remove);
     }
     copy.appendChild(actions);card.append(preview,copy);grid.appendChild(card);
@@ -70,24 +99,11 @@ document.getElementById('upload-media').addEventListener('click',async()=>{
   try{
     task=uploadBytesResumable(ref(storage,storagePath),file,{contentType:file.type,customMetadata:{ownerId}});
     const snapshot=await new Promise((resolve,reject)=>{
-      let lastBytes=0;
-      let idleTimer;
+      let lastBytes=0,idleTimer;
       const stopTimer=()=>clearTimeout(idleTimer);
-      const restartTimer=()=>{
-        stopTimer();
-        idleTimer=setTimeout(()=>{
-          task.cancel();
-          const error=new Error('Storage upload timed out before any data could be transferred.');
-          error.code='storage/setup-required';
-          reject(error);
-        },15000);
-      };
+      const restartTimer=()=>{stopTimer();idleTimer=setTimeout(()=>{task.cancel();const error=new Error('Storage upload timed out before any data could be transferred.');error.code='storage/setup-required';reject(error);},15000);};
       restartTimer();
-      task.on('state_changed',s=>{
-        progressBar.style.width=`${Math.round((s.bytesTransferred/s.totalBytes)*100)}%`;
-        uploadStatus.textContent=s.bytesTransferred>0?'Uploading…':'Connecting to Firebase Storage…';
-        if(s.bytesTransferred!==lastBytes){lastBytes=s.bytesTransferred;restartTimer();}
-      },error=>{stopTimer();reject(error);},()=>{stopTimer();resolve(task.snapshot);});
+      task.on('state_changed',s=>{progressBar.style.width=`${Math.round((s.bytesTransferred/s.totalBytes)*100)}%`;uploadStatus.textContent=s.bytesTransferred>0?'Uploading…':'Connecting to Firebase Storage…';if(s.bytesTransferred!==lastBytes){lastBytes=s.bytesTransferred;restartTimer();}},error=>{stopTimer();reject(error);},()=>{stopTimer();resolve(task.snapshot);});
     });
     const downloadUrl=await getDownloadURL(snapshot.ref);
     await addDoc(collection(db,'media'),{ownerId,ownerName:profile.displayName||currentUser.displayName||'BANDtroductions Member',mediaType,downloadUrl,storagePath,fileName:file.name,contentType:file.type,sizeBytes:file.size,caption:captionInput.value.trim(),published:true,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
@@ -96,13 +112,12 @@ document.getElementById('upload-media').addEventListener('click',async()=>{
     console.error(error);
     const setupNeeded=['storage/unauthorized','storage/unknown','storage/setup-required','storage/canceled'].includes(error.code);
     uploadStatus.textContent=setupNeeded?'Firebase Storage is not active yet, or its Storage rules still need to be published. No file was uploaded.':'The upload could not be completed.';
-    progressBar.style.width='0%';
-    progress.hidden=true;
+    progressBar.style.width='0%';progress.hidden=true;
   }finally{button.disabled=false;}
 });
 
 onAuthStateChanged(auth,async user=>{
-  currentUser=user;ownerId=requestedOwner||user?.uid||'';
+  currentUser=user;currentUserIsAdmin=await checkAdmin(user);ownerId=requestedOwner||user?.uid||'';
   if(!ownerId){location.href='login.html';return;}
   document.getElementById('back-profile').href=`profile.html?id=${encodeURIComponent(ownerId)}`;
   try{const snap=await getDoc(doc(db,'profiles',ownerId));profile=snap.exists()?snap.data():{};document.getElementById('media-title').textContent=`${profile.displayName||'Profile'} Media`;}
