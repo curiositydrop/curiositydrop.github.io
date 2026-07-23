@@ -201,6 +201,18 @@ if (window.location.pathname.endsWith('/bands.html')) {
   });
 }
 
+if (window.location.pathname.endsWith('/musicians.html')) {
+  import('./musicians-live-directory.js?v=1').catch((error) => {
+    console.error('Error loading live Musicians directory:', error);
+  });
+}
+
+if (window.location.pathname.endsWith('/venues.html')) {
+  import('./venues-live-directory.js?v=1').catch((error) => {
+    console.error('Error loading live Venues directory:', error);
+  });
+}
+
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
   import('./home-social-hero.js?v=2').catch((error) => {
     console.error('Error loading home social hero:', error);
