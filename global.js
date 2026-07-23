@@ -179,6 +179,12 @@ if (window.location.pathname.endsWith('/profile.html')) {
   });
 }
 
+if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchParams(window.location.search).has('adminProfile')) {
+  import('./profile-admin-edit.js?v=1').catch((error) => {
+    console.error('Error loading admin profile editor:', error);
+  });
+}
+
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
   import('./home-social-hero.js?v=2').catch((error) => {
     console.error('Error loading home social hero:', error);
