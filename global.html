@@ -70,18 +70,24 @@
       background:#0d0d0d;
       box-shadow:0 14px 34px rgba(0,0,0,.45);
       display:grid;
+      grid-template-columns:1fr;
       gap:4px;
     }
 
     #site-header .nav-group-menu a{
-      margin:0;
-      padding:9px 11px;
+      display:block !important;
+      box-sizing:border-box;
+      width:100%;
+      margin:0 !important;
+      padding:9px 11px !important;
       border-radius:9px;
       color:#eee;
-      font-size:.9rem;
+      font-size:.9rem !important;
       font-weight:750;
+      line-height:1.25;
       text-align:left;
       text-decoration:none;
+      white-space:normal;
     }
 
     #site-header .nav-group-menu a:hover,
@@ -92,14 +98,7 @@
     }
 
     #site-header .nav-share-link{
-      display:flex;
-      align-items:center;
-      gap:7px;
-    }
-
-    #site-header .nav-share-link img{
-      width:15px;
-      height:15px;
+      display:block !important;
     }
 
     @media(max-width:760px){
@@ -124,9 +123,15 @@
       #site-header .nav-group-menu{
         position:static;
         transform:none;
+        width:100%;
         min-width:0;
         margin:5px 0 4px;
+        box-sizing:border-box;
         box-shadow:none;
+      }
+
+      #site-header .nav-group-menu a{
+        text-align:center;
       }
     }
   </style>
@@ -166,9 +171,7 @@
           <a href="band-of-the-week.html">Band of the Week</a>
           <a href="fan-wall.html">Fan Wall</a>
           <a href="about.html">About BANDtroductions</a>
-          <a href="#" onclick="shareCurrentPage(); return false;" class="nav-share-link">
-            <img src="facebook.png" alt=""> Share This Page
-          </a>
+          <a href="#" onclick="shareCurrentPage(); return false;" class="nav-share-link">Share</a>
         </div>
       </details>
     </nav>
