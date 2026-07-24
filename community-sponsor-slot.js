@@ -21,26 +21,26 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
     .community-hero-row .community-intro{
       min-width:0;
       margin:0!important;
-      padding:12px 14px;
-      border:1px solid #2f625e;
-      border-radius:14px;
-      background:linear-gradient(145deg,#171717,#111);
-      box-shadow:0 7px 18px rgba(0,0,0,.24);
+      padding:8px 8px 8px 2px;
+      border:0!important;
+      border-radius:0!important;
+      background:transparent!important;
+      box-shadow:none!important;
       display:flex;
       flex-direction:column;
       justify-content:center;
     }
     .community-hero-row .community-intro .profile-meta{display:none}
     .community-hero-row .community-intro h1{
-      margin:0 0 7px;
-      font-size:clamp(1.3rem,4vw,1.85rem);
+      margin:0 0 8px;
+      font-size:clamp(1.38rem,4vw,1.95rem);
       line-height:1.05;
     }
     .community-hero-row .community-intro .auth-subtitle{
       margin:0;
       color:#c8c8c8;
       font-size:.8rem;
-      line-height:1.3;
+      line-height:1.35;
     }
     .community-sponsor-hero{
       position:relative;
@@ -111,14 +111,14 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
         grid-template-columns:minmax(0,3fr) minmax(0,2fr);
         gap:7px;
       }
-      .community-hero-row .community-intro{padding:10px 11px}
+      .community-hero-row .community-intro{padding:7px 6px 7px 2px}
       .community-hero-row .community-intro h1{
-        margin-bottom:6px;
-        font-size:1.12rem;
+        margin-bottom:7px;
+        font-size:1.18rem;
       }
       .community-hero-row .community-intro .auth-subtitle{
         font-size:.69rem;
-        line-height:1.28;
+        line-height:1.35;
       }
       .community-sponsor-hero{min-height:102px}
       .community-sponsor-kicker{
@@ -143,7 +143,7 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
   const heading = intro.querySelector('h1');
   if (heading) heading.textContent = 'BANDtroductions Social';
   const subtitle = intro.querySelector('.auth-subtitle');
-  if (subtitle) subtitle.textContent = 'No algorithms. No politics. Just music.';
+  if (subtitle) subtitle.innerHTML = 'No algorithms. No politics. No bullshit.<br>Just people connecting through music.';
 
   const slot = document.createElement('a');
   slot.id = 'community-sponsor-hero';
