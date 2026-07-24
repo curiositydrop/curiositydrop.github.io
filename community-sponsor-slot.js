@@ -2,26 +2,10 @@ const intro = document.querySelector('.community-intro');
 
 if (intro && !document.getElementById('community-sponsor-hero')) {
   const sponsors = [
-    {
-      image: 'ff796046372b48681a359daff6375626.jpeg',
-      name: 'Rock Rage Radio',
-      url: 'sponsors.html'
-    },
-    {
-      image: 'IMG_0908.jpeg',
-      name: 'The Plowzone Radio Show',
-      url: 'sponsors.html'
-    },
-    {
-      image: 'IMG_0699.jpeg',
-      name: 'Gone Rogue Records',
-      url: 'sponsors.html'
-    },
-    {
-      image: '9A3AD6D7-8C0C-4C27-BE09-A19C2F0834AE.png',
-      name: 'New Leaf Painting Company',
-      url: 'sponsors.html'
-    }
+    { image: 'ff796046372b48681a359daff6375626.jpeg', name: 'Rock Rage Radio', url: 'sponsors.html' },
+    { image: 'IMG_0908.jpeg', name: 'The Plowzone Radio Show', url: 'sponsors.html' },
+    { image: 'IMG_0699.jpeg', name: 'Gone Rogue Records', url: 'sponsors.html' },
+    { image: '9A3AD6D7-8C0C-4C27-BE09-A19C2F0834AE.png', name: 'New Leaf Painting Company', url: 'sponsors.html' }
   ];
 
   const style = document.createElement('style');
@@ -30,14 +14,14 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
     .community-hero-row{
       display:grid;
       grid-template-columns:minmax(0,3fr) minmax(0,2fr);
-      gap:10px;
+      gap:8px;
       align-items:stretch;
-      margin-bottom:8px;
+      margin-bottom:7px;
     }
     .community-hero-row .community-intro{
       min-width:0;
       margin:0!important;
-      padding:13px 14px;
+      padding:12px 14px;
       border:1px solid #2f625e;
       border-radius:14px;
       background:linear-gradient(145deg,#171717,#111);
@@ -46,26 +30,22 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
       flex-direction:column;
       justify-content:center;
     }
-    .community-hero-row .community-intro .profile-meta{
-      margin:0 0 4px;
-      font-size:.67rem;
-      line-height:1.15;
-    }
+    .community-hero-row .community-intro .profile-meta{display:none}
     .community-hero-row .community-intro h1{
-      margin:0 0 5px;
-      font-size:clamp(1.35rem,4vw,2rem);
+      margin:0 0 7px;
+      font-size:clamp(1.3rem,4vw,1.85rem);
       line-height:1.05;
     }
     .community-hero-row .community-intro .auth-subtitle{
       margin:0;
       color:#c8c8c8;
-      font-size:.78rem;
-      line-height:1.32;
+      font-size:.8rem;
+      line-height:1.3;
     }
     .community-sponsor-hero{
       position:relative;
       min-width:0;
-      min-height:112px;
+      min-height:104px;
       overflow:hidden;
       border:1px solid #2f625e;
       border-radius:14px;
@@ -76,102 +56,81 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
     }
     .community-sponsor-kicker{
       position:absolute;
-      z-index:5;
-      top:8px;
-      left:9px;
-      right:9px;
+      z-index:10;
+      top:7px;
+      left:7px;
+      right:7px;
       color:#0ccfbd;
-      font-size:.55rem;
+      font-size:.52rem;
       font-weight:900;
-      letter-spacing:.09em;
-      line-height:1.15;
+      letter-spacing:.08em;
+      line-height:1.1;
       text-transform:uppercase;
       text-align:center;
     }
     .community-sponsor-hero-slide{
       position:absolute;
       inset:0;
+      z-index:1;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap:4px;
-      padding:27px 8px 8px;
+      gap:5px;
+      padding:24px 8px 8px;
       box-sizing:border-box;
       opacity:0;
-      transition:opacity .4s ease;
+      visibility:hidden;
       pointer-events:none;
       text-align:center;
     }
     .community-sponsor-hero-slide.is-active{
+      z-index:2;
       opacity:1;
+      visibility:visible;
       pointer-events:auto;
     }
     .community-sponsor-hero-slide img{
       display:block;
       width:100%;
-      height:58px;
+      height:62px;
       object-fit:contain;
       border-radius:7px;
     }
     .community-sponsor-hero-name{
       display:block;
       max-width:100%;
-      overflow:hidden;
       color:#fff;
-      font-size:.68rem;
+      font-size:.65rem;
       font-weight:900;
       line-height:1.1;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .community-sponsor-hero-view{
-      color:#0ccfbd;
-      font-size:.6rem;
-      font-weight:900;
-      line-height:1;
+      text-align:center;
     }
     @media(max-width:560px){
       .community-hero-row{
         grid-template-columns:minmax(0,3fr) minmax(0,2fr);
         gap:7px;
       }
-      .community-hero-row .community-intro{
-        padding:10px 11px;
-      }
-      .community-hero-row .community-intro .profile-meta{
-        font-size:.56rem;
-      }
+      .community-hero-row .community-intro{padding:10px 11px}
       .community-hero-row .community-intro h1{
-        margin-bottom:4px;
-        font-size:1.18rem;
+        margin-bottom:6px;
+        font-size:1.12rem;
       }
       .community-hero-row .community-intro .auth-subtitle{
-        font-size:.67rem;
-        line-height:1.25;
+        font-size:.69rem;
+        line-height:1.28;
       }
-      .community-sponsor-hero{
-        min-height:106px;
-      }
+      .community-sponsor-hero{min-height:102px}
       .community-sponsor-kicker{
         top:7px;
-        left:5px;
-        right:5px;
-        font-size:.47rem;
-        letter-spacing:.05em;
+        left:4px;
+        right:4px;
+        font-size:.45rem;
+        letter-spacing:.04em;
       }
-      .community-sponsor-hero-slide{
-        padding:25px 6px 7px;
-      }
-      .community-sponsor-hero-slide img{
-        height:53px;
-      }
-      .community-sponsor-hero-name{
-        font-size:.58rem;
-      }
-      .community-sponsor-hero-view{
-        font-size:.54rem;
-      }
+      .community-sponsor-hero-slide{padding:23px 5px 6px}
+      .community-sponsor-hero-slide img{height:59px}
+      .community-sponsor-hero-name{font-size:.55rem}
     }
   `;
   document.head.appendChild(style);
@@ -181,11 +140,10 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
   intro.parentNode.insertBefore(row, intro);
   row.appendChild(intro);
 
-  intro.querySelector('.profile-meta')?.replaceChildren(document.createTextNode('WELCOME TO'));
   const heading = intro.querySelector('h1');
   if (heading) heading.textContent = 'BANDtroductions Social';
   const subtitle = intro.querySelector('.auth-subtitle');
-  if (subtitle) subtitle.textContent = 'Music community. No algorithms. No politics. Just music.';
+  if (subtitle) subtitle.textContent = 'No algorithms. No politics. Just music.';
 
   const slot = document.createElement('a');
   slot.id = 'community-sponsor-hero';
@@ -211,11 +169,7 @@ if (intro && !document.getElementById('community-sponsor-hero')) {
     name.className = 'community-sponsor-hero-name';
     name.textContent = sponsor.name;
 
-    const view = document.createElement('span');
-    view.className = 'community-sponsor-hero-view';
-    view.textContent = 'View Sponsor →';
-
-    slide.append(image, name, view);
+    slide.append(image, name);
     slot.appendChild(slide);
     return slide;
   });
