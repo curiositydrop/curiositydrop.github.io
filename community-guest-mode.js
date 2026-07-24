@@ -6,18 +6,6 @@ style.textContent = `
   .community-intro {
     margin-bottom: 8px !important;
   }
-  .community-intro .social-welcome {
-    margin: 0 0 4px;
-    color: #bdbdbd;
-    font-size: .86rem;
-    letter-spacing: .02em;
-  }
-  .community-intro .social-tagline {
-    margin: 8px 0 0;
-    color: #d7d7d7;
-    font-size: 1rem;
-    line-height: 1.45;
-  }
   #guest-prompt.community-guest {
     display: block;
     margin: 0 0 10px !important;
@@ -63,27 +51,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-function configureCommunityIntro() {
-  const intro = document.querySelector('.community-intro');
-  if (!intro) return;
-
-  const oldMeta = intro.querySelector('.profile-meta, .social-welcome');
-  const heading = intro.querySelector('h1');
-  const subtitle = intro.querySelector('.auth-subtitle, .social-tagline');
-
-  if (heading) heading.textContent = 'BANDtroductions Social';
-
-  if (oldMeta) {
-    oldMeta.className = 'social-welcome';
-    oldMeta.textContent = 'Welcome to';
-  }
-
-  if (subtitle) {
-    subtitle.className = 'social-tagline';
-    subtitle.textContent = 'A music-scene community with no algorithms, no politics, and no bullshit. Just people connecting through music.';
-  }
-}
-
 function configureGuestPrompt() {
   const prompt = document.getElementById('guest-prompt');
   if (!prompt) return;
@@ -128,7 +95,6 @@ function applyCommunityState(user) {
   const feed = document.getElementById('feed');
   const toolsWrap = document.querySelector('.community-tools-wrap');
 
-  configureCommunityIntro();
   configureGuestPrompt();
 
   if (prompt) prompt.hidden = Boolean(user);
@@ -143,5 +109,4 @@ function applyCommunityState(user) {
   document.body.classList.toggle('community-read-only', !user);
 }
 
-configureCommunityIntro();
 onAuthStateChanged(auth, applyCommunityState);
