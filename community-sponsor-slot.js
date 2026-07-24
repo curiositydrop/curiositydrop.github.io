@@ -1,189 +1,233 @@
-const feed = document.getElementById('feed');
+const intro = document.querySelector('.community-intro');
 
-if (feed) {
+if (intro && !document.getElementById('community-sponsor-hero')) {
   const sponsors = [
     {
       image: 'ff796046372b48681a359daff6375626.jpeg',
       name: 'Rock Rage Radio',
-      text: 'Supporting independent music and the BANDtroductions community.',
       url: 'sponsors.html'
     },
     {
       image: 'IMG_0908.jpeg',
       name: 'The Plowzone Radio Show',
-      text: 'Supporting independent music and the BANDtroductions community.',
       url: 'sponsors.html'
     },
     {
       image: 'IMG_0699.jpeg',
       name: 'Gone Rogue Records',
-      text: 'Supporting independent music and the BANDtroductions community.',
       url: 'sponsors.html'
     },
     {
       image: '9A3AD6D7-8C0C-4C27-BE09-A19C2F0834AE.png',
       name: 'New Leaf Painting Company',
-      text: 'Supporting independent music and the BANDtroductions community.',
       url: 'sponsors.html'
-    },
-    {
-      name: 'Put your brand here',
-      text: 'Reach bands, venues, musicians, and independent music fans by sponsoring BANDtroductions.',
-      url: 'sponsors.html',
-      callToAction: 'Become a Sponsor'
     }
   ];
 
   const style = document.createElement('style');
+  style.id = 'community-sponsor-hero-styles';
   style.textContent = `
-    .community-sponsor-slot {
-      position: relative;
-      display: block;
-      min-height: 178px;
-      padding: 0 !important;
-      margin: 0 !important;
-      overflow: hidden;
-      border: 1px solid #2f625e;
-      border-radius: 14px;
-      background: linear-gradient(145deg,#171717,#0d0d0d);
-      box-shadow: 0 7px 18px rgba(0,0,0,.24);
-      color: inherit;
-      text-decoration: none;
+    .community-hero-row{
+      display:grid;
+      grid-template-columns:minmax(0,3fr) minmax(0,2fr);
+      gap:10px;
+      align-items:stretch;
+      margin-bottom:8px;
     }
-    .community-sponsor-label {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 4;
-      padding: 4px 8px;
-      border: 1px solid rgba(12,207,189,.55);
-      border-radius: 999px;
-      background: rgba(0,0,0,.78);
-      color: #0ccfbd;
-      font-size: .62rem;
-      font-weight: 900;
-      letter-spacing: .12em;
+    .community-hero-row .community-intro{
+      min-width:0;
+      margin:0!important;
+      padding:13px 14px;
+      border:1px solid #2f625e;
+      border-radius:14px;
+      background:linear-gradient(145deg,#171717,#111);
+      box-shadow:0 7px 18px rgba(0,0,0,.24);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
-    .community-sponsor-slide {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      grid-template-columns: minmax(120px, 40%) 1fr;
-      align-items: center;
-      gap: 18px;
-      padding: 36px 18px 18px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .45s ease;
-      box-sizing: border-box;
+    .community-hero-row .community-intro .profile-meta{
+      margin:0 0 4px;
+      font-size:.67rem;
+      line-height:1.15;
     }
-    .community-sponsor-slide.is-active {
-      opacity: 1;
-      pointer-events: auto;
+    .community-hero-row .community-intro h1{
+      margin:0 0 5px;
+      font-size:clamp(1.35rem,4vw,2rem);
+      line-height:1.05;
     }
-    .community-sponsor-slide img {
-      width: 100%;
-      height: 112px;
-      object-fit: contain;
-      border-radius: 10px;
-      background: #090909;
+    .community-hero-row .community-intro .auth-subtitle{
+      margin:0;
+      color:#c8c8c8;
+      font-size:.78rem;
+      line-height:1.32;
     }
-    .community-sponsor-copy h3 {
-      margin: 0 0 7px;
-      color: #0ccfbd;
-      font-size: 1.08rem;
+    .community-sponsor-hero{
+      position:relative;
+      min-width:0;
+      min-height:112px;
+      overflow:hidden;
+      border:1px solid #2f625e;
+      border-radius:14px;
+      background:radial-gradient(circle at center,rgba(12,207,189,.14),transparent 72%),linear-gradient(145deg,#171717,#0d0d0d);
+      box-shadow:0 7px 18px rgba(0,0,0,.24);
+      color:inherit;
+      text-decoration:none;
     }
-    .community-sponsor-copy p {
-      margin: 0;
-      color: #c5c5c5;
-      font-size: .82rem;
-      line-height: 1.42;
+    .community-sponsor-kicker{
+      position:absolute;
+      z-index:5;
+      top:8px;
+      left:9px;
+      right:9px;
+      color:#0ccfbd;
+      font-size:.55rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      line-height:1.15;
+      text-transform:uppercase;
+      text-align:center;
     }
-    .community-sponsor-cta {
-      display: inline-block;
-      margin-top: 11px;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: #0ccfbd;
-      color: #07100f;
-      font-size: .75rem;
-      font-weight: 900;
+    .community-sponsor-hero-slide{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      padding:27px 8px 8px;
+      box-sizing:border-box;
+      opacity:0;
+      transition:opacity .4s ease;
+      pointer-events:none;
+      text-align:center;
     }
-    .community-sponsor-slide.is-promo {
-      grid-template-columns: 1fr;
-      text-align: center;
-      background: radial-gradient(circle at center,rgba(12,207,189,.16),transparent 68%);
+    .community-sponsor-hero-slide.is-active{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .community-sponsor-hero-slide img{
+      display:block;
+      width:100%;
+      height:58px;
+      object-fit:contain;
+      border-radius:7px;
+    }
+    .community-sponsor-hero-name{
+      display:block;
+      max-width:100%;
+      overflow:hidden;
+      color:#fff;
+      font-size:.68rem;
+      font-weight:900;
+      line-height:1.1;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .community-sponsor-hero-view{
+      color:#0ccfbd;
+      font-size:.6rem;
+      font-weight:900;
+      line-height:1;
     }
     @media(max-width:560px){
-      .community-sponsor-slot{min-height:210px}
-      .community-sponsor-slide{grid-template-columns:105px 1fr;gap:12px;padding:38px 12px 14px}
-      .community-sponsor-slide img{height:118px}
-      .community-sponsor-copy h3{font-size:.96rem}
-      .community-sponsor-copy p{font-size:.76rem}
+      .community-hero-row{
+        grid-template-columns:minmax(0,3fr) minmax(0,2fr);
+        gap:7px;
+      }
+      .community-hero-row .community-intro{
+        padding:10px 11px;
+      }
+      .community-hero-row .community-intro .profile-meta{
+        font-size:.56rem;
+      }
+      .community-hero-row .community-intro h1{
+        margin-bottom:4px;
+        font-size:1.18rem;
+      }
+      .community-hero-row .community-intro .auth-subtitle{
+        font-size:.67rem;
+        line-height:1.25;
+      }
+      .community-sponsor-hero{
+        min-height:106px;
+      }
+      .community-sponsor-kicker{
+        top:7px;
+        left:5px;
+        right:5px;
+        font-size:.47rem;
+        letter-spacing:.05em;
+      }
+      .community-sponsor-hero-slide{
+        padding:25px 6px 7px;
+      }
+      .community-sponsor-hero-slide img{
+        height:53px;
+      }
+      .community-sponsor-hero-name{
+        font-size:.58rem;
+      }
+      .community-sponsor-hero-view{
+        font-size:.54rem;
+      }
     }
   `;
   document.head.appendChild(style);
 
-  const slot = document.createElement('a');
-  slot.className = 'community-sponsor-slot';
-  slot.setAttribute('aria-label', 'Sponsored partner');
+  const row = document.createElement('section');
+  row.className = 'community-hero-row';
+  intro.parentNode.insertBefore(row, intro);
+  row.appendChild(intro);
 
-  const label = document.createElement('span');
-  label.className = 'community-sponsor-label';
-  label.textContent = 'SPONSORED';
-  slot.appendChild(label);
+  intro.querySelector('.profile-meta')?.replaceChildren(document.createTextNode('WELCOME TO'));
+  const heading = intro.querySelector('h1');
+  if (heading) heading.textContent = 'BANDtroductions Social';
+  const subtitle = intro.querySelector('.auth-subtitle');
+  if (subtitle) subtitle.textContent = 'Music community. No algorithms. No politics. Just music.';
+
+  const slot = document.createElement('a');
+  slot.id = 'community-sponsor-hero';
+  slot.className = 'community-sponsor-hero';
+  slot.href = sponsors[0].url;
+  slot.setAttribute('aria-label', `Social platform supported by ${sponsors[0].name}`);
+
+  const kicker = document.createElement('span');
+  kicker.className = 'community-sponsor-kicker';
+  kicker.textContent = 'Social supported by';
+  slot.appendChild(kicker);
 
   const slides = sponsors.map((sponsor, index) => {
-    const slide = document.createElement('div');
-    slide.className = `community-sponsor-slide${index === 0 ? ' is-active' : ''}${sponsor.image ? '' : ' is-promo'}`;
+    const slide = document.createElement('span');
+    slide.className = `community-sponsor-hero-slide${index === 0 ? ' is-active' : ''}`;
 
-    if (sponsor.image) {
-      const image = document.createElement('img');
-      image.src = sponsor.image;
-      image.alt = sponsor.name;
-      image.loading = index === 0 ? 'eager' : 'lazy';
-      slide.appendChild(image);
-    }
+    const image = document.createElement('img');
+    image.src = sponsor.image;
+    image.alt = sponsor.name;
+    image.loading = index === 0 ? 'eager' : 'lazy';
 
-    const copy = document.createElement('div');
-    copy.className = 'community-sponsor-copy';
-    const title = document.createElement('h3');
-    title.textContent = sponsor.name;
-    const text = document.createElement('p');
-    text.textContent = sponsor.text;
-    copy.append(title, text);
+    const name = document.createElement('span');
+    name.className = 'community-sponsor-hero-name';
+    name.textContent = sponsor.name;
 
-    if (sponsor.callToAction) {
-      const cta = document.createElement('span');
-      cta.className = 'community-sponsor-cta';
-      cta.textContent = sponsor.callToAction;
-      copy.appendChild(cta);
-    }
+    const view = document.createElement('span');
+    view.className = 'community-sponsor-hero-view';
+    view.textContent = 'View Sponsor →';
 
-    slide.appendChild(copy);
+    slide.append(image, name, view);
     slot.appendChild(slide);
     return slide;
   });
 
+  row.appendChild(slot);
+
   let activeIndex = 0;
-  slot.href = sponsors[0].url;
-
-  function placeSlot() {
-    const posts = [...feed.querySelectorAll('.community-post')];
-    if (!posts.length) return;
-    const anchor = posts[Math.min(2, posts.length - 1)];
-    if (anchor.nextElementSibling !== slot) anchor.insertAdjacentElement('afterend', slot);
-  }
-
-  const observer = new MutationObserver(() => window.requestAnimationFrame(placeSlot));
-  observer.observe(feed, { childList: true });
-  placeSlot();
-
   window.setInterval(() => {
     slides[activeIndex].classList.remove('is-active');
     activeIndex = (activeIndex + 1) % slides.length;
     slides[activeIndex].classList.add('is-active');
     slot.href = sponsors[activeIndex].url;
-    slot.setAttribute('aria-label', `Sponsored partner: ${sponsors[activeIndex].name}`);
+    slot.setAttribute('aria-label', `Social platform supported by ${sponsors[activeIndex].name}`);
   }, 5000);
 }
