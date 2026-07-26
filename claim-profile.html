@@ -5,48 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claim Profile | BANDtroductions</title>
   <link rel="stylesheet" href="style.css?v=7">
-  <link rel="stylesheet" href="auth.css?v=13">
+  <link rel="stylesheet" href="auth.css?v=14">
   <style>
-    .claim-shell{width:min(calc(100vw - 20px),720px);margin:0 auto;padding:20px 0 44px}.claim-card{border:1px solid #3b3b3b;border-radius:18px;background:linear-gradient(145deg,#191919,#101010);padding:18px}.claim-summary{display:flex;gap:14px;align-items:center;padding:12px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin:14px 0}.claim-image{width:78px;height:78px;border-radius:14px;border:1px solid #0ccfbd;object-fit:cover;background:#080808}.claim-fields{display:grid;gap:12px}.claim-fields label{font-weight:800}.claim-fields textarea{min-height:130px}.claim-note{color:#aaa;line-height:1.5}.claim-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.claim-actions .auth-button{width:auto!important}.claim-choice-box{padding:14px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin-top:14px}.claim-choice-box p{margin:0 0 10px;color:#bbb;line-height:1.5}
+    .claim-shell{width:min(calc(100vw - 20px),720px);margin:0 auto;padding:20px 0 44px}
+    .claim-card{border:1px solid #3b3b3b;border-radius:18px;background:linear-gradient(145deg,#191919,#101010);padding:18px}
+    .claim-summary{display:flex;gap:14px;align-items:center;padding:12px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin:14px 0}
+    .claim-image{width:78px;height:78px;border-radius:14px;border:1px solid #0ccfbd;object-fit:cover;background:#080808}
+    .claim-certification{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin-top:14px;line-height:1.5}
+    .claim-certification input{width:22px;height:22px;flex:0 0 auto;margin-top:2px;accent-color:#0ccfbd}
+    .claim-certification span{color:#ddd}
+    .claim-note{color:#aaa;line-height:1.5}
+    .claim-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .claim-actions .auth-button{width:auto!important}
   </style>
 </head>
 <body class="hamburger-active auth-page">
   <div id="global-header"></div>
+
   <main class="claim-shell">
     <section class="claim-card">
       <p class="profile-meta">PROFILE OWNERSHIP</p>
       <h1>Claim This Profile</h1>
-      <p class="auth-subtitle">Create or log into your BANDtroductions account using the email originally connected to this profile.</p>
-      <div id="claim-summary" class="claim-summary"></div>
+      <p class="auth-subtitle">Connect this existing profile to your BANDtroductions account so you can manage and update it.</p>
 
+      <div id="claim-summary" class="claim-summary"></div>
       <p id="claim-status" class="auth-message">Loading profile claim…</p>
 
-      <div id="claim-choices" class="claim-choice-box" hidden>
-        <div id="verification-actions" hidden>
-          <p>After clicking the verification link in your email, come back here and check again.</p>
-          <div class="claim-actions">
-            <button id="verification-refresh" class="auth-button" type="button">I've Verified My Email</button>
-            <button id="verification-resend" class="auth-button auth-button-secondary" type="button">Resend Verification Email</button>
-          </div>
-        </div>
+      <div id="claim-controls" hidden>
+        <label class="claim-certification">
+          <input id="claim-certify" type="checkbox">
+          <span id="claim-certify-copy"></span>
+        </label>
+
+        <p class="claim-note">Falsely claiming another person’s, band’s, or venue’s profile may result in account removal and the profile being returned to its rightful owner.</p>
+
         <div class="claim-actions">
-          <button id="auto-claim" class="auth-button" type="button" hidden>Verify &amp; Claim Profile</button>
-          <button id="manual-claim-toggle" class="auth-button auth-button-secondary" type="button" hidden>Submit Manual Claim</button>
+          <button id="claim-button" class="auth-button" type="button" disabled>Claim Profile</button>
+          <a class="auth-button auth-button-secondary" href="javascript:history.back()">Cancel</a>
         </div>
       </div>
-
-      <form id="claim-form" class="claim-fields" hidden>
-        <label for="claim-role">Your role or connection</label>
-        <input id="claim-role" class="auth-input" required maxlength="120" placeholder="Example: band member, manager, venue owner">
-        <label for="claim-proof">How can we verify this?</label>
-        <textarea id="claim-proof" class="auth-input" required maxlength="1200" placeholder="Include a website, social page, contact name, booking email, or other details that help confirm ownership."></textarea>
-        <p class="claim-note">Submitting a manual claim does not immediately change the public profile. BANDtroductions will review it first.</p>
-        <div class="claim-actions"><button id="claim-submit" class="auth-button" type="submit">Submit Claim</button><a class="auth-button auth-button-secondary" href="javascript:history.back()">Cancel</a></div>
-      </form>
     </section>
   </main>
+
   <div id="global-footer"></div>
   <script src="global.js?v=16"></script>
-  <script type="module" src="claim-profile.js?v=2"></script>
+  <script type="module" src="claim-profile.js?v=3"></script>
 </body>
 </html>
