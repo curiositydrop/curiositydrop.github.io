@@ -124,7 +124,9 @@ if (window.location.pathname.endsWith('/community.html')) {
 
   import('./admin-comment-controls.js?v=3').catch((error) => console.error('Error loading comment controls:', error));
   import('./community-guest-mode.js?v=5').catch((error) => console.error('Error loading community guest mode:', error));
-  import('./community-media.js?v=2').catch((error) => console.error('Error loading community media:', error));
+  import('./community-media.js?v=3')
+    .then(() => import('./community-post-types.js?v=1'))
+    .catch((error) => console.error('Error loading community post tools:', error));
   import('./community-sponsor-slot.js?v=4').catch((error) => console.error('Error loading community sponsor slot:', error));
 }
 
