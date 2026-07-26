@@ -4,98 +4,109 @@ import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase
 
 const profileId = new URLSearchParams(location.search).get('id');
 
-function youtubeId(url = '') {
-  const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
-  return match?.[1] || '';
-}
-function vimeoId(url = '') {
-  const match = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/i);
-  return match?.[1] || '';
-}
-function embedUrl(url = '') {
-  const yt = youtubeId(url);
-  if (yt) return `https://www.youtube.com/embed/${yt}`;
-  const vm = vimeoId(url);
-  if (vm) return `https://player.vimeo.com/video/${vm}`;
-  return '';
-}
-function renderItem(item) {
-  const card = document.createElement('article');
-  card.className = 'profile-media-item';
-  if (item.type === 'image' && item.url) {
-    const img = document.createElement('img');
-    img.src = item.url;
-    img.alt = item.caption || 'Profile media image';
-    img.loading = 'lazy';
-    card.appendChild(img);
-  } else if (item.type === 'video' && item.url) {
-    const src = embedUrl(item.url);
-    if (!src) return null;
-    const frame = document.createElement('iframe');
-    frame.src = src;
-    frame.title = item.caption || 'Profile video';
-    frame.loading = 'lazy';
-    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-    frame.allowFullscreen = true;
-    card.appendChild(frame);
-  } else return null;
-  if (item.caption) {
-    const caption = document.createElement('p');
-    caption.textContent = item.caption;
-    card.appendChild(caption);
-  }
-  return card;
-}
-
 if (profileId) {
   const style = document.createElement('style');
   style.textContent = `
-    #profile-content{width:calc(100% - 12px)!important;max-width:760px!important;min-width:0!important;padding:0!important;margin:0 auto!important;box-sizing:border-box!important}
-    #profile-content>.profile-card{width:100%!important;max-width:100%!important;min-width:0!important;border-radius:14px!important;box-sizing:border-box!important}
-    .profile-media-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px;min-width:0;width:100%}
-    .profile-media-item{width:100%;max-width:680px;min-width:0;margin:0 auto;overflow:hidden;border:1px solid #333;border-radius:12px;background:#080808;text-align:center}
-    .profile-media-item img,.profile-media-item iframe{display:block;width:100%;max-width:100%;border:0;aspect-ratio:16/9;object-fit:cover;margin:0 auto}
-    .profile-media-item p{margin:0;padding:10px 12px;color:#ddd;font-weight:700;text-align:center;overflow-wrap:anywhere}
-    @media(min-width:760px){.profile-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    #profile-content{width:calc(100% - 12px)!important;max-width:760px!important;min-width:0!important;padding:0!important;margin:0 auto!important;box-sizing:border-box!important;overflow-x:hidden}
+    #profile-content>.profile-card{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+    .profile-image-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;width:100%;min-width:0}
+    .profile-image-card{display:block;width:100%;min-width:0;aspect-ratio:1/1;border:1px solid #333;border-radius:12px;overflow:hidden;background:#080808;padding:0;cursor:pointer}
+    .profile-image-card img{display:block;width:100%;height:100%;object-fit:cover}
+    .profile-image-card[hidden]{display:none}
+    .profile-image-more{display:flex;justify-content:center;margin-top:14px}
+    .profile-lightbox{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.92)}
+    .profile-lightbox[hidden]{display:none}
+    .profile-lightbox img{display:block;max-width:min(96vw,1200px);max-height:88vh;object-fit:contain;border-radius:12px;background:#050505}
+    .profile-lightbox-close{position:fixed;top:14px;right:14px;width:44px;height:44px;border:1px solid #777;border-radius:50%;background:#111;color:#fff;font-size:1.5rem;cursor:pointer}
+    .profile-lightbox-caption{max-width:min(96vw,900px);margin:10px auto 0;color:#ddd;text-align:center}
+    @media(max-width:340px){.profile-image-grid{gap:5px}}
   `;
   document.head.appendChild(style);
 
   const content = document.getElementById('profile-content');
   const section = document.createElement('section');
   section.className = 'profile-card';
-  section.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">Media</h2><a id="open-media-library" class="auth-button auth-button-secondary" href="profile-setup.html">Manage My Media</a></div><div id="profile-media-grid" class="profile-media-grid"></div><p id="profile-media-status" class="profile-side-note">Loading media…</p>`;
+  section.hidden = true;
+  section.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2 style="margin:0">Images</h2>
+      <a id="manage-profile-images" class="auth-button auth-button-secondary" href="profile-setup.html">Manage Images</a>
+    </div>
+    <div id="profile-image-grid" class="profile-image-grid"></div>
+    <div id="profile-image-more" class="profile-image-more" hidden>
+      <button id="toggle-profile-images" class="auth-button auth-button-secondary" type="button">Show More Images</button>
+    </div>
+  `;
   content?.appendChild(section);
 
-  const grid = section.querySelector('#profile-media-grid');
-  const status = section.querySelector('#profile-media-status');
-  const manage = section.querySelector('#open-media-library');
+  const lightbox = document.createElement('div');
+  lightbox.className = 'profile-lightbox';
+  lightbox.hidden = true;
+  lightbox.innerHTML = `<button class="profile-lightbox-close" type="button" aria-label="Close image">×</button><div><img alt=""><p class="profile-lightbox-caption"></p></div>`;
+  document.body.appendChild(lightbox);
+
+  const grid = section.querySelector('#profile-image-grid');
+  const moreWrap = section.querySelector('#profile-image-more');
+  const toggleButton = section.querySelector('#toggle-profile-images');
+  const manage = section.querySelector('#manage-profile-images');
+  const lightboxImage = lightbox.querySelector('img');
+  const lightboxCaption = lightbox.querySelector('.profile-lightbox-caption');
+  let expanded = false;
+
   onAuthStateChanged(auth, user => { manage.hidden = user?.uid !== profileId; });
 
-  getDoc(doc(db, 'profiles', profileId)).then(snapshot => {
-    if (!snapshot.exists()) throw new Error('missing-profile');
-    const data = snapshot.data();
-    let items = Array.isArray(data.mediaItems) ? [...data.mediaItems] : [];
-    if (!items.length && Array.isArray(data.additionalMedia)) {
-      items = data.additionalMedia.map(item => ({
-        type: 'video',
-        url: typeof item === 'string' ? item : item.url,
-        caption: typeof item === 'string' ? '' : (item.title || item.caption || '')
-      }));
-    }
-    if (!items.length && data.legacyPage === 'burning-time.html') {
-      items = [
-        { type: 'video', url: 'https://www.youtube.com/watch?v=o_a3zRmXjf0', caption: 'Burning Time — More Video' },
-        { type: 'video', url: 'https://www.youtube.com/watch?v=mAAIqAtM9lU', caption: 'Burning Time — More Video' },
-        { type: 'video', url: 'https://www.youtube.com/watch?v=Es5BP4jGlcc', caption: 'Burning Time — More Video' },
-        { type: 'video', url: 'https://www.youtube.com/watch?v=hg3FNy3xgGo', caption: 'Burning Time — More Video' }
-      ];
-    }
-    grid.replaceChildren();
-    items.forEach(item => { const node = renderItem(item); if (node) grid.appendChild(node); });
-    status.hidden = grid.children.length > 0;
-    status.textContent = 'No additional media has been added yet.';
-  }).catch(error => {
-    console.error(error);
-    status.textContent = 'Media could not be loaded.';
+  function openImage(item) {
+    lightboxImage.src = item.url;
+    lightboxImage.alt = item.caption || 'Profile image';
+    lightboxCaption.textContent = item.caption || '';
+    lightboxCaption.hidden = !item.caption;
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeImage() {
+    lightbox.hidden = true;
+    lightboxImage.removeAttribute('src');
+    document.body.style.overflow = '';
+  }
+
+  lightbox.querySelector('.profile-lightbox-close').addEventListener('click', closeImage);
+  lightbox.addEventListener('click', event => { if (event.target === lightbox) closeImage(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !lightbox.hidden) closeImage(); });
+
+  function updateVisibility() {
+    [...grid.children].forEach((card, index) => { card.hidden = !expanded && index >= 6; });
+    toggleButton.textContent = expanded ? 'Show Fewer Images' : 'Show More Images';
+  }
+
+  toggleButton.addEventListener('click', () => {
+    expanded = !expanded;
+    updateVisibility();
   });
+
+  getDoc(doc(db, 'profiles', profileId)).then(snapshot => {
+    if (!snapshot.exists()) return;
+    const images = (Array.isArray(snapshot.data().mediaItems) ? snapshot.data().mediaItems : [])
+      .filter(item => item?.type === 'image' && item.url);
+
+    if (!images.length) return;
+
+    images.forEach(item => {
+      const button = document.createElement('button');
+      button.className = 'profile-image-card';
+      button.type = 'button';
+      button.setAttribute('aria-label', item.caption ? `Open ${item.caption}` : 'Open profile image');
+      const image = document.createElement('img');
+      image.src = item.url;
+      image.alt = item.caption || 'Profile image';
+      image.loading = 'lazy';
+      button.appendChild(image);
+      button.addEventListener('click', () => openImage(item));
+      grid.appendChild(button);
+    });
+
+    section.hidden = false;
+    moreWrap.hidden = images.length <= 6;
+    updateVisibility();
+  }).catch(error => console.error('Profile images could not be loaded:', error));
 }
