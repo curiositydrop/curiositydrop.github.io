@@ -4,23 +4,35 @@ import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/fi
 import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js';
 
 const form = document.getElementById('profile-form');
-const mediaLinkLabel = document.getElementById('media-link')?.closest('label');
+const mediaLinkInput = document.getElementById('media-link');
+const mediaLinkLabel = mediaLinkInput?.closest('label');
 if (!form || !mediaLinkLabel) throw new Error('Profile media editor could not find the profile form.');
+
+// Rename the main media field. This is always the single featured video.
+for (const node of mediaLinkLabel.childNodes) {
+  if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+    node.textContent = 'Featured video';
+    break;
+  }
+}
+mediaLinkInput.placeholder = 'YouTube or Vimeo link';
+const featuredNote = document.createElement('small');
+featuredNote.textContent = 'This video appears first on your public profile. Use a YouTube or Vimeo link.';
+mediaLinkLabel.appendChild(featuredNote);
 
 const style = document.createElement('style');
 style.textContent = `
-  .media-editor{margin-top:8px;padding:16px;border:1px solid #333;border-radius:14px;background:#0c0c0c}
-  .media-editor-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-  .media-editor-head h2{margin:0;font-size:1.18rem}
-  .media-editor-list{display:grid;gap:12px}
-  .media-editor-row{padding:12px;border:1px solid #333;border-radius:12px;background:#151515;display:grid;gap:10px}
-  .media-editor-grid{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px}
-  .media-editor-row input,.media-editor-row select{width:100%;box-sizing:border-box}
-  .media-image-upload{display:grid;gap:8px}
+  .media-editor{margin-top:8px;padding:16px;border:1px solid #333;border-radius:14px;background:#0c0c0c;min-width:0;box-sizing:border-box}
+  .media-editor-head{margin-bottom:12px}.media-editor-head h2{margin:0;font-size:1.18rem}.media-editor-head small{display:block;margin-top:5px;color:#aaa}
+  .media-editor-list{display:grid;gap:12px;min-width:0}
+  .media-editor-row{padding:12px;border:1px solid #333;border-radius:12px;background:#151515;display:grid;gap:10px;min-width:0;box-sizing:border-box}
+  .media-editor-grid{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;min-width:0}
+  .media-editor-row input,.media-editor-row select{width:100%;max-width:100%;box-sizing:border-box}
+  .media-image-upload{display:grid;gap:8px;min-width:0}.media-image-upload input[type=file]{max-width:100%}
   .media-image-preview{width:100%;max-height:240px;object-fit:cover;border-radius:10px;border:1px solid #333;background:#080808}
-  .media-row-actions{display:flex;justify-content:flex-end}
-  .media-save-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
-  @media(max-width:620px){.media-editor-grid{grid-template-columns:1fr}}
+  .media-row-actions{display:flex;justify-content:flex-end}.media-save-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+  .media-add-row{display:flex;justify-content:center;margin-top:14px}.media-add-row .auth-button{width:100%}
+  @media(max-width:620px){.media-editor-grid{grid-template-columns:1fr}.media-editor{padding:12px}.media-editor-row{padding:10px}}
 `;
 document.head.appendChild(style);
 
@@ -28,24 +40,23 @@ const editor = document.createElement('section');
 editor.className = 'media-editor';
 editor.innerHTML = `
   <div class="media-editor-head">
-    <div><h2>Profile Media</h2><small>Add YouTube/Vimeo embeds or uploaded images.</small></div>
-    <button id="add-profile-media" class="auth-button auth-button-secondary" type="button">Add More Media</button>
+    <h2>Additional Profile Media</h2>
+    <small>These images and videos appear after the featured video on your profile.</small>
   </div>
   <div id="profile-media-editor-list" class="media-editor-list"></div>
+  <div class="media-add-row"><button id="add-profile-media" class="auth-button auth-button-secondary" type="button">Add More Media</button></div>
   <div class="media-save-row">
     <button id="save-profile-media" class="auth-button" type="button">Save Media</button>
     <span id="profile-media-editor-status" class="auth-message"></span>
   </div>
 `;
 mediaLinkLabel.insertAdjacentElement('afterend', editor);
-mediaLinkLabel.hidden = true;
 
 const list = editor.querySelector('#profile-media-editor-list');
 const addButton = editor.querySelector('#add-profile-media');
 const saveButton = editor.querySelector('#save-profile-media');
 const status = editor.querySelector('#profile-media-editor-status');
 let currentUser = null;
-let loadedProfile = {};
 
 function isEmbeddableVideo(url = '') {
   return /(?:youtube\.com|youtu\.be|vimeo\.com)/i.test(url.trim());
@@ -53,16 +64,22 @@ function isEmbeddableVideo(url = '') {
 
 function fallbackItems(profile = {}) {
   if (Array.isArray(profile.mediaItems) && profile.mediaItems.length) return profile.mediaItems;
+  if (Array.isArray(profile.additionalMedia) && profile.additionalMedia.length) {
+    return profile.additionalMedia.map(item => ({
+      type: 'video',
+      url: typeof item === 'string' ? item : item.url,
+      caption: typeof item === 'string' ? '' : (item.title || item.caption || '')
+    }));
+  }
   if (profile.legacyPage === 'burning-time.html') {
     return [
-      { type: 'video', url: 'https://www.youtube.com/watch?v=RyAK3AAX49g', caption: 'Featured Release: “Hard to Follow”' },
       { type: 'video', url: 'https://www.youtube.com/watch?v=o_a3zRmXjf0', caption: 'Burning Time — More Video' },
       { type: 'video', url: 'https://www.youtube.com/watch?v=mAAIqAtM9lU', caption: 'Burning Time — More Video' },
       { type: 'video', url: 'https://www.youtube.com/watch?v=Es5BP4jGlcc', caption: 'Burning Time — More Video' },
       { type: 'video', url: 'https://www.youtube.com/watch?v=hg3FNy3xgGo', caption: 'Burning Time — More Video' }
     ];
   }
-  return profile.mediaLink ? [{ type: 'video', url: profile.mediaLink, caption: 'Featured video' }] : [];
+  return [];
 }
 
 function addRow(item = { type: 'video', url: '', caption: '' }) {
@@ -98,7 +115,7 @@ function addRow(item = { type: 'video', url: '', caption: '' }) {
   const preview = row.querySelector('.media-image-preview');
 
   type.value = item.type === 'image' ? 'image' : 'video';
-  caption.value = item.caption || '';
+  caption.value = item.caption || item.title || '';
   if (type.value === 'video') url.value = item.url || '';
   if (type.value === 'image') {
     existingUrl.value = item.url || '';
@@ -120,6 +137,7 @@ function addRow(item = { type: 'video', url: '', caption: '' }) {
   row.querySelector('.remove-media').addEventListener('click', () => row.remove());
   syncType();
   list.appendChild(row);
+  return row;
 }
 
 async function uploadImage(file) {
@@ -131,10 +149,19 @@ async function uploadImage(file) {
   return getDownloadURL(snapshot.ref);
 }
 
-addButton.addEventListener('click', () => addRow());
+addButton.addEventListener('click', () => {
+  const row = addRow();
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.querySelector('.media-type').focus();
+});
 
 saveButton.addEventListener('click', async () => {
   if (!currentUser) return;
+  const featuredUrl = mediaLinkInput.value.trim();
+  if (featuredUrl && !isEmbeddableVideo(featuredUrl)) {
+    status.textContent = 'Featured video must be a YouTube or Vimeo link.';
+    return;
+  }
   saveButton.disabled = true;
   status.textContent = 'Saving media…';
   try {
@@ -154,9 +181,13 @@ saveButton.addEventListener('click', async () => {
         if (url) items.push({ type: 'image', url, caption });
       }
     }
+    const additionalMedia = items
+      .filter(item => item.type === 'video')
+      .map(item => ({ url: item.url, title: item.caption || 'More Video' }));
     await setDoc(doc(db, 'profiles', currentUser.uid), {
+      mediaLink: featuredUrl,
       mediaItems: items,
-      mediaLink: items.find(item => item.type === 'video')?.url || '',
+      additionalMedia,
       updatedAt: serverTimestamp()
     }, { merge: true });
     status.textContent = 'Media saved.';
@@ -173,14 +204,12 @@ onAuthStateChanged(auth, async user => {
   if (!user) return;
   try {
     const snapshot = await getDoc(doc(db, 'profiles', user.uid));
-    loadedProfile = snapshot.exists() ? snapshot.data() : {};
-    const items = fallbackItems(loadedProfile);
+    const profile = snapshot.exists() ? snapshot.data() : {};
+    const items = fallbackItems(profile);
     list.replaceChildren();
     items.forEach(addRow);
-    if (!items.length) addRow();
   } catch (error) {
     console.error(error);
     status.textContent = 'Existing media could not be loaded.';
-    addRow();
   }
 });
