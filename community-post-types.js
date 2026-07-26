@@ -41,7 +41,18 @@ titleLabel.insertAdjacentElement('afterend',releaseFields);
 const showFields=document.createElement('section');
 showFields.className='structured-post-fields';
 showFields.hidden=true;
-showFields.innerHTML=`<h3>Show / Event Details</h3><label>Venue name<input id="event-venue" type="text" maxlength="180" placeholder="Venue name"></label><div class="auth-grid"><label>Date<input id="event-date" type="date"></label><label>Time<input id="event-time" type="time"></label></div>`;
+showFields.innerHTML=`
+  <h3>Show / Event Details</h3>
+  <label>Venue name<input id="event-venue" type="text" maxlength="180" placeholder="Venue name"></label>
+  <div class="auth-grid">
+    <label>City<input id="event-city" type="text" maxlength="100" placeholder="City"></label>
+    <label>State / Province<input id="event-state" type="text" maxlength="100" placeholder="State or province"></label>
+  </div>
+  <label>Country<input id="event-country" type="text" maxlength="100" value="USA" placeholder="Country"></label>
+  <div class="auth-grid">
+    <label>Date<input id="event-date" type="date"></label>
+    <label>Time<input id="event-time" type="time"></label>
+  </div>`;
 releaseFields.insertAdjacentElement('afterend',showFields);
 
 const filter=document.getElementById('feed-filter');
@@ -72,7 +83,9 @@ function readableTime(time){
   return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(2000,0,1,hour,minute));
 }
 function resetComposer(){
-  ['post-title','post-content','post-link','release-song-title','release-date','event-venue','event-date','event-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['post-title','post-content','post-link','release-song-title','release-date','event-venue','event-city','event-state','event-date','event-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const country=document.getElementById('event-country');
+  if(country)country.value='USA';
   category.value='general';syncType();
   window.BANDCommunityMedia?.clear?.();
   fields.hidden=true;
@@ -97,12 +110,18 @@ function collect(){
     displayText=`🎵 SONG RELEASE\n${songTitle}\nReleasing ${readableDate(releaseDate)}`;
   }else if(type==='show'){
     const venueName=value('event-venue');
+    const eventCity=value('event-city');
+    const eventState=value('event-state');
+    const eventCountry=value('event-country')||'USA';
     const eventDate=value('event-date');
     const eventTime=value('event-time');
     if(!venueName)throw new Error('Add the venue name.');
+    if(!eventCity)throw new Error('Add the venue city.');
+    if(!eventState)throw new Error('Add the venue state or province.');
     if(!eventDate)throw new Error('Choose the show date.');
-    Object.assign(data,{venueName,eventDate,eventTime});
-    displayText=`🎤 SHOW / EVENT\n${venueName}\n${readableDate(eventDate)}${eventTime?` at ${readableTime(eventTime)}`:''}`;
+    Object.assign(data,{venueName,eventCity,eventState,eventCountry,eventDate,eventTime});
+    const location=[eventCity,eventState,eventCountry].filter(Boolean).join(', ');
+    displayText=`🎤 SHOW / EVENT\n${venueName}\n${location}\n${readableDate(eventDate)}${eventTime?` at ${readableTime(eventTime)}`:''}`;
   }
 
   if(postTitle)displayText=`${postTitle}\n\n${displayText}`.trim();
