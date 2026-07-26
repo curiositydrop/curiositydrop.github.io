@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-dev.js';
-import { onAuthStateChanged, reload, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { addDoc, collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const params = new URLSearchParams(location.search);
 const legacyPage = params.get('page') || '';
@@ -12,23 +12,19 @@ const genre = params.get('genre') || '';
 const instruments = params.get('instruments') || '';
 const venueType = params.get('venueType') || '';
 
-const form = document.getElementById('claim-form');
 const status = document.getElementById('claim-status');
 const summary = document.getElementById('claim-summary');
-const submit = document.getElementById('claim-submit');
-const autoClaim = document.getElementById('auto-claim');
-const claimChoices = document.getElementById('claim-choices');
-const manualToggle = document.getElementById('manual-claim-toggle');
+const controls = document.getElementById('claim-controls');
+const certify = document.getElementById('claim-certify');
+const certifyCopy = document.getElementById('claim-certify-copy');
+const claimButton = document.getElementById('claim-button');
 const returnTo = `${location.pathname.split('/').pop()}${location.search}`;
-let currentUser = null;
-let matchedEmail = false;
 
-function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase();
-}
+let currentUser = null;
 
 function buildSummary() {
   summary.replaceChildren();
+
   if (imageUrl) {
     const image = document.createElement('img');
     image.className = 'claim-image';
@@ -36,168 +32,98 @@ function buildSummary() {
     image.alt = '';
     summary.appendChild(image);
   }
+
   const copy = document.createElement('div');
   const title = document.createElement('h2');
   title.textContent = profileName;
+
   const meta = document.createElement('p');
   meta.className = 'approval-meta';
-  meta.textContent = [accountType, locationText, genre || instruments || venueType].filter(Boolean).join(' • ');
+  meta.textContent = [accountType, locationText, genre || instruments || venueType]
+    .filter(Boolean)
+    .join(' • ');
+
   copy.append(title, meta);
   summary.appendChild(copy);
 }
 
-function showManualClaim(message = '') {
-  claimChoices.hidden = true;
-  form.hidden = false;
-  if (message) status.textContent = message;
-}
-
-function safeLegacyUrl() {
-  try {
-    const url = new URL(legacyPage, location.href);
-    if (url.origin !== location.origin) return null;
-    return url;
-  } catch {
-    return null;
-  }
-}
-
-async function profileEmails() {
-  const url = safeLegacyUrl();
-  if (!url) return [];
-  const response = await fetch(url.href, { cache: 'no-store' });
-  if (!response.ok) throw new Error('Existing profile could not be checked.');
-  const html = await response.text();
-  const page = new DOMParser().parseFromString(html, 'text/html');
-  return [...page.querySelectorAll('a[href^="mailto:"]')]
-    .map(link => {
-      const href = link.getAttribute('href') || '';
-      return normalizeEmail(decodeURIComponent(href.replace(/^mailto:/i, '').split('?')[0]));
-    })
-    .filter(Boolean);
-}
-
-async function checkExistingOwnership() {
-  const owned = await getDocs(query(collection(db, 'profiles'), where('legacyPage', '==', legacyPage)));
-  return owned.docs.find(profile => profile.id !== currentUser.uid && profile.data().ownerId !== currentUser.uid);
-}
-
-async function prepareClaim(user) {
-  claimChoices.hidden = true;
-  form.hidden = true;
-
-  if (!user.emailVerified) {
-    status.innerHTML = `We sent a verification link to <strong>${user.email || 'your email'}</strong>. Verify that address, then return here.`;
-    claimChoices.hidden = false;
-    autoClaim.hidden = true;
-    document.getElementById('verification-actions').hidden = false;
-    manualToggle.hidden = true;
-    return;
+function certificationText() {
+  if (accountType === 'musician') {
+    return `I certify that I am ${profileName}, or that I am authorized to manage this profile on their behalf.`;
   }
 
-  document.getElementById('verification-actions').hidden = true;
-
-  try {
-    const alreadyOwned = await checkExistingOwnership();
-    if (alreadyOwned) {
-      status.textContent = 'This existing profile has already been claimed. Contact BANDtroductions if ownership needs to be corrected.';
-      return;
-    }
-
-    const emails = await profileEmails();
-    matchedEmail = emails.includes(normalizeEmail(user.email));
-
-    if (matchedEmail) {
-      status.innerHTML = `<strong>We found your profile!</strong><br>${profileName} matches the verified email on your BANDtroductions account.`;
-      claimChoices.hidden = false;
-      autoClaim.hidden = false;
-      manualToggle.hidden = true;
-      return;
-    }
-
-    status.textContent = emails.length
-      ? 'That verified email does not match the email originally connected to this profile.'
-      : 'This older profile does not have an email available for automatic matching.';
-    claimChoices.hidden = false;
-    autoClaim.hidden = true;
-    manualToggle.hidden = false;
-  } catch (error) {
-    console.error('Could not check profile email:', error);
-    status.textContent = 'Automatic matching is unavailable for this profile. You can still submit a manual claim.';
-    claimChoices.hidden = false;
-    autoClaim.hidden = true;
-    manualToggle.hidden = false;
+  if (accountType === 'venue') {
+    return `I certify that I own, manage, or am authorized to manage the ${profileName} profile.`;
   }
+
+  return `I certify that I am a member of ${profileName}, or that I am authorized to manage this profile on behalf of the band.`;
+}
+
+async function findExistingOwner() {
+  const snapshot = await getDocs(
+    query(collection(db, 'profiles'), where('legacyPage', '==', legacyPage))
+  );
+
+  if (snapshot.empty) return null;
+  return snapshot.docs[0].data();
 }
 
 buildSummary();
+certifyCopy.textContent = certificationText();
+
+certify.addEventListener('change', () => {
+  claimButton.disabled = !certify.checked;
+});
 
 onAuthStateChanged(auth, async user => {
   currentUser = user;
-  if (!user) {
-    const login = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
-    const signup = `signup.html?returnTo=${encodeURIComponent(returnTo)}`;
-    status.innerHTML = `To claim this profile, <a href="${signup}">create an account</a> using the email originally connected to it, or <a href="${login}">log in</a>.`;
-    return;
-  }
+  controls.hidden = true;
 
   if (!legacyPage || !profileName || !['band', 'musician', 'venue'].includes(accountType)) {
     status.textContent = 'This claim link is missing required profile information.';
     return;
   }
 
+  if (!user) {
+    const login = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
+    const signup = `signup.html?returnTo=${encodeURIComponent(returnTo)}`;
+    status.innerHTML = `To claim this profile, <a href="${signup}">create an account</a> or <a href="${login}">log in</a>. You will return here after signing in.`;
+    return;
+  }
+
   try {
-    const existing = await getDocs(query(collection(db, 'profileClaims'), where('claimantId', '==', user.uid), where('legacyPage', '==', legacyPage)));
-    const active = existing.docs.find(claim => ['pending', 'approved'].includes(claim.data().status));
-    if (active) {
-      status.textContent = active.data().status === 'approved'
-        ? 'This profile claim has already been approved.'
-        : 'Your manual claim for this profile is already waiting for review.';
+    const existingOwner = await findExistingOwner();
+
+    if (existingOwner?.ownerId === user.uid) {
+      status.innerHTML = `This profile is already connected to your account. <a href="profile.html?id=${encodeURIComponent(user.uid)}">Open your profile</a>.`;
       return;
     }
-  } catch (error) {
-    console.error('Could not check existing claims:', error);
-  }
 
-  await prepareClaim(user);
-});
-
-document.getElementById('verification-refresh').addEventListener('click', async () => {
-  if (!currentUser) return;
-  status.textContent = 'Checking your verification…';
-  try {
-    await reload(currentUser);
-    currentUser = auth.currentUser;
-    if (!currentUser.emailVerified) {
-      status.textContent = 'That email is not verified yet. Click the link in your email, then check again.';
+    if (existingOwner?.ownerId && existingOwner.ownerId !== user.uid) {
+      status.textContent = 'This profile has already been claimed. Contact BANDtroductions if ownership needs to be corrected.';
       return;
     }
-    await prepareClaim(currentUser);
+
+    status.textContent = `Logged in as ${user.email || user.displayName || 'your account'}. Check the certification below, then claim the profile.`;
+    controls.hidden = false;
   } catch (error) {
-    console.error(error);
-    status.textContent = 'We could not refresh your verification status. Please try again.';
+    console.error('Could not check profile ownership:', error);
+    status.textContent = 'This profile could not be checked right now. Please try again.';
   }
 });
 
-document.getElementById('verification-resend').addEventListener('click', async () => {
-  if (!currentUser) return;
-  try {
-    await sendEmailVerification(currentUser);
-    status.textContent = `A new verification email was sent to ${currentUser.email}.`;
-  } catch (error) {
-    console.error(error);
-    status.textContent = 'The verification email could not be resent yet. Please wait a moment and try again.';
-  }
-});
+claimButton.addEventListener('click', async () => {
+  if (!currentUser || !certify.checked) return;
 
-autoClaim.addEventListener('click', async () => {
-  if (!currentUser || !currentUser.emailVerified || !matchedEmail) return;
-  autoClaim.disabled = true;
+  claimButton.disabled = true;
   status.textContent = 'Connecting this profile to your account…';
 
   try {
-    const alreadyOwned = await checkExistingOwnership();
-    if (alreadyOwned) throw new Error('This profile has already been claimed.');
+    const existingOwner = await findExistingOwner();
+
+    if (existingOwner?.ownerId && existingOwner.ownerId !== currentUser.uid) {
+      throw new Error('This profile has already been claimed.');
+    }
 
     const profileData = {
       ownerId: currentUser.uid,
@@ -210,7 +136,10 @@ autoClaim.addEventListener('click', async () => {
       venueType,
       legacyPage,
       claimedLegacyProfile: true,
-      claimMethod: 'verified-email',
+      claimMethod: 'self-certification',
+      ownershipCertified: true,
+      ownershipCertifiedByEmail: currentUser.email || '',
+      ownershipCertifiedAt: serverTimestamp(),
       approvalStatus: 'approved',
       published: true,
       approvedAt: serverTimestamp(),
@@ -222,55 +151,19 @@ autoClaim.addEventListener('click', async () => {
       accountType,
       displayName: profileName,
       profileComplete: true,
-      emailVerifiedForLegacyClaim: true,
+      claimedLegacyProfile: true,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    claimChoices.hidden = true;
+    controls.hidden = true;
     status.innerHTML = `<strong>Profile claimed!</strong><br>${profileName} is now connected to your account.`;
+
     setTimeout(() => {
       window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`;
-    }, 1200);
+    }, 1000);
   } catch (error) {
-    console.error(error);
+    console.error('Profile claim failed:', error);
     status.textContent = error.message || 'The profile could not be connected to your account.';
-    autoClaim.disabled = false;
-  }
-});
-
-manualToggle.addEventListener('click', () => {
-  showManualClaim('Tell us how you are connected to this profile. BANDtroductions will review the request.');
-});
-
-form.addEventListener('submit', async event => {
-  event.preventDefault();
-  if (!currentUser) return;
-  submit.disabled = true;
-  status.textContent = 'Submitting your claim…';
-  try {
-    await addDoc(collection(db, 'profileClaims'), {
-      claimantId: currentUser.uid,
-      claimantEmail: currentUser.email || '',
-      claimantName: currentUser.displayName || '',
-      legacyPage,
-      profileName,
-      accountType,
-      imageUrl,
-      location: locationText,
-      genre,
-      instruments,
-      venueType,
-      role: document.getElementById('claim-role').value.trim(),
-      proof: document.getElementById('claim-proof').value.trim(),
-      status: 'pending',
-      submittedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    form.hidden = true;
-    status.textContent = 'Claim submitted. BANDtroductions will review it before transferring ownership.';
-  } catch (error) {
-    console.error(error);
-    status.textContent = error.message || 'The claim could not be submitted.';
-    submit.disabled = false;
+    claimButton.disabled = false;
   }
 });
