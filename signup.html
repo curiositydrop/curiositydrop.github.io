@@ -55,15 +55,34 @@
       <p id="signup-message" class="auth-message" role="status"></p>
     </form>
 
-    <p class="auth-links">Already joined? <a href="login.html">Log in</a></p>
+    <p class="auth-links">Already joined? <a id="login-link" href="login.html">Log in</a></p>
   </main>
 
   <div id="global-footer"></div>
   <script src="global.js?v=2"></script>
   <script type="module">
     import { auth, db } from './firebase-dev.js';
-    import { createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+    const params = new URLSearchParams(location.search);
+    const requestedReturn = params.get('returnTo') || '';
+    const safeReturn = requestedReturn && !requestedReturn.startsWith('//') && !requestedReturn.includes('://')
+      ? requestedReturn
+      : 'welcome.html';
+
+    const loginLink = document.getElementById('login-link');
+    if (requestedReturn) loginLink.href = `login.html?returnTo=${encodeURIComponent(safeReturn)}`;
+
+    try {
+      const returnUrl = new URL(safeReturn, location.href);
+      const claimType = returnUrl.searchParams.get('type');
+      const claimName = returnUrl.searchParams.get('name');
+      if (['band', 'musician', 'venue'].includes(claimType)) {
+        document.getElementById('account-type').value = claimType;
+      }
+      if (claimName) document.getElementById('display-name').value = claimName;
+    } catch {}
 
     const form = document.getElementById('signup-form');
     const button = document.getElementById('signup-button');
@@ -93,11 +112,12 @@
           rightsAcknowledgmentAccepted: true,
           createdAt: serverTimestamp()
         });
-        window.location.href = 'welcome.html';
+        await sendEmailVerification(credential.user);
+        window.location.href = safeReturn;
       } catch (error) {
         console.error(error);
         const friendly = {
-          'auth/email-already-in-use': 'That email already has an account.',
+          'auth/email-already-in-use': 'That email already has an account. Log in instead.',
           'auth/invalid-email': 'Please enter a valid email address.',
           'auth/weak-password': 'Use a password with at least 8 characters.'
         };
