@@ -18,15 +18,14 @@
     <p id="admin-status" class="auth-message">Loading approval queue…</p>
   </main>
   <div id="global-footer"></div>
-  <script src="global.js?v=13"></script>
+  <script src="global.js?v=14"></script>
   <script type="module">
     import { auth, db } from './firebase-dev.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { collection, doc, getDoc, onSnapshot, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-    const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
+    import { collection, doc, onSnapshot, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { isAdminAccount } from './admin-access.js';
     const list=document.getElementById('approval-list'),status=document.getElementById('admin-status');
     let currentUser=null;
-    const isAdmin=async user=>Boolean(user&&(String(user.email||'').toLowerCase()===ADMIN_EMAIL||(await getDoc(doc(db,'admins',user.uid))).exists()));
     const initials=name=>(name||'').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'BT';
     function card(profile,id){
       const article=document.createElement('article');article.className='approval-card';
@@ -44,7 +43,7 @@
       reject.addEventListener('click',async()=>{const reason=prompt('Reason for rejection (optional):','');if(reason===null)return;reject.disabled=true;try{await updateDoc(doc(db,'profiles',id),{approvalStatus:'rejected',published:false,rejectionReason:reason.trim(),moderatedAt:serverTimestamp(),moderatedBy:currentUser.uid})}catch(error){console.error(error);alert('The profile could not be rejected.');reject.disabled=false}});
       actions.append(preview,approve,reject);article.append(top,bio,actions);return article;
     }
-    onAuthStateChanged(auth,async user=>{currentUser=user;if(!user||!(await isAdmin(user))){status.textContent='Administrator access is required.';return}onSnapshot(collection(db,'profiles'),snap=>{const pending=snap.docs.filter(d=>d.data().approvalStatus==='pending').map(d=>({id:d.id,...d.data()}));list.replaceChildren();if(!pending.length){status.hidden=false;status.textContent='No profiles are waiting for approval.';return}status.hidden=true;pending.sort((a,b)=>(a.submittedAt?.seconds||0)-(b.submittedAt?.seconds||0)).forEach(p=>list.appendChild(card(p,p.id)))},error=>{console.error(error);status.textContent='The approval queue could not be loaded.'})});
+    onAuthStateChanged(auth,user=>{currentUser=user;if(!isAdminAccount(user)){status.textContent='Administrator access is required.';list.replaceChildren();return}onSnapshot(collection(db,'profiles'),snap=>{const pending=snap.docs.filter(d=>d.data().approvalStatus==='pending').map(d=>({id:d.id,...d.data()}));list.replaceChildren();if(!pending.length){status.hidden=false;status.textContent='No profiles are waiting for approval.';return}status.hidden=true;pending.sort((a,b)=>(a.submittedAt?.seconds||0)-(b.submittedAt?.seconds||0)).forEach(p=>list.appendChild(card(p,p.id)))},error=>{console.error(error);status.textContent='The approval queue could not be loaded.'})});
   </script>
 </body>
 </html>
