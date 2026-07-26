@@ -14,6 +14,10 @@
     .claim-note{color:#aaa;line-height:1.55}
     .claim-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
     .claim-actions .auth-button{width:auto!important}
+    .manual-claim-form{display:grid;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #333}
+    .manual-claim-form label{display:grid;gap:6px;font-weight:800;color:#eee}
+    .manual-claim-form input,.manual-claim-form textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #444;background:#0b0b0b;color:#fff;font:inherit}
+    .manual-claim-form textarea{min-height:100px;resize:vertical}
   </style>
 </head>
 <body class="hamburger-active auth-page">
@@ -35,11 +39,27 @@
           <a class="auth-button auth-button-secondary" href="javascript:history.back()">Cancel</a>
         </div>
       </div>
+
+      <form id="manual-claim-form" class="manual-claim-form" hidden>
+        <p class="claim-note">This older profile does not have a usable claim email on file. Submit a quick ownership request and BANDtroductions will verify it before transferring the profile. Nothing will be overwritten unless the request is approved.</p>
+        <label>
+          Your connection to this profile
+          <input id="claim-role" type="text" maxlength="120" placeholder="Example: band member, manager, venue owner" required>
+        </label>
+        <label>
+          How can we verify you?
+          <textarea id="claim-proof" maxlength="1000" placeholder="Example: official social page, website, booking contact, or another detail only the owner would know" required></textarea>
+        </label>
+        <div class="claim-actions">
+          <button id="manual-claim-button" class="auth-button" type="submit">Submit Claim for Review</button>
+          <a class="auth-button auth-button-secondary" href="javascript:history.back()">Cancel</a>
+        </div>
+      </form>
     </section>
   </main>
 
   <div id="global-footer"></div>
   <script src="global.js?v=16"></script>
-  <script type="module" src="claim-profile.js?v=11"></script>
+  <script type="module" src="claim-profile.js?v=12"></script>
 </body>
 </html>
