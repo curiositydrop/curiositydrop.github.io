@@ -14,24 +14,7 @@ const venueType = params.get('venueType') || '';
 const linkEmail = normalizeEmail(params.get('email') || '');
 
 const claimEmailOverrides = {
-  'burning-time.html': 'bandtroductions@gmail.com'
-};
-
-const legacyProfileSeeds = {
-  'burning-time.html': {
-    accountType: 'band',
-    displayName: 'Burning Time',
-    location: 'Saco, ME',
-    genre: 'Rock / Metal',
-    imageUrl: 'IMG_5121.jpeg',
-    bannerImageUrl: 'IMG_0389.jpeg',
-    bio: "Burning Time has been playing together since 2014 with a sound described as heavy meets melodic rock. They have performed at local clubs and festivals while building a loyal fan base and keeping the spirit of rock alive.",
-    members: 'Kris Hype – Vocals/Guitar; Dan Aldrich – Drums; Doug Waycott – Bass; Carl Watson – Guitar; Jarred Desrochers – Guitar',
-    bookingEmail: 'bandtroductions@gmail.com',
-    website: 'https://www.burningtimemusic.com',
-    mediaLink: 'https://www.youtube.com/watch?v=RyAK3AAX49g',
-    yearFormed: '2014'
-  }
+  'burning-time.html': 'kris@krishype.com'
 };
 
 const status = document.getElementById('claim-status');
@@ -42,6 +25,8 @@ const returnTo = `${location.pathname.split('/').pop()}${location.search}`;
 
 let currentUser = null;
 let requiredEmail = '';
+let legacySeed = {};
+let preparationPromise = null;
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
@@ -51,9 +36,176 @@ function pageKey() {
   return legacyPage.split('/').pop().toLowerCase();
 }
 
+function absoluteUrl(value, baseUrl) {
+  if (!value) return '';
+  try { return new URL(value, baseUrl || location.href).href; } catch { return value; }
+}
+
+function firstText(root, selectors) {
+  for (const selector of selectors) {
+    const element = root.querySelector(selector);
+    const text = element?.textContent?.replace(/\s+/g, ' ').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
+function firstAttribute(root, selectors, attribute, baseUrl) {
+  for (const selector of selectors) {
+    const element = root.querySelector(selector);
+    const value = element?.getAttribute(attribute);
+    if (value) return absoluteUrl(value, baseUrl);
+  }
+  return '';
+}
+
+function cleanLabel(text = '') {
+  return String(text)
+    .replace(/^(genre|style|location|town|instrument|instruments|type|venue type|capacity|booking|email)\s*:\s*/i, '')
+    .trim();
+}
+
+function findLabeledText(root, labels) {
+  const candidates = [...root.querySelectorAll('p,li,div,span')];
+  for (const element of candidates) {
+    const text = element.textContent?.replace(/\s+/g, ' ').trim() || '';
+    if (labels.some(label => text.toLowerCase().startsWith(label.toLowerCase()))) return cleanLabel(text);
+  }
+  return '';
+}
+
+function youtubeWatchUrl(src = '') {
+  try {
+    const url = new URL(src, location.href);
+    if (url.hostname.includes('youtube.com') && url.pathname.includes('/embed/')) {
+      const id = url.pathname.split('/embed/')[1]?.split('/')[0];
+      return id ? `https://www.youtube.com/watch?v=${id}` : src;
+    }
+    if (url.hostname.includes('youtu.be')) return src;
+    if (url.hostname.includes('youtube.com')) return src;
+  } catch {}
+  return src;
+}
+
+function collectMedia(documentRoot, baseUrl) {
+  const frames = [...documentRoot.querySelectorAll('iframe[src]')];
+  const videos = frames
+    .map(frame => youtubeWatchUrl(absoluteUrl(frame.getAttribute('src'), baseUrl)))
+    .filter(url => /youtube\.com|youtu\.be|vimeo\.com/i.test(url));
+  return [...new Set(videos)];
+}
+
+function collectLinks(documentRoot, baseUrl) {
+  const links = {};
+  [...documentRoot.querySelectorAll('a[href]')].forEach(anchor => {
+    const href = absoluteUrl(anchor.getAttribute('href'), baseUrl);
+    const label = anchor.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() || '';
+    if (!href || href.startsWith('mailto:')) return;
+    if (!links.website && (/website|official site/.test(label))) links.website = href;
+    if (!links.spotify && /spotify/.test(label)) links.spotify = href;
+    if (!links.youtube && /youtube/.test(label)) links.youtube = href;
+    if (!links.instagram && /instagram/.test(label)) links.instagram = href;
+    if (!links.facebook && /facebook/.test(label)) links.facebook = href;
+  });
+  return links;
+}
+
+function collectEmail(documentRoot) {
+  const mailLinks = [...documentRoot.querySelectorAll('a[href^="mailto:"]')];
+  const preferred = mailLinks.find(link => /booking|contact|email/i.test(link.textContent || '')) || mailLinks[0];
+  return normalizeEmail(preferred?.getAttribute('href')?.replace(/^mailto:/i, '').split('?')[0] || '');
+}
+
+function extractLegacySeed(html, baseUrl) {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const media = collectMedia(parsed, baseUrl);
+  const links = collectLinks(parsed, baseUrl);
+  const listMembers = [...parsed.querySelectorAll('#band-members-list li,.band-members li,.members li')]
+    .map(item => item.textContent?.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('; ');
+
+  const displayName = firstText(parsed, [
+    '#band-name','#musician-name','#venue-name','.profile-action-card h1','.profile-header h1','main h1','h1'
+  ]) || profileName;
+  const bio = firstText(parsed, [
+    '#band-bio','#musician-bio','#venue-bio','.profile-bio','.bio','.about-copy','.profile-details-card p'
+  ]);
+  const image = firstAttribute(parsed, [
+    '#band-avatar-image','#musician-avatar-image','#venue-avatar-image','.profile-avatar-card img','.profile-avatar img','.profile-image img','main img'
+  ], 'src', baseUrl) || imageUrl;
+  const banner = firstAttribute(parsed, [
+    '#band-banner-image','#musician-banner-image','#venue-banner-image','.profile-banner-img','.profile-banner img','.banner img'
+  ], 'src', baseUrl);
+  const pageLocation = cleanLabel(firstText(parsed, [
+    '#band-location-status','#musician-location-status','#venue-location-status','.profile-location','.location'
+  ]) || findLabeledText(parsed, ['Location:', 'Town:', 'Based in'])) || locationText;
+  const pageGenre = cleanLabel(findLabeledText(parsed, ['Genre:', 'Style:'])) || genre;
+  const pageInstruments = cleanLabel(findLabeledText(parsed, ['Instrument:', 'Instruments:', 'Role:'])) || instruments;
+  const pageVenueType = cleanLabel(findLabeledText(parsed, ['Venue type:', 'Type:'])) || venueType;
+  const yearFormed = cleanLabel(findLabeledText(parsed, ['Year formed:', 'Formed:']));
+  const capacity = cleanLabel(findLabeledText(parsed, ['Capacity:']));
+  const bookingEmail = collectEmail(parsed);
+
+  const seed = {
+    accountType,
+    displayName,
+    location: pageLocation,
+    genre: pageGenre,
+    instruments: pageInstruments,
+    venueType: pageVenueType,
+    imageUrl: image,
+    bannerImageUrl: banner,
+    bio,
+    members: listMembers,
+    yearFormed,
+    capacity,
+    bookingEmail,
+    website: links.website || '',
+    spotify: links.spotify || '',
+    youtube: links.youtube || '',
+    instagram: links.instagram || '',
+    facebook: links.facebook || '',
+    mediaLink: media[0] || '',
+    featuredTitle: firstText(parsed, ['#featured-release-title','.profile-featured-video h2','.featured-video h2']) || '',
+    additionalMedia: media.slice(1).map((url, index) => ({ title: `More Video ${index + 1}`, url })),
+    mediaItems: media.slice(1).map((url, index) => ({ type: 'video', url, caption: `More Video ${index + 1}` }))
+  };
+
+  Object.keys(seed).forEach(key => {
+    if (seed[key] === '' || (Array.isArray(seed[key]) && !seed[key].length)) delete seed[key];
+  });
+
+  return { seed, email: bookingEmail };
+}
+
+async function prepareLegacyProfile() {
+  if (preparationPromise) return preparationPromise;
+  preparationPromise = (async () => {
+    const override = normalizeEmail(claimEmailOverrides[pageKey()]);
+    requiredEmail = override || linkEmail;
+    legacySeed = {};
+
+    try {
+      const pageUrl = absoluteUrl(legacyPage, location.href);
+      const response = await fetch(pageUrl, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Legacy page returned ${response.status}`);
+      const html = await response.text();
+      const extracted = extractLegacySeed(html, pageUrl);
+      legacySeed = extracted.seed;
+      if (!requiredEmail) requiredEmail = extracted.email;
+    } catch (error) {
+      console.error('Could not read legacy profile page:', error);
+      legacySeed = {};
+    }
+
+    return { requiredEmail, legacySeed };
+  })();
+  return preparationPromise;
+}
+
 function buildSummary() {
   summary.replaceChildren();
-
   if (imageUrl) {
     const image = document.createElement('img');
     image.className = 'claim-image';
@@ -61,23 +213,14 @@ function buildSummary() {
     image.alt = `${profileName} profile image`;
     summary.appendChild(image);
   }
-
   const copy = document.createElement('div');
   const title = document.createElement('h2');
   title.textContent = profileName;
-
   const meta = document.createElement('p');
   meta.className = 'approval-meta';
-  meta.textContent = [accountType, locationText, genre || instruments || venueType]
-    .filter(Boolean)
-    .join(' • ');
-
+  meta.textContent = [accountType, locationText, genre || instruments || venueType].filter(Boolean).join(' • ');
   copy.append(title, meta);
   summary.appendChild(copy);
-}
-
-function getRequiredEmail() {
-  return normalizeEmail(claimEmailOverrides[pageKey()] || linkEmail);
 }
 
 function showSignedOutPrompt() {
@@ -87,7 +230,7 @@ function showSignedOutPrompt() {
 }
 
 function buildProfileData() {
-  const seed = legacyProfileSeeds[pageKey()] || {};
+  const seed = legacySeed || {};
   return {
     ...seed,
     accountType: seed.accountType || accountType,
@@ -113,55 +256,46 @@ function buildProfileData() {
 
 buildSummary();
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   currentUser = user;
   controls.hidden = true;
-
   if (!legacyPage || !profileName || !['band', 'musician', 'venue'].includes(accountType)) {
     status.textContent = 'This claim link is missing required profile information.';
     return;
   }
 
-  requiredEmail = getRequiredEmail();
+  status.textContent = 'Checking the existing profile…';
+  await prepareLegacyProfile();
 
   if (!requiredEmail) {
     status.textContent = 'This legacy profile does not have a claim email assigned yet. Contact BANDtroductions so it can be prepared.';
     return;
   }
-
   if (!user) {
     showSignedOutPrompt();
     return;
   }
-
   const signedInEmail = normalizeEmail(user.email);
   if (signedInEmail !== requiredEmail) {
     status.innerHTML = `You are logged in as <strong>${user.email || 'an account without an email'}</strong>, but that email does not match the email associated with <strong>${profileName}</strong>. Log out and use the correct account.`;
     return;
   }
-
   status.innerHTML = `<strong>We found you!</strong><br>Your account matches the existing <strong>${profileName}</strong> profile. Click <strong>Finalize Claim</strong> to connect it.`;
   controls.hidden = false;
 });
 
 claimButton.addEventListener('click', async () => {
   if (!currentUser) return;
-
-  requiredEmail = getRequiredEmail();
+  await prepareLegacyProfile();
   if (!requiredEmail || normalizeEmail(currentUser.email) !== requiredEmail) {
     status.textContent = 'Your account email does not match the email associated with this profile.';
     return;
   }
-
   claimButton.disabled = true;
   status.textContent = 'Connecting the existing profile to your account…';
-
   try {
     const profileData = buildProfileData();
-
-    // Replace the account profile document so old test data cannot blend into the legacy profile.
     await setDoc(doc(db, 'profiles', currentUser.uid), profileData);
-
     await setDoc(doc(db, 'users', currentUser.uid), {
       accountType: profileData.accountType,
       displayName: profileData.displayName,
@@ -170,12 +304,9 @@ claimButton.addEventListener('click', async () => {
       claimedLegacyProfile: true,
       updatedAt: serverTimestamp()
     }, { merge: true });
-
     controls.hidden = true;
     status.innerHTML = `<strong>Profile claimed!</strong><br>${profileData.displayName} is now connected to your account. Loading your profile…`;
-    setTimeout(() => {
-      window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`;
-    }, 800);
+    setTimeout(() => { window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`; }, 800);
   } catch (error) {
     console.error('Profile claim failed:', error);
     const code = error?.code ? ` (${error.code})` : '';
