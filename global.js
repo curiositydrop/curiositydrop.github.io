@@ -123,7 +123,7 @@ if (window.location.pathname.endsWith('/community.html')) {
   }).catch((error) => console.error('Error loading post owner controls:', error));
 
   import('./admin-comment-controls.js?v=3').catch((error) => console.error('Error loading comment controls:', error));
-  import('./admin-post-controls.js?v=1').catch((error) => console.error('Error loading admin post controls:', error));
+  import('./admin-post-controls.js?v=2').catch((error) => console.error('Error loading admin post controls:', error));
   import('./community-guest-mode.js?v=5').catch((error) => console.error('Error loading community guest mode:', error));
   import('./community-media.js?v=3')
     .then(() => import('./community-post-types.js?v=1'))
@@ -162,6 +162,6 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
   import('./home-community-card.js?v=1').catch((error) => console.error('Error loading home community card:', error));
 }
 
-import('./admin-access.js?v=1').catch((error) => console.error('Error loading account role rules:', error));
+import('./admin-access.js?v=2').catch((error) => console.error('Error loading account role rules:', error));
 import('./admin-navigation.js?v=2').catch((error) => console.error('Error loading admin navigation:', error));
 import('./social-interactions.js?v=1').catch((error) => console.error('Error loading social interactions:', error));
