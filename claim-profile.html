@@ -15,9 +15,12 @@
     .claim-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
     .claim-actions .auth-button{width:auto!important}
     .manual-claim-form{display:grid;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #333}
+    .manual-claim-form[hidden],#claim-controls[hidden]{display:none!important}
     .manual-claim-form label{display:grid;gap:6px;font-weight:800;color:#eee}
     .manual-claim-form input,.manual-claim-form textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #444;background:#0b0b0b;color:#fff;font:inherit}
     .manual-claim-form textarea{min-height:100px;resize:vertical}
+    #claim-status a,#claim-status a:visited{color:#0ccfbd!important;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+    #claim-status a:hover,#claim-status a:focus{color:#7ff7ec!important}
   </style>
 </head>
 <body class="hamburger-active auth-page">
@@ -60,6 +63,6 @@
 
   <div id="global-footer"></div>
   <script src="global.js?v=16"></script>
-  <script type="module" src="claim-profile.js?v=12"></script>
+  <script type="module" src="claim-profile.js?v=13"></script>
 </body>
 </html>
