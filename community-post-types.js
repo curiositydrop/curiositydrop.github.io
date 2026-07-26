@@ -2,6 +2,12 @@ import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
+// Community pages may have an older cached copy of global.js. Load the current
+// role and moderation modules directly from this already-required module.
+import('./admin-access.js?v=5')
+  .then(() => import('./admin-post-controls.js?v=5'))
+  .catch((error) => console.error('Could not load community admin controls:', error));
+
 const category=document.getElementById('post-category');
 const content=document.getElementById('post-content');
 const link=document.getElementById('post-link');
