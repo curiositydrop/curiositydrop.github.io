@@ -11,10 +11,7 @@
     .claim-card{border:1px solid #3b3b3b;border-radius:18px;background:linear-gradient(145deg,#191919,#101010);padding:18px}
     .claim-summary{display:flex;gap:14px;align-items:center;padding:12px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin:14px 0}
     .claim-image{width:78px;height:78px;border-radius:14px;border:1px solid #0ccfbd;object-fit:cover;background:#080808}
-    .claim-certification{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid #333;border-radius:14px;background:#0c0c0c;margin-top:14px;line-height:1.5}
-    .claim-certification input{width:22px;height:22px;flex:0 0 auto;margin-top:2px;accent-color:#0ccfbd}
-    .claim-certification span{color:#ddd}
-    .claim-note{color:#aaa;line-height:1.5}
+    .claim-note{color:#aaa;line-height:1.55}
     .claim-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
     .claim-actions .auth-button{width:auto!important}
   </style>
@@ -26,21 +23,15 @@
     <section class="claim-card">
       <p class="profile-meta">PROFILE OWNERSHIP</p>
       <h1>Claim This Profile</h1>
-      <p class="auth-subtitle">Connect this existing profile to your BANDtroductions account so you can manage and update it.</p>
+      <p class="auth-subtitle">Create or log in using the same email address already associated with the existing profile.</p>
 
       <div id="claim-summary" class="claim-summary"></div>
-      <p id="claim-status" class="auth-message">Loading profile claim…</p>
+      <p id="claim-status" class="auth-message">Checking your account…</p>
 
       <div id="claim-controls" hidden>
-        <label class="claim-certification">
-          <input id="claim-certify" type="checkbox">
-          <span id="claim-certify-copy"></span>
-        </label>
-
-        <p class="claim-note">Falsely claiming another person’s, band’s, or venue’s profile may result in account removal and the profile being returned to its rightful owner.</p>
-
+        <p class="claim-note">Your account email matches this legacy profile. Finalizing will connect the existing profile to your account and make it editable.</p>
         <div class="claim-actions">
-          <button id="claim-button" class="auth-button" type="button" disabled>Claim Profile</button>
+          <button id="claim-button" class="auth-button" type="button">Finalize Claim</button>
           <a class="auth-button auth-button-secondary" href="javascript:history.back()">Cancel</a>
         </div>
       </div>
@@ -49,6 +40,6 @@
 
   <div id="global-footer"></div>
   <script src="global.js?v=16"></script>
-  <script type="module" src="claim-profile.js?v=3"></script>
+  <script type="module" src="claim-profile.js?v=10"></script>
 </body>
 </html>
