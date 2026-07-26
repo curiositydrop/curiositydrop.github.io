@@ -1,8 +1,8 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { isAdminAccount } from './admin-access.js';
 
-const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
 const profileId=new URLSearchParams(location.search).get('id');
 
 const style=document.createElement('style');
@@ -12,13 +12,6 @@ style.textContent=`
   .admin-profile-actions .auth-button{width:auto!important}.admin-danger{border-color:#8a3d3d!important;color:#ffc0c0!important;background:#180d0d!important}
 `;
 document.head.appendChild(style);
-
-async function checkAdmin(user){
-  if(!user)return false;
-  if(String(user.email||'').toLowerCase()===ADMIN_EMAIL)return true;
-  try{return (await getDoc(doc(db,'admins',user.uid))).exists();}
-  catch(error){console.error('Could not check profile-admin status:',error);return false;}
-}
 
 function waitForContent(){
   return new Promise(resolve=>{
@@ -31,7 +24,7 @@ function waitForContent(){
 }
 
 onAuthStateChanged(auth,async user=>{
-  if(!user||!profileId||!(await checkAdmin(user)))return;
+  if(!user||!profileId||!isAdminAccount(user))return;
   const content=await waitForContent();
   if(!content||document.getElementById('admin-profile-panel'))return;
   const snap=await getDoc(doc(db,'profiles',profileId));
@@ -40,7 +33,7 @@ onAuthStateChanged(auth,async user=>{
   const panel=document.createElement('section');
   panel.id='admin-profile-panel';panel.className='profile-card admin-profile-panel';
   const heading=document.createElement('h2');heading.textContent='Admin Controls';
-  const note=document.createElement('p');note.className='profile-side-note';note.textContent='These controls are visible only to BANDtroductions administrators.';
+  const note=document.createElement('p');note.className='profile-side-note';note.textContent='These controls are visible only to the BANDtroductions administrator.';
   const actions=document.createElement('div');actions.className='admin-profile-actions';
   const edit=document.createElement('a');edit.className='auth-button';edit.href=`profile-setup.html?adminProfile=${encodeURIComponent(profileId)}`;edit.textContent='Admin Edit';
   const media=document.createElement('a');media.className='auth-button auth-button-secondary';media.href=`media.html?owner=${encodeURIComponent(profileId)}`;media.textContent='Manage Media';
