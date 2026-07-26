@@ -37,25 +37,37 @@ function claimCard(claim,id){
     if(!confirm(`Transfer ${claim.profileName||'this profile'} to ${claim.claimantEmail||'this account'}?`))return;
     approve.disabled=true;
     try{
+      const seed=(claim.legacySeed&&typeof claim.legacySeed==='object')?claim.legacySeed:{};
       const profileData={
+        ...seed,
         ownerId:claim.claimantId,
-        accountType:claim.accountType,
-        displayName:claim.profileName||'',
-        imageUrl:claim.imageUrl||'',
-        location:claim.location||'',
-        genre:claim.genre||'',
-        instruments:claim.instruments||'',
-        venueType:claim.venueType||'',
+        accountType:seed.accountType||claim.accountType,
+        displayName:seed.displayName||claim.profileName||'',
+        imageUrl:seed.imageUrl||claim.imageUrl||'',
+        location:seed.location||claim.location||'',
+        genre:seed.genre||claim.genre||'',
+        instruments:seed.instruments||claim.instruments||'',
+        venueType:seed.venueType||claim.venueType||'',
         legacyPage:claim.legacyPage||'',
         claimedLegacyProfile:true,
+        claimMethod:'admin-verified',
+        claimedByEmail:claim.claimantEmail||'',
+        claimedAt:serverTimestamp(),
         approvalStatus:'approved',
         published:true,
         approvedAt:serverTimestamp(),
         approvedBy:currentUser.uid,
         updatedAt:serverTimestamp()
       };
-      await setDoc(doc(db,'profiles',claim.claimantId),profileData,{merge:true});
-      await setDoc(doc(db,'users',claim.claimantId),{accountType:claim.accountType,displayName:claim.profileName||'',profileComplete:true,updatedAt:serverTimestamp()},{merge:true});
+      await setDoc(doc(db,'profiles',claim.claimantId),profileData);
+      await setDoc(doc(db,'users',claim.claimantId),{
+        accountType:profileData.accountType,
+        displayName:profileData.displayName,
+        activeProfileId:claim.claimantId,
+        profileComplete:true,
+        claimedLegacyProfile:true,
+        updatedAt:serverTimestamp()
+      },{merge:true});
       await updateDoc(doc(db,'profileClaims',id),{status:'approved',approvedAt:serverTimestamp(),approvedBy:currentUser.uid,updatedAt:serverTimestamp()});
     }catch(error){console.error(error);alert('The profile claim could not be approved.');approve.disabled=false}
   });
