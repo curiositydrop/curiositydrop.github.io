@@ -18,7 +18,7 @@
       <button id="login-button" class="auth-button" type="submit">Log In</button>
       <p id="login-message" class="auth-message" role="status"></p>
     </form>
-    <p class="auth-links">Need an account? <a href="signup.html">Create one</a></p>
+    <p class="auth-links">Need an account? <a id="signup-link" href="signup.html">Create one</a></p>
     <p class="auth-links"><a href="index.html">Continue browsing as a guest</a></p>
   </main>
   <div id="global-footer"></div>
@@ -26,6 +26,15 @@
   <script type="module">
     import { auth } from './firebase-dev.js';
     import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+
+    const params = new URLSearchParams(location.search);
+    const requestedReturn = params.get('returnTo') || '';
+    const safeReturn = requestedReturn && !requestedReturn.startsWith('//') && !requestedReturn.includes('://')
+      ? requestedReturn
+      : 'community.html';
+
+    const signupLink = document.getElementById('signup-link');
+    if (requestedReturn) signupLink.href = `signup.html?returnTo=${encodeURIComponent(safeReturn)}`;
 
     const form = document.getElementById('login-form');
     const button = document.getElementById('login-button');
@@ -41,7 +50,7 @@
           document.getElementById('email').value.trim(),
           document.getElementById('password').value
         );
-        window.location.href = 'community.html';
+        window.location.href = safeReturn;
       } catch (error) {
         console.error(error);
         message.textContent = 'Email or password was not recognized.';
