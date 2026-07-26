@@ -1,4 +1,4 @@
-fetch('global.html?v=6')
+fetch('global.html?v=7')
   .then(response => response.text())
   .then(async data => {
     const temp = document.createElement('div');
@@ -116,14 +116,14 @@ function removeLegacyComposerAvatar() {
 }
 
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=9').then(() => {
+  import('./post-owner-controls.js?v=10').then(() => {
     removeLegacyComposerAvatar();
     const composer = document.getElementById('post-composer');
     if (composer) new MutationObserver(removeLegacyComposerAvatar).observe(composer, { childList: true, subtree: true });
   }).catch((error) => console.error('Error loading post owner controls:', error));
 
-  import('./admin-comment-controls.js?v=3').catch((error) => console.error('Error loading comment controls:', error));
-  import('./admin-post-controls.js?v=2').catch((error) => console.error('Error loading admin post controls:', error));
+  import('./admin-comment-controls.js?v=4').catch((error) => console.error('Error loading comment controls:', error));
+  import('./admin-post-controls.js?v=3').catch((error) => console.error('Error loading admin post controls:', error));
   import('./community-guest-mode.js?v=5').catch((error) => console.error('Error loading community guest mode:', error));
   import('./community-media.js?v=3')
     .then(() => import('./community-post-types.js?v=1'))
@@ -134,7 +134,7 @@ if (window.location.pathname.endsWith('/community.html')) {
 if (window.location.pathname.endsWith('/profile.html')) {
   import('./profile-owner-guard.js?v=2').catch((error) => console.error('Error loading profile ownership guard:', error));
   import('./profile-media-section.js?v=1').catch((error) => console.error('Error loading profile media section:', error));
-  import('./admin-profile-controls.js?v=1').catch((error) => console.error('Error loading profile admin controls:', error));
+  import('./admin-profile-controls.js?v=2').catch((error) => console.error('Error loading profile admin controls:', error));
 }
 
 if (window.location.pathname.endsWith('/profile-setup.html')) {
@@ -143,7 +143,7 @@ if (window.location.pathname.endsWith('/profile-setup.html')) {
 }
 
 if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchParams(window.location.search).has('adminProfile')) {
-  import('./profile-admin-edit.js?v=1').catch((error) => console.error('Error loading admin profile editor:', error));
+  import('./profile-admin-edit.js?v=2').catch((error) => console.error('Error loading admin profile editor:', error));
 }
 
 if (window.location.pathname.endsWith('/bands.html')) import('./bands-live-directory.js?v=1').catch((error) => console.error('Error loading live Bands directory:', error));
@@ -154,7 +154,7 @@ if (window.location.pathname.endsWith('/bands.html') || window.location.pathname
   import('./legacy-profile-claim-links.js?v=1').catch((error) => console.error('Error loading legacy profile claim links:', error));
 }
 
-if (window.location.pathname.endsWith('/admin.html')) import('./admin-claims.js?v=2').catch((error) => console.error('Error loading ownership claims queue:', error));
+if (window.location.pathname.endsWith('/admin.html')) import('./admin-claims.js?v=3').catch((error) => console.error('Error loading ownership claims queue:', error));
 
 if (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html')) {
   import('./home-social-hero.js?v=2').catch((error) => console.error('Error loading home social hero:', error));
@@ -162,6 +162,7 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
   import('./home-community-card.js?v=1').catch((error) => console.error('Error loading home community card:', error));
 }
 
-import('./admin-access.js?v=2').catch((error) => console.error('Error loading account role rules:', error));
-import('./admin-navigation.js?v=2').catch((error) => console.error('Error loading admin navigation:', error));
+import('./admin-access.js?v=3').catch((error) => console.error('Error loading account role rules:', error));
+import('./account-role-ui-fix.js?v=1').catch((error) => console.error('Error loading resilient account controls:', error));
+import('./admin-navigation.js?v=3').catch((error) => console.error('Error loading admin navigation:', error));
 import('./social-interactions.js?v=1').catch((error) => console.error('Error loading social interactions:', error));
