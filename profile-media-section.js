@@ -1,5 +1,4 @@
-import { auth, db } from './firebase-dev.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+import { db } from './firebase-dev.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const profileId = new URLSearchParams(location.search).get('id');
@@ -28,16 +27,16 @@ if (profileId) {
   section.className = 'profile-card';
   section.hidden = true;
   section.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <h2 style="margin:0">Images</h2>
-      <a id="manage-profile-images" class="auth-button auth-button-secondary" href="profile-setup.html">Manage Images</a>
-    </div>
+    <h2 style="margin:0">Images</h2>
     <div id="profile-image-grid" class="profile-image-grid"></div>
     <div id="profile-image-more" class="profile-image-more" hidden>
       <button id="toggle-profile-images" class="auth-button auth-button-secondary" type="button">Show More Images</button>
     </div>
   `;
-  content?.appendChild(section);
+
+  const moreVideos = document.getElementById('more-videos-section');
+  if (moreVideos) moreVideos.insertAdjacentElement('afterend', section);
+  else content?.appendChild(section);
 
   const lightbox = document.createElement('div');
   lightbox.className = 'profile-lightbox';
@@ -48,12 +47,9 @@ if (profileId) {
   const grid = section.querySelector('#profile-image-grid');
   const moreWrap = section.querySelector('#profile-image-more');
   const toggleButton = section.querySelector('#toggle-profile-images');
-  const manage = section.querySelector('#manage-profile-images');
   const lightboxImage = lightbox.querySelector('img');
   const lightboxCaption = lightbox.querySelector('.profile-lightbox-caption');
   let expanded = false;
-
-  onAuthStateChanged(auth, user => { manage.hidden = user?.uid !== profileId; });
 
   function openImage(item) {
     lightboxImage.src = item.url;
