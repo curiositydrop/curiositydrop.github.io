@@ -33,19 +33,23 @@ const formatDate = (timestamp) => {
 };
 
 function findPost(article) {
-  const author = article.querySelector('.community-author')?.textContent?.trim() || '';
-  const body = article.querySelector('.community-post-body')?.textContent || '';
+  const directId = article.dataset.postId || article.getAttribute('data-post-id');
+  if (directId) return posts.find((post) => post.id === directId);
+
+  const authorLink = article.querySelector('.community-author');
+  const authorId = authorLink ? new URL(authorLink.href, window.location.href).searchParams.get('id') : '';
   const meta = article.querySelector('.community-post-meta')?.textContent?.trim() || '';
+  const authorName = authorLink?.textContent?.trim() || '';
 
   return posts.find((post) => {
-    const expectedMeta = `${post.accountType || 'member'} • ${post.category || 'general'} • ${formatDate(post.createdAt)}`;
-    return post.authorName === author && (post.content || '') === body && expectedMeta === meta;
+    const sameAuthor = authorId ? post.authorId === authorId : post.authorName === authorName;
+    return sameAuthor && meta.includes(formatDate(post.createdAt));
   });
 }
 
 function removeNonAdminDeleteButtons() {
   if (adminMode) return;
-  document.querySelectorAll('.post-owner-button.delete, .admin-post-delete-button').forEach((button) => button.remove());
+  document.querySelectorAll('.admin-post-delete-button').forEach((button) => button.remove());
 }
 
 function installAdminDeleteButtons() {
@@ -55,6 +59,7 @@ function installAdminDeleteButtons() {
   document.querySelectorAll('.community-post').forEach((article) => {
     const post = findPost(article);
     if (!post) return;
+    article.dataset.postId = post.id;
 
     const header = article.querySelector('.community-post-header');
     if (!header) return;
@@ -72,7 +77,7 @@ function installAdminDeleteButtons() {
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'admin-post-delete-button';
-    remove.textContent = 'Admin Delete';
+    remove.textContent = 'Delete Post';
     remove.addEventListener('click', async () => {
       if (!window.confirm('Delete this post permanently? This cannot be undone.')) return;
       remove.disabled = true;
@@ -85,7 +90,7 @@ function installAdminDeleteButtons() {
           ? 'The delete was blocked by Firestore permissions.'
           : 'The post could not be deleted.');
         remove.disabled = false;
-        remove.textContent = 'Admin Delete';
+        remove.textContent = 'Delete Post';
       }
     });
     controls.appendChild(remove);
