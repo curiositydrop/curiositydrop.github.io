@@ -2,8 +2,8 @@ import { auth, db, storage } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js';
+import { isAdminAccount } from './admin-access.js';
 
-const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
 const targetId=new URLSearchParams(location.search).get('adminProfile');
 if(!targetId)throw new Error('Admin profile editor loaded without a target profile.');
 
@@ -20,13 +20,6 @@ let targetProfile=null;
 const value=id=>document.getElementById(id)?.value.trim()||'';
 const normalizeUrl=raw=>{const url=(raw||'').trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`;};
 const safeName=name=>String(name||'image').replace(/[^a-z0-9._-]+/gi,'-').replace(/-+/g,'-');
-
-async function isAdmin(user){
-  if(!user)return false;
-  if(String(user.email||'').toLowerCase()===ADMIN_EMAIL)return true;
-  try{return (await getDoc(doc(db,'admins',user.uid))).exists();}
-  catch(error){console.error('Could not verify administrator:',error);return false;}
-}
 
 function showFields(type){
   document.querySelectorAll('.account-fields').forEach(section=>section.hidden=true);
@@ -69,7 +62,7 @@ async function uploadImage(file,kind){
 onAuthStateChanged(auth,async user=>{
   adminUser=user;
   if(!user){location.href='login.html';return;}
-  if(!(await isAdmin(user))){status.textContent='Administrator access is required.';form.hidden=true;return;}
+  if(!isAdminAccount(user)){status.textContent='Administrator access is required.';form.hidden=true;return;}
   try{
     const snapshot=await getDoc(doc(db,'profiles',targetId));
     if(!snapshot.exists()){status.textContent='That profile no longer exists.';form.hidden=true;return;}
@@ -89,7 +82,7 @@ onAuthStateChanged(auth,async user=>{
 form.addEventListener('submit',async event=>{
   event.preventDefault();
   event.stopImmediatePropagation();
-  if(!adminUser||!targetProfile)return;
+  if(!adminUser||!targetProfile||!isAdminAccount(adminUser))return;
   saveButton.disabled=true;status.textContent='Saving admin changes…';
   try{
     let bannerImageUrl=value('banner-image-url');
