@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { addDoc, collection, doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const params = new URLSearchParams(location.search);
 const legacyPage = params.get('page') || '';
@@ -21,12 +21,17 @@ const status = document.getElementById('claim-status');
 const summary = document.getElementById('claim-summary');
 const controls = document.getElementById('claim-controls');
 const claimButton = document.getElementById('claim-button');
+const manualForm = document.getElementById('manual-claim-form');
+const manualButton = document.getElementById('manual-claim-button');
+const roleInput = document.getElementById('claim-role');
+const proofInput = document.getElementById('claim-proof');
 const returnTo = `${location.pathname.split('/').pop()}${location.search}`;
 
 let currentUser = null;
 let requiredEmail = '';
 let legacySeed = {};
 let preparationPromise = null;
+let legacyPageLoaded = false;
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
@@ -61,7 +66,8 @@ function firstAttribute(root, selectors, attribute, baseUrl) {
 
 function cleanLabel(text = '') {
   return String(text)
-    .replace(/^(genre|style|location|town|instrument|instruments|type|venue type|capacity|booking|email)\s*:\s*/i, '')
+    .replace(/^(genre|style|location|town|instrument|instruments|role|type|venue type|capacity|booking|email)\s*:\s*/i, '')
+    .replace(/^📍\s*(based in)?\s*/i, '')
     .trim();
 }
 
@@ -89,9 +95,12 @@ function youtubeWatchUrl(src = '') {
 
 function collectMedia(documentRoot, baseUrl) {
   const frames = [...documentRoot.querySelectorAll('iframe[src]')];
-  const videos = frames
-    .map(frame => youtubeWatchUrl(absoluteUrl(frame.getAttribute('src'), baseUrl)))
-    .filter(url => /youtube\.com|youtu\.be|vimeo\.com/i.test(url));
+  const dataVideos = [...documentRoot.querySelectorAll('[data-video]')]
+    .map(element => absoluteUrl(element.getAttribute('data-video'), baseUrl));
+  const videos = [
+    ...frames.map(frame => youtubeWatchUrl(absoluteUrl(frame.getAttribute('src'), baseUrl))),
+    ...dataVideos.map(youtubeWatchUrl)
+  ].filter(url => /youtube\.com|youtu\.be|vimeo\.com/i.test(url));
   return [...new Set(videos)];
 }
 
@@ -103,7 +112,7 @@ function collectLinks(documentRoot, baseUrl) {
     if (!href || href.startsWith('mailto:')) return;
     if (!links.website && (/website|official site/.test(label))) links.website = href;
     if (!links.spotify && /spotify/.test(label)) links.spotify = href;
-    if (!links.youtube && /youtube/.test(label)) links.youtube = href;
+    if (!links.youtube && /youtube|watch/.test(label)) links.youtube = href;
     if (!links.instagram && /instagram/.test(label)) links.instagram = href;
     if (!links.facebook && /facebook/.test(label)) links.facebook = href;
   });
@@ -116,29 +125,45 @@ function collectEmail(documentRoot) {
   return normalizeEmail(preferred?.getAttribute('href')?.replace(/^mailto:/i, '').split('?')[0] || '');
 }
 
+function directoryFallbackSeed() {
+  const seed = {
+    accountType,
+    displayName: profileName,
+    imageUrl,
+    location: locationText,
+    genre,
+    instruments,
+    venueType
+  };
+  Object.keys(seed).forEach(key => { if (!seed[key]) delete seed[key]; });
+  return seed;
+}
+
 function extractLegacySeed(html, baseUrl) {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const media = collectMedia(parsed, baseUrl);
   const links = collectLinks(parsed, baseUrl);
-  const listMembers = [...parsed.querySelectorAll('#band-members-list li,.band-members li,.members li')]
+  const detailItems = [...parsed.querySelectorAll('#band-members-list li,.band-members li,.members li')]
     .map(item => item.textContent?.replace(/\s+/g, ' ').trim())
-    .filter(Boolean)
+    .filter(Boolean);
+  const listMembers = detailItems
+    .filter(text => !/^(genre|style|location|town|instrument|instruments|type|venue type|capacity)\s*:/i.test(text))
     .join('; ');
 
   const displayName = firstText(parsed, [
-    '#band-name','#musician-name','#venue-name','.profile-action-card h1','.profile-header h1','main h1','h1'
+    '#band-name','#musician-name','#venue-name','.profile-action-card h1','.profile-header h1','.band-hero h1','main h1','h1'
   ]) || profileName;
   const bio = firstText(parsed, [
-    '#band-bio','#musician-bio','#venue-bio','.profile-bio','.bio','.about-copy','.profile-details-card p'
+    '#band-bio','#musician-bio','#venue-bio','.profile-bio','.bio','.about-copy','.profile-details-card p','.band-info > p'
   ]);
   const image = firstAttribute(parsed, [
-    '#band-avatar-image','#musician-avatar-image','#venue-avatar-image','.profile-avatar-card img','.profile-avatar img','.profile-image img','main img'
+    '#band-avatar-image','#musician-avatar-image','#venue-avatar-image','.profile-avatar-card img','.profile-avatar img','.profile-image img','.band-media img','main img'
   ], 'src', baseUrl) || imageUrl;
   const banner = firstAttribute(parsed, [
     '#band-banner-image','#musician-banner-image','#venue-banner-image','.profile-banner-img','.profile-banner img','.banner img'
   ], 'src', baseUrl);
   const pageLocation = cleanLabel(firstText(parsed, [
-    '#band-location-status','#musician-location-status','#venue-location-status','.profile-location','.location'
+    '#band-location-status','#musician-location-status','#venue-location-status','.profile-location','.location','.band-hero p'
   ]) || findLabeledText(parsed, ['Location:', 'Town:', 'Based in'])) || locationText;
   const pageGenre = cleanLabel(findLabeledText(parsed, ['Genre:', 'Style:'])) || genre;
   const pageInstruments = cleanLabel(findLabeledText(parsed, ['Instrument:', 'Instruments:', 'Role:'])) || instruments;
@@ -184,7 +209,8 @@ async function prepareLegacyProfile() {
   preparationPromise = (async () => {
     const override = normalizeEmail(claimEmailOverrides[pageKey()]);
     requiredEmail = override || linkEmail;
-    legacySeed = {};
+    legacySeed = directoryFallbackSeed();
+    legacyPageLoaded = false;
 
     try {
       const pageUrl = absoluteUrl(legacyPage, location.href);
@@ -192,14 +218,14 @@ async function prepareLegacyProfile() {
       if (!response.ok) throw new Error(`Legacy page returned ${response.status}`);
       const html = await response.text();
       const extracted = extractLegacySeed(html, pageUrl);
-      legacySeed = extracted.seed;
+      legacySeed = { ...legacySeed, ...extracted.seed };
+      legacyPageLoaded = true;
       if (!requiredEmail) requiredEmail = extracted.email;
     } catch (error) {
-      console.error('Could not read legacy profile page:', error);
-      legacySeed = {};
+      console.warn('Legacy page could not be fully read; using directory information and verified review fallback:', error);
     }
 
-    return { requiredEmail, legacySeed };
+    return { requiredEmail, legacySeed, legacyPageLoaded };
   })();
   return preparationPromise;
 }
@@ -223,10 +249,22 @@ function buildSummary() {
   summary.appendChild(copy);
 }
 
-function showSignedOutPrompt() {
+function showSignedOutPrompt(message = '') {
   const login = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
   const signup = `signup.html?returnTo=${encodeURIComponent(returnTo)}`;
-  status.innerHTML = `Please <a href="${signup}">create an account</a> using the email address associated with this profile, or <a href="${login}">log in</a> if you already have one.`;
+  const intro = message ? `${message}<br>` : '';
+  status.innerHTML = `${intro}Please <a href="${signup}">create an account</a>, or <a href="${login}">log in</a> if you already have one.`;
+}
+
+function showManualClaim() {
+  controls.hidden = true;
+  if (!currentUser) {
+    manualForm.hidden = true;
+    showSignedOutPrompt('This profile needs a quick ownership review before it can be transferred.');
+    return;
+  }
+  status.innerHTML = `<strong>We found the profile.</strong><br>${legacyPageLoaded ? 'Its ownership email is not available in a usable format.' : 'The older profile page is incomplete or unavailable.'} Submit the verification request below and it will appear in the BANDtroductions admin queue.`;
+  manualForm.hidden = false;
 }
 
 function buildProfileData() {
@@ -259,6 +297,7 @@ buildSummary();
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   controls.hidden = true;
+  manualForm.hidden = true;
   if (!legacyPage || !profileName || !['band', 'musician', 'venue'].includes(accountType)) {
     status.textContent = 'This claim link is missing required profile information.';
     return;
@@ -268,16 +307,16 @@ onAuthStateChanged(auth, async user => {
   await prepareLegacyProfile();
 
   if (!requiredEmail) {
-    status.textContent = 'This legacy profile does not have a claim email assigned yet. Contact BANDtroductions so it can be prepared.';
+    showManualClaim();
     return;
   }
   if (!user) {
-    showSignedOutPrompt();
+    showSignedOutPrompt('Use the same email address already associated with this profile.');
     return;
   }
   const signedInEmail = normalizeEmail(user.email);
   if (signedInEmail !== requiredEmail) {
-    status.innerHTML = `You are logged in as <strong>${user.email || 'an account without an email'}</strong>, but that email does not match the email associated with <strong>${profileName}</strong>. Log out and use the correct account.`;
+    status.innerHTML = `You are logged in as <strong>${user.email || 'an account without an email'}</strong>, but that email does not match the email associated with <strong>${profileName}</strong>. Log out and use the correct account. If the old contact email is no longer accessible, contact BANDtroductions for a verified manual transfer.`;
     return;
   }
   status.innerHTML = `<strong>We found you!</strong><br>Your account matches the existing <strong>${profileName}</strong> profile. Click <strong>Finalize Claim</strong> to connect it.`;
@@ -312,5 +351,47 @@ claimButton.addEventListener('click', async () => {
     const code = error?.code ? ` (${error.code})` : '';
     status.textContent = `The profile could not be connected${code}. Please try again.`;
     claimButton.disabled = false;
+  }
+});
+
+manualForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!currentUser) {
+    showSignedOutPrompt('Log in before submitting an ownership request.');
+    return;
+  }
+  const role = roleInput.value.trim();
+  const proof = proofInput.value.trim();
+  if (!role || !proof) return;
+
+  manualButton.disabled = true;
+  status.textContent = 'Submitting your ownership request…';
+  try {
+    await prepareLegacyProfile();
+    await addDoc(collection(db, 'profileClaims'), {
+      claimantId: currentUser.uid,
+      claimantEmail: currentUser.email || '',
+      profileName,
+      accountType,
+      legacyPage,
+      imageUrl: legacySeed.imageUrl || imageUrl,
+      location: legacySeed.location || locationText,
+      genre: legacySeed.genre || genre,
+      instruments: legacySeed.instruments || instruments,
+      venueType: legacySeed.venueType || venueType,
+      legacySeed,
+      role,
+      proof,
+      status: 'pending',
+      submittedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    manualForm.hidden = true;
+    status.innerHTML = `<strong>Claim submitted.</strong><br>Your request is waiting for BANDtroductions review. The existing profile has not been changed.`;
+  } catch (error) {
+    console.error('Manual profile claim failed:', error);
+    const code = error?.code ? ` (${error.code})` : '';
+    status.textContent = `The request could not be submitted${code}. Please try again.`;
+    manualButton.disabled = false;
   }
 });
