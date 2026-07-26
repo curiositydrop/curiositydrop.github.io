@@ -1,15 +1,9 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { collection, doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { isAdminAccount } from './admin-access.js';
 
-const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
 let currentUser=null;
-
-async function isAdmin(user){
-  if(!user)return false;
-  if(String(user.email||'').toLowerCase()===ADMIN_EMAIL)return true;
-  try{return (await getDoc(doc(db,'admins',user.uid))).exists()}catch{return false}
-}
 
 function injectSection(){
   const main=document.querySelector('.admin-shell');
@@ -83,8 +77,9 @@ function claimCard(claim,id){
   actions.append(oldPage,approve,reject);article.append(title,meta,role,proof,actions);return article;
 }
 
-onAuthStateChanged(auth,async user=>{
-  currentUser=user;if(!(await isAdmin(user)))return;
+onAuthStateChanged(auth,user=>{
+  currentUser=user;
+  if(!isAdminAccount(user))return;
   const ui=injectSection();if(!ui)return;
   onSnapshot(collection(db,'profileClaims'),snapshot=>{
     const pending=snapshot.docs.filter(d=>d.data().status==='pending').map(d=>({id:d.id,...d.data()}));
