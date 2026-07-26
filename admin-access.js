@@ -11,6 +11,13 @@ export function isAdminAccount(user) {
   return Boolean(user && normalized(user.email) === ADMIN_EMAIL);
 }
 
+function refreshOnce(email) {
+  const key = `bandtroductions-role-refresh-v5:${email}`;
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, 'done');
+  window.location.replace(`${window.location.pathname}${window.location.search}${window.location.search ? '&' : '?'}roleRefresh=${Date.now()}`);
+}
+
 async function normalizeAccountRoles(user) {
   if (!user) return;
   const email = normalized(user.email);
@@ -23,18 +30,24 @@ async function normalizeAccountRoles(user) {
           displayName: 'BANDtroductions Admin',
           activeProfileId: user.uid,
           profileComplete: true,
-          sceneSupporter: true,
+          sceneSupporter: false,
           isAdmin: true,
+          claimedLegacyProfile: false,
           updatedAt: serverTimestamp()
-        }, { merge: true }),
+        }),
         setDoc(doc(db, 'profiles', user.uid), {
           ownerId: user.uid,
           accountType: 'fan',
           displayName: 'BANDtroductions Admin',
           profileEmoji: '🤘',
           bio: 'BANDtroductions administrator.',
-          sceneSupporter: true,
+          imageUrl: '',
+          bannerImageUrl: '',
+          sceneSupporter: false,
           isAdmin: true,
+          claimedLegacyProfile: false,
+          legacyPage: '',
+          claimEmail: '',
           approvalStatus: 'approved',
           published: true,
           updatedAt: serverTimestamp()
@@ -45,6 +58,7 @@ async function normalizeAccountRoles(user) {
           updatedAt: serverTimestamp()
         }, { merge: true })
       ]);
+      refreshOnce(email);
     } catch (error) {
       console.error('Could not normalize the administrator account:', error);
     }
@@ -61,16 +75,22 @@ async function normalizeAccountRoles(user) {
           profileComplete: true,
           sceneSupporter: true,
           isAdmin: false,
+          claimedLegacyProfile: false,
           updatedAt: serverTimestamp()
-        }, { merge: true }),
+        }),
         setDoc(doc(db, 'profiles', user.uid), {
           ownerId: user.uid,
           accountType: 'fan',
           displayName: 'New Leaf Painting Company',
           profileEmoji: '🍃',
           bio: 'Scene Supporter of independent and local music.',
+          imageUrl: '',
+          bannerImageUrl: '',
           sceneSupporter: true,
           isAdmin: false,
+          claimedLegacyProfile: false,
+          legacyPage: '',
+          claimEmail: '',
           approvalStatus: 'approved',
           published: true,
           updatedAt: serverTimestamp()
@@ -87,6 +107,7 @@ async function normalizeAccountRoles(user) {
         console.error('Could not remove the old administrator record:', error);
       }
     }
+    refreshOnce(email);
   }
 }
 
