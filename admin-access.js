@@ -9,6 +9,29 @@ export function isAdminAccount(user) {
   return Boolean(user && String(user.email || '').trim().toLowerCase() === ADMIN_EMAIL);
 }
 
+async function normalizeAdmin(user) {
+  if (!isAdminAccount(user)) return;
+
+  const roleData = {
+    isAdmin: true,
+    adminEmail: ADMIN_EMAIL,
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    await Promise.all([
+      setDoc(doc(db, 'users', user.uid), roleData, { merge: true }),
+      setDoc(doc(db, 'admins', user.uid), {
+        email: ADMIN_EMAIL,
+        active: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true })
+    ]);
+  } catch (error) {
+    console.error('Could not finish assigning the administrator record:', error);
+  }
+}
+
 async function normalizeSceneSupporter(user) {
   if (!user || String(user.email || '').trim().toLowerCase() !== SCENE_SUPPORTER_EMAIL) return;
 
@@ -28,7 +51,6 @@ async function normalizeSceneSupporter(user) {
     console.error('Could not update the Scene Supporter role:', error);
   }
 
-  // Remove any old admins document when existing rules permit it.
   try {
     await deleteDoc(doc(db, 'admins', user.uid));
   } catch (error) {
@@ -38,4 +60,7 @@ async function normalizeSceneSupporter(user) {
   }
 }
 
-onAuthStateChanged(auth, normalizeSceneSupporter);
+onAuthStateChanged(auth, async user => {
+  await normalizeAdmin(user);
+  await normalizeSceneSupporter(user);
+});
