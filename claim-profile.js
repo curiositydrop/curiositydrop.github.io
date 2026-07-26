@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const params = new URLSearchParams(location.search);
 const legacyPage = params.get('page') || '';
@@ -11,16 +11,45 @@ const locationText = params.get('location') || '';
 const genre = params.get('genre') || '';
 const instruments = params.get('instruments') || '';
 const venueType = params.get('venueType') || '';
+const linkEmail = normalizeEmail(params.get('email') || '');
+
+const claimEmailOverrides = {
+  'burning-time.html': 'bandtroductions@gmail.com'
+};
+
+const legacyProfileSeeds = {
+  'burning-time.html': {
+    accountType: 'band',
+    displayName: 'Burning Time',
+    location: 'Saco, ME',
+    genre: 'Rock / Metal',
+    imageUrl: 'IMG_5121.jpeg',
+    bannerImageUrl: 'IMG_0389.jpeg',
+    bio: "Burning Time has been playing together since 2014 with a sound described as heavy meets melodic rock. They have performed at local clubs and festivals while building a loyal fan base and keeping the spirit of rock alive.",
+    members: 'Kris Hype – Vocals/Guitar; Dan Aldrich – Drums; Doug Waycott – Bass; Carl Watson – Guitar; Jarred Desrochers – Guitar',
+    bookingEmail: 'bandtroductions@gmail.com',
+    website: 'https://www.burningtimemusic.com',
+    mediaLink: 'https://www.youtube.com/watch?v=RyAK3AAX49g',
+    yearFormed: '2014'
+  }
+};
 
 const status = document.getElementById('claim-status');
 const summary = document.getElementById('claim-summary');
 const controls = document.getElementById('claim-controls');
-const certify = document.getElementById('claim-certify');
-const certifyCopy = document.getElementById('claim-certify-copy');
 const claimButton = document.getElementById('claim-button');
 const returnTo = `${location.pathname.split('/').pop()}${location.search}`;
 
 let currentUser = null;
+let requiredEmail = '';
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function pageKey() {
+  return legacyPage.split('/').pop().toLowerCase();
+}
 
 function buildSummary() {
   summary.replaceChildren();
@@ -29,7 +58,7 @@ function buildSummary() {
     const image = document.createElement('img');
     image.className = 'claim-image';
     image.src = imageUrl;
-    image.alt = '';
+    image.alt = `${profileName} profile image`;
     summary.appendChild(image);
   }
 
@@ -47,35 +76,44 @@ function buildSummary() {
   summary.appendChild(copy);
 }
 
-function certificationText() {
-  if (accountType === 'musician') {
-    return `I certify that I am ${profileName}, or that I am authorized to manage this profile on their behalf.`;
-  }
-
-  if (accountType === 'venue') {
-    return `I certify that I own, manage, or am authorized to manage the ${profileName} profile.`;
-  }
-
-  return `I certify that I am a member of ${profileName}, or that I am authorized to manage this profile on behalf of the band.`;
+function getRequiredEmail() {
+  return normalizeEmail(claimEmailOverrides[pageKey()] || linkEmail);
 }
 
-async function findExistingOwner() {
-  const snapshot = await getDocs(
-    query(collection(db, 'profiles'), where('legacyPage', '==', legacyPage))
-  );
+function showSignedOutPrompt() {
+  const login = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
+  const signup = `signup.html?returnTo=${encodeURIComponent(returnTo)}`;
+  status.innerHTML = `Please <a href="${signup}">create an account</a> using the email address associated with this profile, or <a href="${login}">log in</a> if you already have one.`;
+}
 
-  if (snapshot.empty) return null;
-  return snapshot.docs[0].data();
+function buildProfileData() {
+  const seed = legacyProfileSeeds[pageKey()] || {};
+  return {
+    ...seed,
+    accountType: seed.accountType || accountType,
+    displayName: seed.displayName || profileName,
+    imageUrl: seed.imageUrl || imageUrl,
+    location: seed.location || locationText,
+    genre: seed.genre || genre,
+    instruments: seed.instruments || instruments,
+    venueType: seed.venueType || venueType,
+    ownerId: currentUser.uid,
+    legacyPage,
+    claimEmail: requiredEmail,
+    claimedLegacyProfile: true,
+    claimMethod: 'matching-account-email',
+    claimedByEmail: currentUser.email || '',
+    claimedAt: serverTimestamp(),
+    approvalStatus: 'approved',
+    published: true,
+    approvedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  };
 }
 
 buildSummary();
-certifyCopy.textContent = certificationText();
 
-certify.addEventListener('change', () => {
-  claimButton.disabled = !certify.checked;
-});
-
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, user => {
   currentUser = user;
   controls.hidden = true;
 
@@ -84,86 +122,64 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  if (!user) {
-    const login = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
-    const signup = `signup.html?returnTo=${encodeURIComponent(returnTo)}`;
-    status.innerHTML = `To claim this profile, <a href="${signup}">create an account</a> or <a href="${login}">log in</a>. You will return here after signing in.`;
+  requiredEmail = getRequiredEmail();
+
+  if (!requiredEmail) {
+    status.textContent = 'This legacy profile does not have a claim email assigned yet. Contact BANDtroductions so it can be prepared.';
     return;
   }
 
-  try {
-    const existingOwner = await findExistingOwner();
-
-    if (existingOwner?.ownerId === user.uid) {
-      status.innerHTML = `This profile is already connected to your account. <a href="profile.html?id=${encodeURIComponent(user.uid)}">Open your profile</a>.`;
-      return;
-    }
-
-    if (existingOwner?.ownerId && existingOwner.ownerId !== user.uid) {
-      status.textContent = 'This profile has already been claimed. Contact BANDtroductions if ownership needs to be corrected.';
-      return;
-    }
-
-    status.textContent = `Logged in as ${user.email || user.displayName || 'your account'}. Check the certification below, then claim the profile.`;
-    controls.hidden = false;
-  } catch (error) {
-    console.error('Could not check profile ownership:', error);
-    status.textContent = 'This profile could not be checked right now. Please try again.';
+  if (!user) {
+    showSignedOutPrompt();
+    return;
   }
+
+  const signedInEmail = normalizeEmail(user.email);
+  if (signedInEmail !== requiredEmail) {
+    status.innerHTML = `You are logged in as <strong>${user.email || 'an account without an email'}</strong>, but that email does not match the email associated with <strong>${profileName}</strong>. Log out and use the correct account.`;
+    return;
+  }
+
+  status.innerHTML = `<strong>We found you!</strong><br>Your account matches the existing <strong>${profileName}</strong> profile. Click <strong>Finalize Claim</strong> to connect it.`;
+  controls.hidden = false;
 });
 
 claimButton.addEventListener('click', async () => {
-  if (!currentUser || !certify.checked) return;
+  if (!currentUser) return;
+
+  requiredEmail = getRequiredEmail();
+  if (!requiredEmail || normalizeEmail(currentUser.email) !== requiredEmail) {
+    status.textContent = 'Your account email does not match the email associated with this profile.';
+    return;
+  }
 
   claimButton.disabled = true;
-  status.textContent = 'Connecting this profile to your account…';
+  status.textContent = 'Connecting the existing profile to your account…';
 
   try {
-    const existingOwner = await findExistingOwner();
+    const profileData = buildProfileData();
 
-    if (existingOwner?.ownerId && existingOwner.ownerId !== currentUser.uid) {
-      throw new Error('This profile has already been claimed.');
-    }
+    // Replace the account profile document so old test data cannot blend into the legacy profile.
+    await setDoc(doc(db, 'profiles', currentUser.uid), profileData);
 
-    const profileData = {
-      ownerId: currentUser.uid,
-      accountType,
-      displayName: profileName,
-      imageUrl,
-      location: locationText,
-      genre,
-      instruments,
-      venueType,
-      legacyPage,
-      claimedLegacyProfile: true,
-      claimMethod: 'self-certification',
-      ownershipCertified: true,
-      ownershipCertifiedByEmail: currentUser.email || '',
-      ownershipCertifiedAt: serverTimestamp(),
-      approvalStatus: 'approved',
-      published: true,
-      approvedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    await setDoc(doc(db, 'profiles', currentUser.uid), profileData, { merge: true });
     await setDoc(doc(db, 'users', currentUser.uid), {
-      accountType,
-      displayName: profileName,
+      accountType: profileData.accountType,
+      displayName: profileData.displayName,
+      activeProfileId: currentUser.uid,
       profileComplete: true,
       claimedLegacyProfile: true,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
     controls.hidden = true;
-    status.innerHTML = `<strong>Profile claimed!</strong><br>${profileName} is now connected to your account.`;
-
+    status.innerHTML = `<strong>Profile claimed!</strong><br>${profileData.displayName} is now connected to your account. Loading your profile…`;
     setTimeout(() => {
       window.location.href = `profile.html?id=${encodeURIComponent(currentUser.uid)}`;
-    }, 1000);
+    }, 800);
   } catch (error) {
     console.error('Profile claim failed:', error);
-    status.textContent = error.message || 'The profile could not be connected to your account.';
+    const code = error?.code ? ` (${error.code})` : '';
+    status.textContent = `The profile could not be connected${code}. Please try again.`;
     claimButton.disabled = false;
   }
 });
