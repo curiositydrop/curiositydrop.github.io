@@ -24,6 +24,7 @@ document.head.appendChild(style);
 let currentUser = null;
 let adminMode = false;
 let posts = [];
+let cleanupQueued = false;
 
 const formatDate = (timestamp) => {
   if (!timestamp?.toDate) return 'Just now';
@@ -47,6 +48,12 @@ function findPost(article) {
   });
 }
 
+function removeEmptyControlRows(article) {
+  article.querySelectorAll('.post-owner-controls').forEach((row) => {
+    if (!row.children.length) row.remove();
+  });
+}
+
 function removeNonAdminDeleteButtons() {
   if (adminMode) return;
   document.querySelectorAll('.admin-post-delete-button').forEach((button) => button.remove());
@@ -64,6 +71,13 @@ function installAdminDeleteButtons() {
     const header = article.querySelector('.community-post-header');
     if (!header) return;
 
+    // Admin uses one dedicated delete control. Remove the owner's duplicate delete pill.
+    article.querySelectorAll('.post-owner-button.delete').forEach((button) => button.remove());
+
+    const existingAdminButtons = [...article.querySelectorAll('.admin-post-delete-button')];
+    let remove = existingAdminButtons.shift() || null;
+    existingAdminButtons.forEach((button) => button.remove());
+
     let controls = header.querySelector('.post-owner-controls');
     if (!controls) {
       controls = document.createElement('div');
@@ -71,35 +85,45 @@ function installAdminDeleteButtons() {
       header.appendChild(controls);
     }
 
-    controls.querySelectorAll('.post-owner-button.delete').forEach((button) => button.remove());
-    if (controls.querySelector('.admin-post-delete-button')) return;
+    if (!remove) {
+      remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'admin-post-delete-button';
+      remove.textContent = 'Delete Post';
+      remove.addEventListener('click', async () => {
+        if (!window.confirm('Delete this post permanently? This cannot be undone.')) return;
+        remove.disabled = true;
+        remove.textContent = 'Deleting…';
+        try {
+          await deleteDoc(doc(db, 'posts', post.id));
+        } catch (error) {
+          console.error('Admin post deletion failed:', error);
+          window.alert(error?.code === 'permission-denied'
+            ? 'The delete was blocked by Firestore permissions.'
+            : 'The post could not be deleted.');
+          remove.disabled = false;
+          remove.textContent = 'Delete Post';
+        }
+      });
+    }
 
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'admin-post-delete-button';
-    remove.textContent = 'Delete Post';
-    remove.addEventListener('click', async () => {
-      if (!window.confirm('Delete this post permanently? This cannot be undone.')) return;
-      remove.disabled = true;
-      remove.textContent = 'Deleting…';
-      try {
-        await deleteDoc(doc(db, 'posts', post.id));
-      } catch (error) {
-        console.error('Admin post deletion failed:', error);
-        window.alert(error?.code === 'permission-denied'
-          ? 'The delete was blocked by Firestore permissions.'
-          : 'The post could not be deleted.');
-        remove.disabled = false;
-        remove.textContent = 'Delete Post';
-      }
-    });
-    controls.appendChild(remove);
+    if (remove.parentElement !== controls) controls.appendChild(remove);
+    removeEmptyControlRows(article);
+  });
+}
+
+function queueCleanup() {
+  if (cleanupQueued) return;
+  cleanupQueued = true;
+  requestAnimationFrame(() => {
+    cleanupQueued = false;
+    installAdminDeleteButtons();
   });
 }
 
 const feed = document.getElementById('feed');
 if (feed) {
-  new MutationObserver(installAdminDeleteButtons).observe(feed, { childList:true, subtree:true });
+  new MutationObserver(queueCleanup).observe(feed, { childList:true, subtree:true });
 }
 
 onAuthStateChanged(auth, (user) => {
