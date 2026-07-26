@@ -1,3 +1,4 @@
+import './profile-media-editor.js?v=1';
 import { auth, db, storage } from './firebase-dev.js';
 import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
