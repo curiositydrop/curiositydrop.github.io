@@ -8,6 +8,7 @@ if (hero) {
     <p class="social-hero-lead">Connecting you to local music scenes everywhere.</p>
     <p class="social-hero-copy">Discover bands, connect with musicians, find venues, and join a community built entirely around music.</p>
     <a class="social-hero-cta" href="community.html">Join Our Community →</a>
+    <a class="social-hero-claim" href="claim-existing-profile.html">Already listed? Claim Your Profile</a>
   `;
 
   const style = document.createElement('style');
@@ -56,6 +57,20 @@ if (hero) {
       font-weight: 900;
       text-decoration: none;
       box-shadow: 0 0 14px rgba(12, 207, 189, .2);
+    }
+    .social-hero-claim {
+      display: block;
+      width: fit-content;
+      margin: 10px auto 0;
+      color: #0ccfbd;
+      font-size: .8rem;
+      font-weight: 850;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .social-hero-claim:hover,
+    .social-hero-claim:focus {
+      color: #fff;
     }
     @media (max-width: 520px) {
       .home-page .hero.social-hero {
