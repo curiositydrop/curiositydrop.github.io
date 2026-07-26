@@ -1,19 +1,12 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { collection, doc, getDoc, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { collection, onSnapshot, query, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { isAdminAccount } from './admin-access.js';
 
-const ADMIN_EMAIL='newleafpaintingcompany@gmail.com';
 let stopProfileListener=null;
 let stopClaimListener=null;
 let profilePendingCount=0;
 let claimPendingCount=0;
-
-async function isAdmin(user){
-  if(!user)return false;
-  if(String(user.email||'').toLowerCase()===ADMIN_EMAIL)return true;
-  try{return (await getDoc(doc(db,'admins',user.uid))).exists();}
-  catch(error){console.error('Could not check admin navigation status:',error);return false;}
-}
 
 function updateLabel(){
   const link=document.getElementById('admin-dashboard-link');
@@ -40,6 +33,10 @@ function install(){
   return true;
 }
 
+function removeAdminLink(){
+  document.getElementById('admin-dashboard-link')?.remove();
+}
+
 function stopWatching(){
   if(stopProfileListener)stopProfileListener();
   if(stopClaimListener)stopClaimListener();
@@ -56,9 +53,9 @@ function watchPendingItems(){
   },error=>{console.error('Could not load pending ownership claim count:',error);claimPendingCount=0;updateLabel()});
 }
 
-onAuthStateChanged(auth,async user=>{
+onAuthStateChanged(auth,user=>{
   stopWatching();
-  if(!(await isAdmin(user)))return;
+  if(!isAdminAccount(user)){removeAdminLink();return;}
   if(!install()){
     const observer=new MutationObserver(()=>{
       if(install()){observer.disconnect();watchPendingItems();}
