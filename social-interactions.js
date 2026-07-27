@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { addDoc, collection, getDocs, onSnapshot, orderBy, query, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 let currentUser=null,currentProfile=null,profiles=[],taggedProfiles=[];
 const profileMap=new Map();
@@ -16,12 +16,78 @@ async function loadProfiles(){try{const snap=await getDocs(query(collection(db,'
 function installTagging(){const textarea=document.getElementById('post-content');if(!textarea||textarea.dataset.tagsReady)return;textarea.dataset.tagsReady='true';const wrap=document.createElement('div');wrap.className='tag-helper';textarea.parentElement.insertBefore(wrap,textarea);wrap.appendChild(textarea);const help=document.createElement('small');help.className='tag-help';help.textContent='Type @ followed by a profile name to tag someone.';const suggestions=document.createElement('div');suggestions.className='tag-suggestions';suggestions.hidden=true;wrap.append(help,suggestions);
   function refresh(){const value=textarea.value.slice(0,textarea.selectionStart);const match=value.match(/(?:^|\s)@([^@\n]{1,40})$/);suggestions.replaceChildren();if(!match){suggestions.hidden=true;return}const term=match[1].trim().toLowerCase();const matches=profiles.filter(p=>p.id!==currentUser?.uid&&String(p.displayName||'').toLowerCase().includes(term)).slice(0,6);if(!matches.length){suggestions.hidden=true;return}matches.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='tag-option';b.innerHTML=`<strong>${String(p.displayName||'Profile').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</strong> · ${p.accountType||'member'}`;b.addEventListener('click',()=>{const start=textarea.selectionStart-match[0].length+(match[0].startsWith(' ')?1:0);const before=textarea.value.slice(0,start),after=textarea.value.slice(textarea.selectionStart);textarea.value=`${before}@${p.displayName} ${after}`;textarea.focus();textarea.selectionStart=textarea.selectionEnd=before.length+p.displayName.length+2;if(!taggedProfiles.some(x=>x.id===p.id))taggedProfiles.push(p);suggestions.hidden=true});suggestions.appendChild(b)});suggestions.hidden=false}
   textarea.addEventListener('input',refresh);textarea.addEventListener('click',refresh);
-  const publish=document.getElementById('publish-post'),status=document.getElementById('composer-status');if(!publish||!status)return;let pending=[];publish.addEventListener('click',()=>{pending=[...taggedProfiles];taggedProfiles=[]},{capture:true});const observer=new MutationObserver(async()=>{if(status.textContent.trim()!=='Posted.'||!pending.length||!currentUser)return;const recipients=[...pending];pending=[];for(const p of recipients){try{await addDoc(collection(db,'notifications'),{recipientId:p.id,actorId:currentUser.uid,actorName:currentProfile?.displayName||currentUser.displayName||'BANDtroductions Member',type:'tag',message:`tagged you in a community post.`,linkUrl:'community.html',read:false,createdAt:serverTimestamp()})}catch(e){console.warn('Tag notification unavailable',e)}}});observer.observe(status,{childList:true,characterData:true,subtree:true});
+  const publish=document.getElementById('publish-post'),status=document.getElementById('composer-status');if(!publish||!status)return;let pending=[];publish.addEventListener('click',()=>{pending=[...taggedProfiles];taggedProfiles=[]},{capture:true});const observer=new MutationObserver(async()=>{if(status.textContent.trim()!=='Posted.'||!pending.length||!currentUser)return;const recipients=[...pending];pending=[];for(const p of recipients){try{await addDoc(collection(db,'notifications'),{recipientId:p.id,actorId:currentUser.uid,actorName:currentProfile?.displayName||currentUser.displayName||'BANDtroductions Member',type:'tag',message:'tagged you in a community post.',linkUrl:'community.html',read:false,createdAt:serverTimestamp()})}catch(e){console.warn('Tag notification unavailable',e)}}});observer.observe(status,{childList:true,characterData:true,subtree:true});
+}
+
+async function resolveArticlePost(article){
+  const authorLink=article?.querySelector('.community-author');
+  const authorId=authorLink?new URL(authorLink.href,location.href).searchParams.get('id'):'';
+  const body=article?.querySelector('.community-post-body')?.dataset.fullContent||article?.querySelector('.community-post-body')?.textContent||'';
+  if(!authorId)return null;
+  try{
+    const snap=await getDocs(query(collection(db,'posts'),where('authorId','==',authorId)));
+    const matches=snap.docs.filter(d=>(d.data().content||'')===body).sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0));
+    return matches[0]?{id:matches[0].id,...matches[0].data()}:null;
+  }catch(error){console.warn('Could not resolve post for notification:',error);return null}
+}
+
+function installActivityNotifications(){
+  if(!location.pathname.endsWith('/community.html')||document.body.dataset.activityNotificationsReady)return;
+  document.body.dataset.activityNotificationsReady='true';
+
+  document.addEventListener('click',async event=>{
+    const button=event.target.closest('.rock-on-button');
+    if(!button||!currentUser||button.dataset.reacted==='true')return;
+    const article=button.closest('.community-post');
+    const post=await resolveArticlePost(article);
+    if(!post||post.authorId===currentUser.uid)return;
+    setTimeout(async()=>{
+      if(button.dataset.reacted!=='true')return;
+      try{
+        await setDoc(doc(db,'notifications',`reaction_${post.id}_${currentUser.uid}`),{
+          recipientId:post.authorId,
+          actorId:currentUser.uid,
+          actorName:currentProfile?.displayName||currentUser.displayName||'BANDtroductions Member',
+          type:'reaction',
+          message:'rocked on your post.',
+          linkUrl:'community.html',
+          read:false,
+          createdAt:serverTimestamp()
+        });
+      }catch(error){console.warn('Reaction notification unavailable:',error)}
+    },700);
+  },true);
+
+  document.addEventListener('submit',async event=>{
+    const form=event.target.closest('.comment-form');
+    if(!form||!currentUser)return;
+    const article=form.closest('.community-post');
+    const post=await resolveArticlePost(article);
+    if(!post||post.authorId===currentUser.uid)return;
+    const input=form.querySelector('textarea');
+    const original=input?.value.trim()||'';
+    if(!original)return;
+    setTimeout(async()=>{
+      if(input&&input.value.trim()!=='')return;
+      try{
+        await addDoc(collection(db,'notifications'),{
+          recipientId:post.authorId,
+          actorId:currentUser.uid,
+          actorName:currentProfile?.displayName||currentUser.displayName||'BANDtroductions Member',
+          type:'comment',
+          message:'commented on your post.',
+          linkUrl:'community.html',
+          read:false,
+          createdAt:serverTimestamp()
+        });
+      }catch(error){console.warn('Comment notification unavailable:',error)}
+    },700);
+  },true);
 }
 
 function installLikerModal(){if(document.getElementById('liker-modal'))return;const modal=document.createElement('div');modal.id='liker-modal';modal.className='liker-modal';modal.hidden=true;modal.innerHTML='<section class="liker-dialog"><div class="liker-dialog-head"><h2>Who Rocked On</h2><button class="auth-button auth-button-secondary" type="button">Close</button></div><div id="liker-list" class="liker-list"></div></section>';document.body.appendChild(modal);const close=()=>modal.hidden=true;modal.addEventListener('click',e=>{if(e.target===modal)close()});modal.querySelector('button').addEventListener('click',close)}
 
-function installLikerButtons(){if(!location.pathname.endsWith('/community.html'))return;installLikerModal();const feed=document.getElementById('feed');if(!feed)return;const enhance=()=>{[...feed.querySelectorAll('.community-post')].forEach((article,index)=>{const row=article.querySelector('.post-reactions');if(!row||row.querySelector('.liker-button'))return;const button=document.createElement('button');button.type='button';button.className='liker-button';button.textContent='See who';button.addEventListener('click',async()=>{const authorHref=article.querySelector('.community-author')?.getAttribute('href')||'';const authorId=new URL(authorHref,location.href).searchParams.get('id');const body=article.querySelector('.community-post-body')?.textContent||'';const modal=document.getElementById('liker-modal'),list=modal.querySelector('#liker-list');modal.hidden=false;list.innerHTML='<p>Loading reactions…</p>';try{const postQuery=query(collection(db,'posts'),where('authorId','==',authorId));const snap=await getDocs(postQuery);const candidates=snap.docs.filter(d=>(d.data().content||'')===body).sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0));if(!candidates.length){list.innerHTML='<p>No reactions found.</p>';return}const rs=await getDocs(collection(db,'posts',candidates[0].id,'reactions'));list.replaceChildren();if(rs.empty){list.innerHTML='<p>No one has rocked on yet.</p>';return}rs.forEach(d=>{const r=d.data(),a=document.createElement('a');a.className='liker-person';a.href=`profile.html?id=${encodeURIComponent(r.userId||d.id)}`;a.innerHTML=`<strong>${r.authorName||'BANDtroductions Member'}</strong><span>View Profile</span>`;list.appendChild(a)})}catch(e){console.error(e);list.innerHTML='<p>Reactions could not be loaded.</p>'}});row.appendChild(button)})};new MutationObserver(enhance).observe(feed,{childList:true,subtree:true});enhance()}
+function installLikerButtons(){if(!location.pathname.endsWith('/community.html'))return;installLikerModal();const feed=document.getElementById('feed');if(!feed)return;const enhance=()=>{[...feed.querySelectorAll('.community-post')].forEach(article=>{const row=article.querySelector('.post-reactions');if(!row||row.querySelector('.liker-button'))return;const button=document.createElement('button');button.type='button';button.className='liker-button';button.textContent='See who';button.addEventListener('click',async()=>{const post=await resolveArticlePost(article);const modal=document.getElementById('liker-modal'),list=modal.querySelector('#liker-list');modal.hidden=false;list.innerHTML='<p>Loading reactions…</p>';try{if(!post){list.innerHTML='<p>No reactions found.</p>';return}const rs=await getDocs(collection(db,'posts',post.id,'reactions'));list.replaceChildren();if(rs.empty){list.innerHTML='<p>No one has rocked on yet.</p>';return}rs.forEach(d=>{const r=d.data(),a=document.createElement('a');a.className='liker-person';a.href=`profile.html?id=${encodeURIComponent(r.userId||d.id)}`;a.innerHTML=`<strong>${r.authorName||'BANDtroductions Member'}</strong><span>View Profile</span>`;list.appendChild(a)})}catch(e){console.error(e);list.innerHTML='<p>Reactions could not be loaded.</p>'}});row.appendChild(button)})};new MutationObserver(enhance).observe(feed,{childList:true,subtree:true});enhance()}
 
 addStyles();
-onAuthStateChanged(auth,async user=>{currentUser=user;if(!user)return;try{const snap=await getDocs(query(collection(db,'profiles'),where('published','==',true)));profiles=snap.docs.map(d=>({id:d.id,...d.data()}));currentProfile=profiles.find(p=>p.id===user.uid)||null}catch(e){console.warn(e)}installNotificationLink(user);installTagging();installLikerButtons()});
+onAuthStateChanged(auth,async user=>{currentUser=user;if(!user)return;try{const snap=await getDocs(query(collection(db,'profiles'),where('published','==',true)));profiles=snap.docs.map(d=>({id:d.id,...d.data()}));currentProfile=profiles.find(p=>p.id===user.uid)||null}catch(e){console.warn(e)}installNotificationLink(user);installTagging();installActivityNotifications();installLikerButtons()});
