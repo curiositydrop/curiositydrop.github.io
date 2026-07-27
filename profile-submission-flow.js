@@ -5,7 +5,9 @@ import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/fireb
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js';
 
-if(new URLSearchParams(location.search).has('adminProfile')){
+const params=new URLSearchParams(location.search);
+
+if(params.has('adminProfile')){
   // The dedicated admin editor owns the submit event on that screen.
 }else{
   const form=document.getElementById('profile-form');
@@ -13,7 +15,10 @@ if(new URLSearchParams(location.search).has('adminProfile')){
   const saveButton=document.getElementById('save-button');
   const bannerFile=document.getElementById('banner-image-file');
   const avatarFile=document.getElementById('image-file');
-  let currentUser=null,accountType='fan',existingProfile=null;
+  let currentUser=null;
+  let accountType='fan';
+  let existingProfile=null;
+  let targetProfileId='';
 
   const value=id=>document.getElementById(id)?.value.trim()||'';
   const normalizeUrl=raw=>{const url=(raw||'').trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`};
@@ -21,17 +26,30 @@ if(new URLSearchParams(location.search).has('adminProfile')){
 
   async function upload(file,kind){
     if(!file)return '';
+    if(!file.type.startsWith('image/'))throw new Error(`${kind} must be an image file.`);
+    if(file.size>12*1024*1024)throw new Error(`${kind} must be smaller than 12 MB.`);
     const path=`profile-media/${currentUser.uid}/${kind}-${Date.now()}-${safeName(file.name)}`;
-    const snapshot=await uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:currentUser.uid,profileImageType:kind}});
+    const uploadPromise=uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:currentUser.uid,profileImageType:kind}});
+    const timeoutPromise=new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${kind} upload timed out. Please try again.`)),30000));
+    const snapshot=await Promise.race([uploadPromise,timeoutPromise]);
     return getDownloadURL(snapshot.ref);
   }
 
   onAuthStateChanged(auth,async user=>{
     currentUser=user;if(!user)return;
     try{
-      const [userSnap,profileSnap]=await Promise.all([getDoc(doc(db,'users',user.uid)),getDoc(doc(db,'profiles',user.uid))]);
-      accountType=userSnap.exists()?(userSnap.data().accountType||'fan'):'fan';
+      targetProfileId=params.get('id')||user.uid;
+      const [userSnap,profileSnap]=await Promise.all([
+        getDoc(doc(db,'users',user.uid)),
+        getDoc(doc(db,'profiles',targetProfileId))
+      ]);
       existingProfile=profileSnap.exists()?profileSnap.data():null;
+      if(existingProfile?.ownerId&&existingProfile.ownerId!==user.uid){
+        status.textContent='You do not have permission to edit this profile.';
+        if(form)form.hidden=true;
+        return;
+      }
+      accountType=existingProfile?.accountType||(userSnap.exists()?(userSnap.data().accountType||'fan'):'fan');
       if(accountType!=='fan'&&existingProfile?.approvalStatus==='pending'){
         const message=document.getElementById('setup-message');
         if(message)message.textContent='Your profile is waiting for BANDtroductions approval. You can still make changes while it is being reviewed.';
@@ -41,37 +59,33 @@ if(new URLSearchParams(location.search).has('adminProfile')){
   });
 
   form?.addEventListener('submit',async event=>{
-    event.preventDefault();event.stopImmediatePropagation();if(!currentUser)return;
+    event.preventDefault();event.stopImmediatePropagation();if(!currentUser||!targetProfileId)return;
     saveButton.disabled=true;status.textContent='Saving your profile…';
     try{
-      let bannerImageUrl=value('banner-image-url'),imageUrl=value('image-url');
+      let bannerImageUrl=value('banner-image-url')||existingProfile?.bannerImageUrl||existingProfile?.coverImageUrl||'';
+      let imageUrl=value('image-url')||existingProfile?.imageUrl||existingProfile?.avatarUrl||currentUser.photoURL||'';
       if(bannerFile.files?.[0]){status.textContent='Uploading optimized banner…';bannerImageUrl=await upload(bannerFile.files[0],'banner')}
       if(avatarFile.files?.[0]){status.textContent='Uploading optimized avatar…';imageUrl=await upload(avatarFile.files[0],'avatar')}
       const previouslyApproved=existingProfile?.approvalStatus==='approved';
       const wasAlreadyPending=existingProfile?.approvalStatus==='pending';
       const needsApproval=accountType!=='fan'&&!previouslyApproved;
       const profileData={
-        ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),
+        ownerId:existingProfile?.ownerId||currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),
         genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),
         instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),
         profileEmoji:value('profile-emoji'),favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),mediaLink:normalizeUrl(value('media-link')),
         approvalStatus:needsApproval?'pending':'approved',published:!needsApproval,submittedAt:needsApproval?(existingProfile?.submittedAt||serverTimestamp()):(existingProfile?.submittedAt||null),updatedAt:serverTimestamp()
       };
-      await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});
+      await setDoc(doc(db,'profiles',targetProfileId),profileData,{merge:true});
       await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
-      await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||null});
+      await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||currentUser.photoURL||null});
       if(needsApproval){
         if(!wasAlreadyPending){
-          sendAdminApprovalEmail({
-            kind:'profile',
-            name:profileData.displayName||'New profile',
-            accountType,
-            submittedBy:currentUser.email||''
-          });
+          sendAdminApprovalEmail({kind:'profile',name:profileData.displayName||'New profile',accountType,submittedBy:currentUser.email||''});
         }
         status.textContent='Submitted for approval. BANDtroductions has been notified.';
         setTimeout(()=>location.href=`profile-pending.html?fresh=${Date.now()}`,900);
-      }else location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}&fresh=${Date.now()}`;
+      }else location.href=`profile.html?id=${encodeURIComponent(targetProfileId)}&fresh=${Date.now()}`;
     }catch(error){console.error(error);status.textContent=error.message||'Your profile could not be saved.';saveButton.disabled=false}
   },{capture:true});
 }
