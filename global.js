@@ -140,7 +140,7 @@ if (window.location.pathname.endsWith('/profile.html')) {
 
 if (window.location.pathname.endsWith('/profile-setup.html')) {
   import('./profile-image-processing.js?v=1').catch((error) => console.error('Error loading profile image processing:', error));
-  import('./profile-submission-flow.js?v=1').catch((error) => console.error('Error loading profile submission workflow:', error));
+  import('./profile-submission-flow.js?v=2').catch((error) => console.error('Error loading profile submission workflow:', error));
 }
 
 if (window.location.pathname.endsWith('/profile-setup.html') && new URLSearchParams(window.location.search).has('adminProfile')) {
