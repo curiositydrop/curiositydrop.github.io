@@ -116,12 +116,13 @@ function removeLegacyComposerAvatar() {
 }
 
 if (window.location.pathname.endsWith('/community.html')) {
-  import('./post-owner-controls.js?v=10').then(() => {
+  import('./post-owner-controls.js?v=11').then(() => {
     removeLegacyComposerAvatar();
     const composer = document.getElementById('post-composer');
     if (composer) new MutationObserver(removeLegacyComposerAvatar).observe(composer, { childList: true, subtree: true });
   }).catch((error) => console.error('Error loading post owner controls:', error));
 
+  import('./community-composer-avatar-guard.js?v=1').catch((error) => console.error('Error loading composer avatar guard:', error));
   import('./admin-comment-controls.js?v=4').catch((error) => console.error('Error loading comment controls:', error));
   import('./admin-post-controls.js?v=4').catch((error) => console.error('Error loading admin post controls:', error));
   import('./community-read-more.js?v=1').catch((error) => console.error('Error loading long-post controls:', error));
