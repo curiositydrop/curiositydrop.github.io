@@ -1,4 +1,5 @@
 import './profile-media-editor.js?v=2';
+import { sendAdminApprovalEmail } from './admin-approval-email.js?v=1';
 import { auth, db, storage } from './firebase-dev.js';
 import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
@@ -47,6 +48,7 @@ if(new URLSearchParams(location.search).has('adminProfile')){
       if(bannerFile.files?.[0]){status.textContent='Uploading optimized banner…';bannerImageUrl=await upload(bannerFile.files[0],'banner')}
       if(avatarFile.files?.[0]){status.textContent='Uploading optimized avatar…';imageUrl=await upload(avatarFile.files[0],'avatar')}
       const previouslyApproved=existingProfile?.approvalStatus==='approved';
+      const wasAlreadyPending=existingProfile?.approvalStatus==='pending';
       const needsApproval=accountType!=='fan'&&!previouslyApproved;
       const profileData={
         ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),
@@ -59,6 +61,14 @@ if(new URLSearchParams(location.search).has('adminProfile')){
       await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
       await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||null});
       if(needsApproval){
+        if(!wasAlreadyPending){
+          sendAdminApprovalEmail({
+            kind:'profile',
+            name:profileData.displayName||'New profile',
+            accountType,
+            submittedBy:currentUser.email||''
+          });
+        }
         status.textContent='Submitted for approval. BANDtroductions has been notified.';
         setTimeout(()=>location.href=`profile-pending.html?fresh=${Date.now()}`,900);
       }else location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}&fresh=${Date.now()}`;
