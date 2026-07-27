@@ -26,16 +26,28 @@ function waitForContent(){
 onAuthStateChanged(auth,async user=>{
   if(!user||!profileId||!isAdminAccount(user))return;
   const content=await waitForContent();
-  if(!content||document.getElementById('admin-profile-panel'))return;
+  if(!content)return;
   const snap=await getDoc(doc(db,'profiles',profileId));
   if(!snap.exists())return;
   const profile=snap.data();
+  const dedicatedEditUrl=`profile-setup.html?adminProfile=${encodeURIComponent(profileId)}&editor=3`;
+
+  // The public profile's ordinary Edit Profile button previously opened the
+  // account-UID save flow. Force it onto the exact profile document instead.
+  const ordinaryEdit=document.getElementById('edit-profile');
+  if(ordinaryEdit){
+    ordinaryEdit.href=dedicatedEditUrl;
+    ordinaryEdit.hidden=false;
+    ordinaryEdit.style.setProperty('display','inline-flex','important');
+  }
+
+  if(document.getElementById('admin-profile-panel'))return;
   const panel=document.createElement('section');
   panel.id='admin-profile-panel';panel.className='profile-card admin-profile-panel';
   const heading=document.createElement('h2');heading.textContent='Admin Controls';
   const note=document.createElement('p');note.className='profile-side-note';note.textContent='These controls are visible only to the BANDtroductions administrator.';
   const actions=document.createElement('div');actions.className='admin-profile-actions';
-  const edit=document.createElement('a');edit.className='auth-button';edit.href=`profile-setup.html?adminProfile=${encodeURIComponent(profileId)}`;edit.textContent='Admin Edit';
+  const edit=document.createElement('a');edit.className='auth-button';edit.href=dedicatedEditUrl;edit.textContent='Admin Edit';
   const media=document.createElement('a');media.className='auth-button auth-button-secondary';media.href=`media.html?owner=${encodeURIComponent(profileId)}`;media.textContent='Manage Media';
   const publish=document.createElement('button');publish.type='button';publish.className='auth-button auth-button-secondary';publish.textContent=profile.published===false?'Publish Profile':'Unpublish Profile';
   publish.addEventListener('click',async()=>{
