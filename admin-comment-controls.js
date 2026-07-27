@@ -1,154 +1,63 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import {
-  collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query
-} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { collection, deleteDoc, doc, onSnapshot, orderBy, query } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { isAdminAccount } from './admin-access.js';
 
-const style = document.createElement('style');
-style.textContent = `
-  .comment-delete-button {
-    margin-left:auto;
-    border:1px solid #6b3535;
-    border-radius:999px;
-    padding:5px 9px;
-    background:#0d0d0d;
-    color:#ffb4b4;
-    font:inherit;
-    font-size:.72rem;
-    font-weight:800;
-    cursor:pointer;
-  }
-  .comment-delete-button:hover { border-color:#ff7777; color:#fff; }
-  .comment-delete-button:disabled { opacity:.55; cursor:wait; }
+const style=document.createElement('style');
+style.textContent=`
+.comment-delete-button{margin-left:auto;border:1px solid #6b3535;border-radius:999px;padding:5px 9px;background:#0d0d0d;color:#ffb4b4;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}
+.comment-delete-button:hover{border-color:#ff7777;color:#fff}.comment-delete-button:disabled{opacity:.55;cursor:wait}
 `;
 document.head.appendChild(style);
 
-let currentUser = null;
-let isAdmin = false;
-let posts = [];
-const commentSubscriptions = new Map();
+let currentUser=null,isAdmin=false,posts=[];
+const subscriptions=new Map();
+const formatDate=t=>!t?.toDate?'Just now':new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(t.toDate());
 
-const formatDate = (timestamp) => {
-  if (!timestamp?.toDate) return 'Just now';
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
-  }).format(timestamp.toDate());
-};
+function findPost(article){
+  const directId=article.dataset.postId||article.getAttribute('data-post-id');
+  if(directId)return posts.find(p=>p.id===directId);
+  const link=article.querySelector('.community-author');
+  const authorId=link?new URL(link.href,location.href).searchParams.get('id'):'';
+  const meta=article.querySelector('.community-post-meta')?.textContent||'';
+  return posts.find(post=>(authorId?post.authorId===authorId:post.authorName===link?.textContent?.trim())&&meta.includes(formatDate(post.createdAt)));
+}
 
-function findPost(article) {
-  const author = article.querySelector('.community-author')?.textContent?.trim() || '';
-  const body = article.querySelector('.community-post-body')?.textContent || '';
-  const meta = article.querySelector('.community-post-meta')?.textContent?.trim() || '';
-
-  return posts.find((post) => {
-    const expectedMeta = `${post.accountType || 'member'} • ${post.category || 'general'} • ${formatDate(post.createdAt)}`;
-    return post.authorName === author && (post.content || '') === body && expectedMeta === meta;
+function addButtons(article,post,snapshot){
+  if(!currentUser)return;
+  const items=[...article.querySelectorAll('.comment-list .comment-item')];
+  items.forEach((item,index)=>{
+    const commentDoc=snapshot.docs[index];if(!commentDoc)return;
+    const comment=commentDoc.data();
+    const owner=comment.authorId===currentUser.uid;
+    if(!owner&&!isAdmin)return;
+    const top=item.querySelector('.comment-top');if(!top)return;
+    let button=item.querySelector('.comment-delete-button');
+    if(!button){button=document.createElement('button');button.type='button';button.className='comment-delete-button';top.appendChild(button)}
+    button.textContent=isAdmin&&!owner?'Admin Delete':'Delete';
+    if(button.dataset.ready==='true')return;
+    button.dataset.ready='true';
+    button.addEventListener('click',async()=>{
+      if(!confirm('Delete this comment permanently? This cannot be undone.'))return;
+      const label=button.textContent;button.disabled=true;button.textContent='Deleting…';
+      try{await deleteDoc(doc(db,'posts',post.id,'comments',commentDoc.id))}
+      catch(error){console.error(error);alert(error?.code==='permission-denied'?'Comment-delete permission was denied.':'The comment could not be deleted.');button.disabled=false;button.textContent=label}
+    });
   });
 }
 
-function addDeleteButtons(article, post, snapshot) {
-  if (!currentUser) return;
-
-  const items = [...article.querySelectorAll('.comment-list .comment-item')];
-  const docs = snapshot.docs;
-
-  items.forEach((item, index) => {
-    const commentDoc = docs[index];
-    if (!commentDoc) return;
-
-    const comment = commentDoc.data();
-    const isOwner = comment.authorId === currentUser.uid;
-    const canDelete = isOwner || isAdmin;
-    if (!canDelete) return;
-
-    let button = item.querySelector('.comment-delete-button');
-    if (button) {
-      button.textContent = isAdmin && !isOwner ? 'Admin Delete' : 'Delete';
-      return;
-    }
-
-    const top = item.querySelector('.comment-top');
-    if (!top) return;
-
-    button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'comment-delete-button';
-    button.textContent = isAdmin && !isOwner ? 'Admin Delete' : 'Delete';
-
-    button.addEventListener('click', async () => {
-      if (!window.confirm('Delete this comment permanently?')) return;
-      const originalLabel = button.textContent;
-      button.disabled = true;
-      button.textContent = 'Deleting…';
-
-      try {
-        await deleteDoc(doc(db, 'posts', post.id, 'comments', commentDoc.id));
-      } catch (error) {
-        console.error('Could not delete comment:', error);
-        window.alert(error.code === 'permission-denied'
-          ? 'Comment-delete permission was denied.'
-          : 'The comment could not be deleted.');
-        button.disabled = false;
-        button.textContent = originalLabel;
-      }
-    });
-
-    top.appendChild(button);
-  });
+function subscribe(article){
+  if(!currentUser)return;
+  const post=findPost(article);if(!post)return;
+  article.dataset.commentControlsPostId=post.id;
+  if(subscriptions.has(post.id))return;
+  const stop=onSnapshot(query(collection(db,'posts',post.id,'comments'),orderBy('createdAt','asc')),snap=>{
+    document.querySelectorAll(`.community-post[data-comment-controls-post-id="${post.id}"]`).forEach(a=>addButtons(a,post,snap));
+  },error=>console.error('Could not load comments for moderation:',error));
+  subscriptions.set(post.id,stop);
 }
 
-function subscribeToArticle(article) {
-  if (!currentUser) return;
-  const post = findPost(article);
-  if (!post) return;
-
-  article.dataset.commentControlsPostId = post.id;
-
-  if (!commentSubscriptions.has(post.id)) {
-    const commentsQuery = query(
-      collection(db, 'posts', post.id, 'comments'),
-      orderBy('createdAt', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-      document.querySelectorAll(`.community-post[data-comment-controls-post-id="${post.id}"]`).forEach((matchingArticle) => {
-        addDeleteButtons(matchingArticle, post, snapshot);
-      });
-    }, (error) => {
-      console.error('Could not load comments for delete controls:', error);
-    });
-
-    commentSubscriptions.set(post.id, unsubscribe);
-  }
-}
-
-function scan() {
-  if (!currentUser || !posts.length) return;
-  document.querySelectorAll('.community-post').forEach(subscribeToArticle);
-}
-
-const feed = document.getElementById('feed');
-if (feed) {
-  new MutationObserver(scan).observe(feed, { childList:true, subtree:true });
-}
-
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  isAdmin = false;
-
-  if (user) {
-    try {
-      const adminSnapshot = await getDoc(doc(db, 'admins', user.uid));
-      isAdmin = adminSnapshot.exists();
-    } catch (error) {
-      console.error('Could not check comment-admin status:', error);
-    }
-  }
-
-  scan();
-});
-
-onSnapshot(collection(db, 'posts'), (snapshot) => {
-  posts = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-  scan();
-});
+function scan(){if(!currentUser||!posts.length)return;document.querySelectorAll('.community-post').forEach(subscribe)}
+const feed=document.getElementById('feed');if(feed)new MutationObserver(scan).observe(feed,{childList:true,subtree:true});
+onAuthStateChanged(auth,user=>{currentUser=user;isAdmin=isAdminAccount(user);scan()});
+onSnapshot(collection(db,'posts'),snap=>{posts=snap.docs.map(d=>({id:d.id,...d.data()}));scan()});
