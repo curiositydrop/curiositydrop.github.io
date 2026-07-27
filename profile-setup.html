@@ -127,6 +127,8 @@
     const avatarPreview=document.getElementById('avatar-preview');
     let currentUser;
     let accountType;
+    let existingBannerImageUrl='';
+    let existingImageUrl='';
 
     const value=(id)=>document.getElementById(id)?.value.trim()||'';
     const normalizeUrl=(raw)=>{const url=raw.trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`;};
@@ -135,7 +137,7 @@
     function updateEmojiPreview(){emojiPreview.textContent=emojiSelect.value||'🎵';emojiPreview.style.opacity=emojiSelect.value?'1':'.35';}
     function growBio(){bio.style.height='auto';bio.style.height=`${Math.min(bio.scrollHeight,320)}px`;bio.style.overflowY=bio.scrollHeight>320?'auto':'hidden';bioCount.textContent=bio.value.length;}
     function setImagePreview(element,url,fallback){element.replaceChildren();if(!url){element.textContent=fallback;return;}const img=document.createElement('img');img.src=url;img.alt='Profile image preview';element.appendChild(img);}
-    function previewFile(input,element,fallback){const file=input.files?.[0];if(!file){setImagePreview(element,'',fallback);return;}setImagePreview(element,URL.createObjectURL(file),fallback);}
+    function previewFile(input,element,fallback,existingUrl){const file=input.files?.[0];if(!file){setImagePreview(element,existingUrl||'',fallback);return;}setImagePreview(element,URL.createObjectURL(file),fallback);}
     async function uploadProfileImage(file,kind){
       if(!file)return '';
       if(!file.type.startsWith('image/'))throw new Error(`${kind} must be an image file.`);
@@ -146,14 +148,18 @@
     }
     emojiSelect.addEventListener('change',updateEmojiPreview);
     bio.addEventListener('input',growBio);
-    bannerFile.addEventListener('change',()=>previewFile(bannerFile,bannerPreview,'No banner selected'));
-    avatarFile.addEventListener('change',()=>previewFile(avatarFile,avatarPreview,'Initials will appear'));
+    bannerFile.addEventListener('change',()=>previewFile(bannerFile,bannerPreview,'No banner selected',existingBannerImageUrl));
+    avatarFile.addEventListener('change',()=>previewFile(avatarFile,avatarPreview,'Initials will appear',existingImageUrl));
 
     function fillProfile(data={}){
-      const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
+      const ids=['display-name','location','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
       ids.forEach(id=>{const element=document.getElementById(id);if(!element)return;const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase());if(data[key]!==undefined&&data[key]!==null)element.value=data[key];});
-      setImagePreview(bannerPreview,data.bannerImageUrl||'','No banner selected');
-      setImagePreview(avatarPreview,data.imageUrl||'','Initials will appear');
+      existingBannerImageUrl=data.bannerImageUrl||data.coverImageUrl||data.bannerUrl||'';
+      existingImageUrl=data.imageUrl||data.avatarUrl||data.photoURL||'';
+      document.getElementById('banner-image-url').value=existingBannerImageUrl;
+      document.getElementById('image-url').value=existingImageUrl;
+      setImagePreview(bannerPreview,existingBannerImageUrl,'No banner selected');
+      setImagePreview(avatarPreview,existingImageUrl,'Initials will appear');
       updateEmojiPreview();growBio();
     }
 
@@ -166,7 +172,7 @@
         accountType=userData.accountType||'fan';
         message.textContent=`Build and publish your ${accountType} profile. You can return and edit it anytime.`;
         showFields(accountType);
-        let existingProfile={displayName:userData.displayName||user.displayName||''};
+        let existingProfile={displayName:userData.displayName||user.displayName||'',imageUrl:user.photoURL||''};
         try{const profileSnapshot=await getDoc(doc(db,'profiles',user.uid));if(profileSnapshot.exists())existingProfile=profileSnapshot.data();}
         catch(profileError){if(profileError.code!=='permission-denied')throw profileError;}
         fillProfile(existingProfile);
@@ -187,15 +193,19 @@
       event.preventDefault();if(!currentUser)return;
       saveButton.disabled=true;status.textContent='Saving your profile…';
       try{
-        let bannerImageUrl=value('banner-image-url');
-        let imageUrl=value('image-url');
+        let bannerImageUrl=existingBannerImageUrl||value('banner-image-url');
+        let imageUrl=existingImageUrl||value('image-url');
         if(bannerFile.files?.[0]){status.textContent='Uploading banner image…';bannerImageUrl=await uploadProfileImage(bannerFile.files[0],'Banner');}
         if(avatarFile.files?.[0]){status.textContent='Uploading avatar image…';imageUrl=await uploadProfileImage(avatarFile.files[0],'Avatar');}
+        existingBannerImageUrl=bannerImageUrl;
+        existingImageUrl=imageUrl;
+        document.getElementById('banner-image-url').value=bannerImageUrl;
+        document.getElementById('image-url').value=imageUrl;
         status.textContent='Saving your profile…';
         const profileData={ownerId:currentUser.uid,accountType,displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),profileEmoji:value('profile-emoji'),favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),mediaLink:normalizeUrl(value('media-link')),published:true,updatedAt:serverTimestamp()};
         await setDoc(doc(db,'profiles',currentUser.uid),profileData,{merge:true});
         await updateDoc(doc(db,'users',currentUser.uid),{displayName:profileData.displayName,profileComplete:true,updatedAt:serverTimestamp()});
-        await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||null});
+        await updateProfile(currentUser,{displayName:profileData.displayName,photoURL:imageUrl||currentUser.photoURL||null});
         window.location.href=`profile.html?id=${encodeURIComponent(currentUser.uid)}`;
       }
       catch(error){console.error(error);status.textContent=error.message||'Your profile could not be saved. Please try again.';saveButton.disabled=false;}
