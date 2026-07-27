@@ -1,7 +1,7 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import {
-  collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc
+  collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const style = document.createElement('style');
@@ -51,7 +51,18 @@ async function getProfile(userId) {
     profileCache.set(userId, (async () => {
       try {
         const profileSnapshot = await getDoc(doc(db, 'profiles', userId));
-        if (profileSnapshot.exists()) return profileSnapshot.data();
+        if (profileSnapshot.exists()) return { id: profileSnapshot.id, ...profileSnapshot.data() };
+
+        const ownedProfiles = await getDocs(query(
+          collection(db, 'profiles'),
+          where('ownerId', '==', userId),
+          limit(1)
+        ));
+        if (!ownedProfiles.empty) {
+          const ownedProfile = ownedProfiles.docs[0];
+          return { id: ownedProfile.id, ...ownedProfile.data() };
+        }
+
         const userSnapshot = await getDoc(doc(db, 'users', userId));
         return userSnapshot.exists() ? userSnapshot.data() : {};
       } catch (error) {
@@ -80,6 +91,8 @@ function makeAvatar(name, imageUrl = '') {
   return placeholder;
 }
 
+const avatarUrlFor = (profile = {}) => profile.imageUrl || profile.avatarUrl || profile.profileImageUrl || profile.photoURL || '';
+
 async function addPostAvatar(article) {
   if (article.dataset.authorAvatarReady === 'true') return;
   const author = article.querySelector('.community-author');
@@ -93,7 +106,7 @@ async function addPostAvatar(article) {
   author.parentNode.insertBefore(wrap, author);
   wrap.append(placeholder, author);
   const profile = await getProfile(userId);
-  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
+  const imageUrl = avatarUrlFor(profile);
   const correctName = profile.displayName || author.textContent || 'Member';
   if (imageUrl && placeholder.isConnected) {
     placeholder.replaceWith(makeAvatar(correctName, imageUrl));
@@ -109,7 +122,7 @@ async function addComposerAvatar(user) {
 
   const profile = await getProfile(user.uid);
   const correctName = profile.displayName || user.displayName || name.textContent || 'Member';
-  const imageUrl = profile.imageUrl || profile.profileImageUrl || profile.photoURL || '';
+  const imageUrl = avatarUrlFor(profile);
 
   let person = heading.querySelector('.community-composer-person');
   if (!person) {
