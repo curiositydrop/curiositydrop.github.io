@@ -16,6 +16,8 @@ const bannerFile=document.getElementById('banner-image-file');
 const avatarFile=document.getElementById('image-file');
 let adminUser=null;
 let targetProfile=null;
+let existingBannerImageUrl='';
+let existingImageUrl='';
 
 const value=id=>document.getElementById(id)?.value.trim()||'';
 const normalizeUrl=raw=>{const url=(raw||'').trim();if(!url)return '';return /^https?:\/\//i.test(url)?url:`https://${url}`;};
@@ -38,25 +40,40 @@ function setPreview(id,url,fallback){
 }
 
 function fillProfile(data){
-  const ids=['display-name','location','banner-image-url','image-url','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
+  const ids=['display-name','location','bio','genre','year-formed','members','booking-email','instruments','experience','looking-for-band','capacity','venue-type','venue-booking','profile-emoji','favorite-genres','fan-interests','website','media-link'];
   ids.forEach(id=>{
     const element=document.getElementById(id);if(!element)return;
     const key=id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase());
     if(data[key]!==undefined&&data[key]!==null)element.value=data[key];
   });
-  setPreview('banner-preview',data.bannerImageUrl||'','No banner selected');
-  setPreview('avatar-preview',data.imageUrl||'','Initials will appear');
+  existingBannerImageUrl=data.bannerImageUrl||data.coverImageUrl||data.bannerUrl||'';
+  existingImageUrl=data.imageUrl||data.avatarUrl||data.photoURL||'';
+  const bannerUrlField=document.getElementById('banner-image-url');
+  const avatarUrlField=document.getElementById('image-url');
+  if(bannerUrlField)bannerUrlField.value=existingBannerImageUrl;
+  if(avatarUrlField)avatarUrlField.value=existingImageUrl;
+  setPreview('banner-preview',existingBannerImageUrl,'No banner selected');
+  setPreview('avatar-preview',existingImageUrl,'Initials will appear');
   document.getElementById('profile-emoji')?.dispatchEvent(new Event('change'));
   document.getElementById('bio')?.dispatchEvent(new Event('input'));
+}
+
+function withTimeout(promise,milliseconds,label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timed out. Please try the image again.`)),milliseconds))
+  ]);
 }
 
 async function uploadImage(file,kind){
   if(!file)return '';
   if(!file.type.startsWith('image/'))throw new Error(`${kind} must be an image file.`);
   if(file.size>12*1024*1024)throw new Error(`${kind} must be smaller than 12 MB.`);
-  const path=`profile-media/${targetId}/${kind.toLowerCase()}-${Date.now()}-${safeName(file.name)}`;
-  const snapshot=await uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:targetId,profileImageType:kind.toLowerCase()}});
-  return getDownloadURL(snapshot.ref);
+  if(!adminUser?.uid)throw new Error('Your login session could not be verified.');
+  const path=`profile-media/${adminUser.uid}/${kind.toLowerCase()}-${Date.now()}-${safeName(file.name)}`;
+  const uploadPromise=uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:adminUser.uid,targetProfileId:targetId,profileImageType:kind.toLowerCase()}});
+  const snapshot=await withTimeout(uploadPromise,30000,`${kind} upload`);
+  return withTimeout(getDownloadURL(snapshot.ref),15000,`${kind} URL`);
 }
 
 onAuthStateChanged(auth,async user=>{
@@ -85,10 +102,12 @@ form.addEventListener('submit',async event=>{
   if(!adminUser||!targetProfile||!isAdminAccount(adminUser))return;
   saveButton.disabled=true;status.textContent='Saving admin changes…';
   try{
-    let bannerImageUrl=value('banner-image-url');
-    let imageUrl=value('image-url');
+    let bannerImageUrl=existingBannerImageUrl||value('banner-image-url');
+    let imageUrl=existingImageUrl||value('image-url');
     if(bannerFile.files?.[0]){status.textContent='Uploading banner image…';bannerImageUrl=await uploadImage(bannerFile.files[0],'Banner');}
     if(avatarFile.files?.[0]){status.textContent='Uploading avatar image…';imageUrl=await uploadImage(avatarFile.files[0],'Avatar');}
+    existingBannerImageUrl=bannerImageUrl;
+    existingImageUrl=imageUrl;
     const accountType=targetProfile.accountType||'fan';
     const profileData={
       ownerId:targetProfile.ownerId||targetId,
@@ -103,5 +122,9 @@ form.addEventListener('submit',async event=>{
     };
     await setDoc(doc(db,'profiles',targetId),profileData,{merge:true});
     location.href=`profile.html?id=${encodeURIComponent(targetId)}&fresh=${Date.now()}`;
-  }catch(error){console.error(error);status.textContent=error.message||'The profile could not be updated.';saveButton.disabled=false;}
+  }catch(error){
+    console.error(error);
+    status.textContent=error.message||'The profile could not be updated.';
+    saveButton.disabled=false;
+  }
 },{capture:true});
