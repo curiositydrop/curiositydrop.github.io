@@ -150,9 +150,10 @@ async function loadProfile(user) {
 
     const avatar = document.getElementById('profile-avatar');
     avatar.textContent = initialsFor(loadedProfile.displayName);
-    if (loadedProfile.imageUrl) {
+    const avatarUrl = loadedProfile.imageUrl || loadedProfile.avatarUrl || loadedProfile.photoURL || '';
+    if (avatarUrl) {
       const img = document.createElement('img');
-      img.src = loadedProfile.imageUrl;
+      img.src = avatarUrl;
       img.alt = `${loadedProfile.displayName || 'Member'} profile image`;
       img.addEventListener('error', () => { avatar.textContent = initialsFor(loadedProfile.displayName); });
       avatar.replaceChildren(img);
