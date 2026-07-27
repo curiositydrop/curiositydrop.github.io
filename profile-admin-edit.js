@@ -68,9 +68,10 @@ function withTimeout(promise,milliseconds,label){
 async function uploadImage(file,kind){
   if(!file)return '';
   if(!file.type.startsWith('image/'))throw new Error(`${kind} must be an image file.`);
-  if(file.size>12*1024*1024)throw new Error(`${kind} must be smaller than 12 MB.`);
+  if(file.size>=8*1024*1024)throw new Error(`${kind} must be smaller than 8 MB.`);
   if(!adminUser?.uid)throw new Error('Your login session could not be verified.');
-  const path=`profile-media/${adminUser.uid}/${kind.toLowerCase()}-${Date.now()}-${safeName(file.name)}`;
+  const filename=`${kind.toLowerCase()}-${Date.now()}-${safeName(file.name)}`;
+  const path=`users/${adminUser.uid}/profile-media/${filename}`;
   const uploadPromise=uploadBytes(ref(storage,path),file,{contentType:file.type,customMetadata:{ownerId:adminUser.uid,targetProfileId:targetId,profileImageType:kind.toLowerCase()}});
   const snapshot=await withTimeout(uploadPromise,30000,`${kind} upload`);
   return withTimeout(getDownloadURL(snapshot.ref),15000,`${kind} URL`);
