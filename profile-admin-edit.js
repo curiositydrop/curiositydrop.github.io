@@ -113,16 +113,27 @@ form.addEventListener('submit',async event=>{
     const profileData={
       ownerId:targetProfile.ownerId||targetId,
       accountType,
-      displayName:value('display-name'),location:value('location'),bannerImageUrl,imageUrl,bio:value('bio'),
-      genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),
+      displayName:value('display-name'),location:value('location'),
+      bannerImageUrl,coverImageUrl:bannerImageUrl,bannerUrl:bannerImageUrl,
+      imageUrl,avatarUrl:imageUrl,photoURL:imageUrl,
+      bio:value('bio'),genre:value('genre'),yearFormed:value('year-formed'),members:value('members'),bookingEmail:value('booking-email'),
       instruments:value('instruments'),experience:value('experience'),lookingForBand:value('looking-for-band'),
       capacity:value('capacity'),venueType:value('venue-type'),venueBooking:value('venue-booking'),profileEmoji:value('profile-emoji'),
       favoriteGenres:value('favorite-genres'),fanInterests:value('fan-interests'),website:normalizeUrl(value('website')),
       mediaLink:normalizeUrl(value('media-link')),published:targetProfile.published!==false,updatedAt:serverTimestamp(),
       moderatedAt:serverTimestamp(),moderatedBy:adminUser.uid
     };
-    await setDoc(doc(db,'profiles',targetId),profileData,{merge:true});
-    location.href=`profile.html?id=${encodeURIComponent(targetId)}&fresh=${Date.now()}`;
+    status.textContent='Writing image URLs to profile…';
+    const profileRef=doc(db,'profiles',targetId);
+    await setDoc(profileRef,profileData,{merge:true});
+    status.textContent='Verifying saved images…';
+    const verifiedSnapshot=await getDoc(profileRef);
+    if(!verifiedSnapshot.exists())throw new Error('The profile disappeared during verification.');
+    const verified=verifiedSnapshot.data();
+    if(bannerImageUrl&&verified.bannerImageUrl!==bannerImageUrl)throw new Error('The banner uploaded, but its URL was not saved to the profile.');
+    if(imageUrl&&verified.imageUrl!==imageUrl)throw new Error('The avatar uploaded, but its URL was not saved to the profile.');
+    status.textContent='Images saved and verified.';
+    setTimeout(()=>{location.href=`profile.html?id=${encodeURIComponent(targetId)}&fresh=${Date.now()}`;},400);
   }catch(error){
     console.error(error);
     status.textContent=error.message||'The profile could not be updated.';
