@@ -53,6 +53,7 @@
   </main>
   <div id="global-footer"></div>
   <script src="global.js?v=21"></script>
+  <script>const selectedProfileId=new URLSearchParams(location.search).get('id');if(selectedProfileId)document.getElementById('edit-profile').href=`profile-setup.html?id=${encodeURIComponent(selectedProfileId)}`;</script>
   <script type="module" src="profile-page.js?v=3"></script>
 </body>
 </html>
