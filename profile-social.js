@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { collection, deleteDoc, doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const profileId = new URLSearchParams(location.search).get('id');
 let currentUser = null;
@@ -88,7 +88,13 @@ async function installActions() {
     try {
       const snap = await getDoc(fRef);
       if (snap.exists()) await deleteDoc(fRef);
-      else await setDoc(fRef,{followerId:currentUser.uid,targetId:profileId,targetName:loadedProfile.displayName||'Profile',targetType:loadedProfile.accountType||'member',targetImage:loadedProfile.imageUrl||'',createdAt:serverTimestamp()});
+      else await setDoc(fRef,{
+        followerId:currentUser.uid,
+        targetId:profileId,
+        targetName:loadedProfile.displayName||'Profile',
+        targetType:loadedProfile.accountType||'member',
+        createdAt:serverTimestamp()
+      });
       await refresh();
     } catch (error) { console.error(error); alert(error?.code==='permission-denied'?'Follow permissions are not enabled yet.':'Follow could not be updated.'); }
     finally { followButton.disabled = false; }
@@ -99,7 +105,13 @@ async function installActions() {
     try {
       const snap = await getDoc(favRef);
       if (snap.exists()) await deleteDoc(favRef);
-      else await setDoc(favRef,{userId:currentUser.uid,targetId:profileId,targetName:loadedProfile.displayName||'Profile',targetType:loadedProfile.accountType||'member',targetImage:loadedProfile.imageUrl||'',targetLocation:loadedProfile.location||'',createdAt:serverTimestamp()});
+      else await setDoc(favRef,{
+        userId:currentUser.uid,
+        targetId:profileId,
+        targetName:loadedProfile.displayName||'Profile',
+        targetType:loadedProfile.accountType||'member',
+        createdAt:serverTimestamp()
+      });
       await refresh();
     } catch (error) { console.error(error); alert(error?.code==='permission-denied'?'Favorite permissions are not enabled yet.':'Favorite could not be updated.'); }
     finally { favoriteButton.disabled = false; }
