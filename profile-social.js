@@ -21,6 +21,7 @@ const normalizeType = type => type === 'fan' ? 'Scene Supporter' : (type || 'mem
 const formatDate = timestamp => !timestamp?.toDate ? 'Just now' : new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(timestamp.toDate());
 const followId = (followerId, targetId) => `${followerId}_${targetId}`;
 const favoriteId = (userId, targetId) => `${userId}_${targetId}`;
+const ownsLoadedProfile = () => Boolean(currentUser && loadedProfile && (currentUser.uid === profileId || loadedProfile.ownerId === currentUser.uid));
 
 async function waitForProfile() {
   if (!profileId) return;
@@ -52,7 +53,7 @@ async function installActions() {
   wrap.className = 'profile-social-actions';
   actionArea.insertAdjacentElement('afterend', wrap);
 
-  if (currentUser && currentUser.uid === profileId) {
+  if (ownsLoadedProfile()) {
     const links = document.createElement('div');
     links.className = 'profile-collection-links';
     links.innerHTML = '<a class="auth-button auth-button-secondary" href="following.html">Following</a><a class="auth-button auth-button-secondary" href="favorites.html">Favorites</a>';
@@ -93,6 +94,8 @@ async function installActions() {
         targetId:profileId,
         targetName:loadedProfile.displayName||'Profile',
         targetType:loadedProfile.accountType||'member',
+        targetImage:loadedProfile.imageUrl||loadedProfile.profileImageUrl||'',
+        targetLocation:loadedProfile.location||'',
         createdAt:serverTimestamp()
       });
       await refresh();
@@ -110,6 +113,8 @@ async function installActions() {
         targetId:profileId,
         targetName:loadedProfile.displayName||'Profile',
         targetType:loadedProfile.accountType||'member',
+        targetImage:loadedProfile.imageUrl||loadedProfile.profileImageUrl||'',
+        targetLocation:loadedProfile.location||'',
         createdAt:serverTimestamp()
       });
       await refresh();
@@ -128,7 +133,10 @@ function installPosts() {
   section.innerHTML = '<h2>Posts</h2><div id="profile-posts-list" class="profile-posts-list"><p class="profile-side-note">Loading posts…</p></div>';
   content.appendChild(section);
   const list = section.querySelector('#profile-posts-list');
-  const q = query(collection(db,'posts'),where('authorId','==',profileId));
+  const authorIds = [...new Set([profileId, loadedProfile?.ownerId].filter(Boolean))];
+  const q = authorIds.length > 1
+    ? query(collection(db,'posts'),where('authorId','in',authorIds))
+    : query(collection(db,'posts'),where('authorId','==',authorIds[0]));
   onSnapshot(q,snapshot=>{
     const posts = snapshot.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     list.replaceChildren();
