@@ -12,7 +12,35 @@ function profileIdFromLink(link) {
   }
 }
 
-document.addEventListener('submit', (event) => {
+function waitForCommentSave(input, originalComment, timeoutMs = 12000) {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const check = () => {
+      if (!input || input.value.trim() === '') {
+        resolve(true);
+        return;
+      }
+
+      // If the user changed the text instead of the original handler clearing it,
+      // do not treat that as a successful save.
+      if (input.value.trim() !== originalComment) {
+        resolve(false);
+        return;
+      }
+
+      if (Date.now() - started >= timeoutMs) {
+        resolve(false);
+        return;
+      }
+
+      window.setTimeout(check, 250);
+    };
+
+    window.setTimeout(check, 250);
+  });
+}
+
+document.addEventListener('submit', async (event) => {
   const form = event.target.closest?.('.comment-form');
   if (!form || pendingForms.has(form)) return;
 
@@ -30,26 +58,23 @@ document.addEventListener('submit', (event) => {
     || user.displayName
     || 'BANDtroductions Member';
 
-  window.setTimeout(async () => {
-    try {
-      // The existing comment handler clears the textarea only after Firestore
-      // successfully saves the comment. Do not notify if the save failed.
-      if (!input || input.value.trim() !== '') return;
+  try {
+    const saved = await waitForCommentSave(input, submittedComment);
+    if (!saved) return;
 
-      await addDoc(collection(db, 'notifications'), {
-        recipientId,
-        actorId: user.uid,
-        actorName,
-        type: 'comment',
-        message: `${actorName} commented on your post.`,
-        linkUrl: 'community.html',
-        read: false,
-        createdAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('Could not create comment notification:', error);
-    } finally {
-      pendingForms.delete(form);
-    }
-  }, 900);
+    await addDoc(collection(db, 'notifications'), {
+      recipientId,
+      actorId: user.uid,
+      actorName,
+      type: 'comment',
+      message: `${actorName} commented on your post.`,
+      linkUrl: 'community.html',
+      read: false,
+      createdAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Could not create comment notification:', error);
+  } finally {
+    pendingForms.delete(form);
+  }
 }, true);
