@@ -46,11 +46,11 @@
         const recipientIds=[...recipientSet].slice(0,30);
         const chunks=[];
         for(let i=0;i<recipientIds.length;i+=10)chunks.push(recipientIds.slice(i,i+10));
-        const snapshots=[];
-        const unsubs=chunks.map(ids=>{
+        const snapshots=new Array(chunks.length);
+        const unsubs=chunks.map((ids,index)=>{
           const q=ids.length===1?query(collection(db,'notifications'),where('recipientId','==',ids[0])):query(collection(db,'notifications'),where('recipientId','in',ids));
           return onSnapshot(q,snap=>{
-            snapshots.splice(chunks.indexOf(ids),1,snap);
+            snapshots[index]=snap;
             const merged=new Map();
             snapshots.filter(Boolean).forEach(s=>s.docs.forEach(d=>merged.set(d.id,{id:d.id,...d.data()})));
             items=[...merged.values()].sort((a,b)=>secondsFor(b.createdAt)-secondsFor(a.createdAt));
