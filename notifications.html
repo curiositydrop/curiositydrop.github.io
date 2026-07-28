@@ -24,14 +24,25 @@
   <script type="module">
     import { auth, db } from './firebase-dev.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { collection, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     const list=document.getElementById('notifications-list'),status=document.getElementById('notifications-status'),markAll=document.getElementById('mark-all-read');
     let currentUser=null,items=[];
     const secondsFor=t=>t?.seconds||t?.toDate?.().getTime()/1000||0;
     const formatDate=t=>!t?.toDate?'Just now':new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(t.toDate());
     function render(){list.replaceChildren();status.hidden=items.length>0;if(!items.length){status.hidden=false;status.textContent='No notifications yet.';return}items.forEach(item=>{const a=document.createElement('a');a.className=`notification-card${item.read?'':' is-unread'}`;a.href=item.linkUrl||'community.html';const title=document.createElement('strong');title.textContent=item.actorName||'BANDtroductions Member';const body=document.createElement('p');body.textContent=item.message||'New activity on BANDtroductions.';const meta=document.createElement('small');meta.textContent=formatDate(item.createdAt);a.append(title,body,meta);a.addEventListener('click',()=>{if(!item.read)updateDoc(doc(db,'notifications',item.id),{read:true,readAt:serverTimestamp()}).catch(console.error)});list.appendChild(a)})}
     markAll.addEventListener('click',async()=>{if(!currentUser)return;markAll.disabled=true;try{const batch=writeBatch(db);items.filter(x=>!x.read).forEach(x=>batch.update(doc(db,'notifications',x.id),{read:true,readAt:serverTimestamp()}));await batch.commit()}catch(e){console.error(e);status.hidden=false;status.textContent='Notifications could not be updated.'}finally{markAll.disabled=false}});
-    onAuthStateChanged(auth,user=>{currentUser=user;if(!user){location.href='login.html';return}const q=query(collection(db,'notifications'),where('recipientId','==',user.uid));onSnapshot(q,snap=>{items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>secondsFor(b.createdAt)-secondsFor(a.createdAt));render()},e=>{console.error(e);status.hidden=false;status.textContent=e.code==='permission-denied'?'Notification permissions are not enabled yet.':'Notifications could not be loaded.'})});
+    onAuthStateChanged(auth,async user=>{
+      currentUser=user;
+      if(!user){location.href='login.html';return}
+      try{
+        const profileSnap=await getDocs(query(collection(db,'profiles'),where('ownerId','==',user.uid)));
+        const recipientIds=[...new Set([user.uid,...profileSnap.docs.map(d=>d.id)])].slice(0,10);
+        const q=recipientIds.length===1
+          ? query(collection(db,'notifications'),where('recipientId','==',recipientIds[0]))
+          : query(collection(db,'notifications'),where('recipientId','in',recipientIds));
+        onSnapshot(q,snap=>{items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>secondsFor(b.createdAt)-secondsFor(a.createdAt));render()},e=>{console.error(e);status.hidden=false;status.textContent=e.code==='permission-denied'?'Notification permissions are not enabled yet.':'Notifications could not be loaded.'});
+      }catch(e){console.error(e);status.hidden=false;status.textContent=e.code==='permission-denied'?'Notification permissions are not enabled yet.':'Notifications could not be loaded.'}
+    });
   </script>
 </body>
 </html>
