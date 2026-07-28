@@ -123,6 +123,7 @@ if (window.location.pathname.endsWith('/community.html')) {
   }).catch((error) => console.error('Error loading post owner controls:', error));
 
   import('./admin-comment-controls.js?v=4').catch((error) => console.error('Error loading comment controls:', error));
+  import('./comment-notifications.js?v=1').catch((error) => console.error('Error loading comment notifications:', error));
   import('./admin-post-controls.js?v=4').catch((error) => console.error('Error loading admin post controls:', error));
   import('./community-read-more.js?v=1').catch((error) => console.error('Error loading long-post controls:', error));
   import('./community-guest-mode.js?v=5').catch((error) => console.error('Error loading community guest mode:', error));
