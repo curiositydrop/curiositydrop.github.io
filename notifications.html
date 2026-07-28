@@ -42,6 +42,8 @@
         if(isAdminEmail(user.email)){
           const adminProfiles=await getDocs(query(collection(db,'profiles'),where('isAdmin','==',true)));
           adminProfiles.docs.forEach(d=>recipientSet.add(d.id));
+          const adminPosts=await getDocs(query(collection(db,'posts'),where('authorName','==','BANDtroductions Admin')));
+          adminPosts.docs.forEach(d=>{const authorId=d.data().authorId;if(authorId)recipientSet.add(authorId)});
         }
         const recipientIds=[...recipientSet].slice(0,30);
         const chunks=[];
