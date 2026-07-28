@@ -122,7 +122,8 @@ if (window.location.pathname.endsWith('/community.html')) {
     if (composer) new MutationObserver(removeLegacyComposerAvatar).observe(composer, { childList: true, subtree: true });
   }).catch((error) => console.error('Error loading post owner controls:', error));
 
-  import('./admin-comment-controls.js?v=4').catch((error) => console.error('Error loading comment controls:', error));
+  import('./admin-comment-controls.js?v=5').catch((error) => console.error('Error loading comment controls:', error));
+  import('./community-notification-target.js?v=1').catch((error) => console.error('Error opening notification target:', error));
   import('./admin-post-controls.js?v=4').catch((error) => console.error('Error loading admin post controls:', error));
   import('./community-read-more.js?v=1').catch((error) => console.error('Error loading long-post controls:', error));
   import('./community-guest-mode.js?v=5').catch((error) => console.error('Error loading community guest mode:', error));
@@ -139,7 +140,7 @@ if (window.location.pathname.endsWith('/profile.html')) {
 }
 
 if (window.location.pathname.endsWith('/profile-setup.html')) {
-  import('./profile-image-processing.js?v=1').catch((error) => console.error('Error loading profile image processing:', error));
+  import('./profile-image-processing.js?v=2').catch((error) => console.error('Error loading profile image processing:', error));
   import('./profile-submission-flow.js?v=2').catch((error) => console.error('Error loading profile submission workflow:', error));
 }
 
@@ -166,4 +167,4 @@ if (window.location.pathname === '/' || window.location.pathname.endsWith('/inde
 import('./admin-access.js?v=3').catch((error) => console.error('Error loading account role rules:', error));
 import('./account-role-ui-fix.js?v=1').catch((error) => console.error('Error loading resilient account controls:', error));
 import('./admin-navigation.js?v=3').catch((error) => console.error('Error loading admin navigation:', error));
-import('./social-interactions.js?v=2').catch((error) => console.error('Error loading social interactions:', error));
+import('./social-interactions.js?v=3').catch((error) => console.error('Error loading social interactions:', error));
