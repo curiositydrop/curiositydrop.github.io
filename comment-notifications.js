@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-dev.js';
-import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const pendingForms = new WeakSet();
 
@@ -12,6 +12,22 @@ function profileIdFromLink(link) {
   }
 }
 
+async function resolveRecipientId(profileId) {
+  if (!profileId) return '';
+
+  try {
+    const profileSnap = await getDoc(doc(db, 'profiles', profileId));
+    if (profileSnap.exists()) {
+      const ownerId = profileSnap.data()?.ownerId;
+      if (typeof ownerId === 'string' && ownerId.trim()) return ownerId.trim();
+    }
+  } catch (error) {
+    console.error('Could not resolve comment notification recipient:', error);
+  }
+
+  return profileId;
+}
+
 function waitForCommentSave(input, originalComment, timeoutMs = 12000) {
   return new Promise((resolve) => {
     const started = Date.now();
@@ -21,8 +37,6 @@ function waitForCommentSave(input, originalComment, timeoutMs = 12000) {
         return;
       }
 
-      // If the user changed the text instead of the original handler clearing it,
-      // do not treat that as a successful save.
       if (input.value.trim() !== originalComment) {
         resolve(false);
         return;
@@ -47,11 +61,11 @@ document.addEventListener('submit', async (event) => {
   const user = auth.currentUser;
   const article = form.closest('.community-post');
   const authorLink = article?.querySelector('.community-author');
-  const recipientId = profileIdFromLink(authorLink);
+  const profileId = profileIdFromLink(authorLink);
   const input = form.querySelector('textarea');
   const submittedComment = input?.value.trim() || '';
 
-  if (!user || !recipientId || recipientId === user.uid || !submittedComment) return;
+  if (!user || !profileId || !submittedComment) return;
 
   pendingForms.add(form);
   const actorName = document.getElementById('composer-name')?.textContent?.trim()
@@ -59,6 +73,9 @@ document.addEventListener('submit', async (event) => {
     || 'BANDtroductions Member';
 
   try {
+    const recipientId = await resolveRecipientId(profileId);
+    if (!recipientId || recipientId === user.uid) return;
+
     const saved = await waitForCommentSave(input, submittedComment);
     if (!saved) return;
 
