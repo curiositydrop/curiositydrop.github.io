@@ -21,6 +21,12 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+const bootComposerAvatar = document.getElementById('composer-avatar');
+if (bootComposerAvatar && !bootComposerAvatar.querySelector('img')) {
+  bootComposerAvatar.textContent = '';
+  bootComposerAvatar.style.visibility = 'hidden';
+}
+
 let currentUser = null;
 let currentUserIsAdmin = false;
 let posts = [];
@@ -45,36 +51,46 @@ const initialsFor = (name) => {
   return cleaned.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase() || 'BT';
 };
 
+const avatarUrlFor = (profile = {}) => profile.imageUrl || profile.avatarUrl || profile.profileImageUrl || profile.photoURL || '';
+const isWelcomePost = (post = {}) => Boolean(post.systemPost || post.welcomedProfileId || String(post.id || '').startsWith('welcome_'));
+
 async function getProfile(userId) {
   if (!userId) return {};
   if (!profileCache.has(userId)) {
     profileCache.set(userId, (async () => {
+      let directMatch = null;
       try {
         const profileSnapshot = await getDoc(doc(db, 'profiles', userId));
-        if (profileSnapshot.exists()) return { id: profileSnapshot.id, ...profileSnapshot.data() };
+        if (profileSnapshot.exists()) directMatch = { id: profileSnapshot.id, ...profileSnapshot.data() };
 
         const ownedProfiles = await getDocs(query(
           collection(db, 'profiles'),
           where('ownerId', '==', userId),
-          limit(1)
+          limit(20)
         ));
-        if (!ownedProfiles.empty) {
-          const ownedProfile = ownedProfiles.docs[0];
-          return { id: ownedProfile.id, ...ownedProfile.data() };
-        }
+        const choices = ownedProfiles.docs.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }));
+        const adminWithImage = choices.find((profile) =>
+          /bandtroductions\s+admin/i.test(profile.displayName || '') && Boolean(avatarUrlFor(profile))
+        );
+        const anyWithImage = choices.find((profile) => Boolean(avatarUrlFor(profile)));
+        if (adminWithImage) return adminWithImage;
+        if (anyWithImage) return anyWithImage;
+        if (directMatch && avatarUrlFor(directMatch)) return directMatch;
+        if (directMatch) return directMatch;
+        if (choices.length) return choices[0];
 
         const userSnapshot = await getDoc(doc(db, 'users', userId));
         return userSnapshot.exists() ? userSnapshot.data() : {};
       } catch (error) {
         console.error('Could not load profile image:', error);
-        return {};
+        return directMatch || {};
       }
     })());
   }
   return profileCache.get(userId);
 }
 
-function makeAvatar(name, imageUrl = '') {
+function makeAvatar(name, imageUrl = '', hidePlaceholder = false) {
   if (imageUrl) {
     const image = document.createElement('img');
     image.className = 'community-author-avatar';
@@ -86,12 +102,11 @@ function makeAvatar(name, imageUrl = '') {
   }
   const placeholder = document.createElement('span');
   placeholder.className = 'community-author-avatar';
-  placeholder.textContent = initialsFor(name);
+  placeholder.textContent = hidePlaceholder ? '' : initialsFor(name);
+  if (hidePlaceholder) placeholder.style.visibility = 'hidden';
   placeholder.setAttribute('aria-hidden', 'true');
   return placeholder;
 }
-
-const avatarUrlFor = (profile = {}) => profile.imageUrl || profile.avatarUrl || profile.profileImageUrl || profile.photoURL || '';
 
 async function addPostAvatar(article) {
   if (article.dataset.authorAvatarReady === 'true') return;
@@ -102,7 +117,7 @@ async function addPostAvatar(article) {
   article.dataset.authorAvatarReady = 'true';
   const wrap = document.createElement('div');
   wrap.className = 'community-author-wrap';
-  const placeholder = makeAvatar(author.textContent);
+  const placeholder = makeAvatar(author.textContent, '', true);
   author.parentNode.insertBefore(wrap, author);
   wrap.append(placeholder, author);
   const profile = await getProfile(userId);
@@ -112,6 +127,7 @@ async function addPostAvatar(article) {
     placeholder.replaceWith(makeAvatar(correctName, imageUrl));
   } else if (placeholder.isConnected) {
     placeholder.textContent = initialsFor(correctName);
+    placeholder.style.visibility = '';
   }
 }
 
@@ -200,8 +216,9 @@ function addOwnerControls() {
     if (article.dataset.ownerControlsReady === 'true') return;
     const post = findPostForArticle(article);
     if (!post || !currentUser) return;
-    const isOwner = post.authorId === currentUser.uid;
-    const canDelete = isOwner || currentUserIsAdmin;
+    const welcome = isWelcomePost(post);
+    const isOwner = !welcome && post.authorId === currentUser.uid;
+    const canDelete = currentUserIsAdmin || isOwner;
     if (!isOwner && !canDelete) return;
     article.dataset.ownerControlsReady = 'true';
     const header = article.querySelector('.community-post-header');

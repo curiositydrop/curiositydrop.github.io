@@ -18,20 +18,22 @@
       <button id="login-button" class="auth-button" type="submit">Log In</button>
       <p id="login-message" class="auth-message" role="status"></p>
     </form>
+    <p class="auth-links"><button id="forgot-password" type="button" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;">Forgot Password?</button></p>
     <p class="auth-links">Need an account? <a id="signup-link" href="signup.html">Create one</a></p>
     <p class="auth-links"><a href="index.html">Continue browsing as a guest</a></p>
   </main>
   <div id="global-footer"></div>
   <script src="global.js?v=2"></script>
   <script type="module">
-    import { auth } from './firebase-dev.js';
-    import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { auth, db } from './firebase-dev.js';
+    import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
     const params = new URLSearchParams(location.search);
     const requestedReturn = params.get('returnTo') || '';
     const safeReturn = requestedReturn && !requestedReturn.startsWith('//') && !requestedReturn.includes('://')
       ? requestedReturn
-      : 'community.html';
+      : 'index.html';
 
     const signupLink = document.getElementById('signup-link');
     if (requestedReturn) signupLink.href = `signup.html?returnTo=${encodeURIComponent(safeReturn)}`;
@@ -39,17 +41,59 @@
     const form = document.getElementById('login-form');
     const button = document.getElementById('login-button');
     const message = document.getElementById('login-message');
+    const forgotPassword = document.getElementById('forgot-password');
+    const emailInput = document.getElementById('email');
+
+    forgotPassword.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        message.textContent = 'Enter your email address first, then tap Forgot Password.';
+        emailInput.focus();
+        return;
+      }
+
+      forgotPassword.disabled = true;
+      message.textContent = 'Sending password reset email...';
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        message.textContent = 'Password reset email sent. Check your inbox and spam folder.';
+      } catch (error) {
+        console.error(error);
+        message.textContent = 'The reset email could not be sent. Check the email address and try again.';
+      } finally {
+        forgotPassword.disabled = false;
+      }
+    });
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       button.disabled = true;
       message.textContent = 'Logging in...';
       try {
-        await signInWithEmailAndPassword(
+        const credential = await signInWithEmailAndPassword(
           auth,
-          document.getElementById('email').value.trim(),
+          emailInput.value.trim(),
           document.getElementById('password').value
         );
+
+        // If the member created an account but never finished their public profile,
+        // always resume onboarding before sending them into the rest of the site.
+        try {
+          const [userSnapshot, profileSnapshot] = await Promise.all([
+            getDoc(doc(db, 'users', credential.user.uid)),
+            getDoc(doc(db, 'profiles', credential.user.uid))
+          ]);
+          const userData = userSnapshot.exists() ? userSnapshot.data() : {};
+          const profileComplete = userData.profileComplete === true && profileSnapshot.exists();
+          if (!profileComplete) {
+            window.location.href = 'profile-setup.html?resume=1';
+            return;
+          }
+        } catch (profileCheckError) {
+          console.warn('Could not confirm profile completion during login.', profileCheckError);
+        }
+
         window.location.href = safeReturn;
       } catch (error) {
         console.error(error);

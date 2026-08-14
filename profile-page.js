@@ -2,7 +2,7 @@ import { auth, db } from './firebase-dev.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
-const profileId = new URLSearchParams(location.search).get('id');
+let profileId = new URLSearchParams(location.search).get('id');
 const content = document.getElementById('profile-content');
 const status = document.getElementById('profile-status');
 const editButton = document.getElementById('edit-profile');
@@ -33,6 +33,20 @@ const layouts = {
 
 function initialsFor(name) {
   return (name || '').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() || 'BT';
+}
+
+function preloadImage(url) {
+  return new Promise(resolve => {
+    if (!url) { resolve(); return; }
+    const image = new Image();
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
+    image.onload = done;
+    image.onerror = done;
+    image.src = url;
+    if (image.complete) done();
+    setTimeout(done, 2200);
+  });
 }
 
 function youtubeEmbedUrl(url) {
@@ -108,19 +122,35 @@ function renderVideo(container, url, title) {
 async function loadProfile(user) {
   signedInUser = user;
   editButton.hidden = true;
+
+  if (!profileId && user) profileId = user.uid;
   if (!profileId) {
-    status.textContent = 'No profile was selected.';
+    status.textContent = 'Sign in to view your profile.';
     return;
   }
 
   try {
     const snap = await getDoc(doc(db, 'profiles', profileId));
-    if (!snap.exists() || snap.data().published !== true) {
+    if (!snap.exists()) {
+      if (user && profileId === user.uid) {
+        // New/incomplete accounts should never land on a dead-end profile page.
+        // Send every account type (fan, band, musician, venue) to the same setup flow,
+        // which reads the account type from the user's Firestore account record.
+        location.replace('profile-setup.html?first=1');
+      } else {
+        status.textContent = 'This profile is not available.';
+      }
+      return;
+    }
+
+    const rawProfile = snap.data();
+    const isOwner = Boolean(user && (profileId === user.uid || rawProfile.ownerId === user.uid));
+    if (rawProfile.published !== true && !isOwner) {
       status.textContent = 'This profile is not available.';
       return;
     }
 
-    loadedProfile = snap.data();
+    loadedProfile = rawProfile;
     if (loadedProfile.legacyPage === 'burning-time.html') {
       loadedProfile = {
         ...burningTimeMedia,
@@ -130,6 +160,10 @@ async function loadProfile(user) {
           : burningTimeMedia.additionalMedia
       };
     }
+
+    const banner = loadedProfile.bannerImageUrl || loadedProfile.coverImageUrl || '';
+    const avatarUrl = loadedProfile.imageUrl || loadedProfile.avatarUrl || loadedProfile.photoURL || '';
+    await Promise.all([preloadImage(banner), preloadImage(avatarUrl)]);
 
     const type = loadedProfile.accountType || 'fan';
     const layout = layouts[type] || layouts.fan;
@@ -145,18 +179,20 @@ async function loadProfile(user) {
     document.getElementById('profile-support').hidden = type === 'fan';
 
     const cover = document.getElementById('profile-cover');
-    const banner = loadedProfile.bannerImageUrl || loadedProfile.coverImageUrl || '';
-    if (banner) cover.style.backgroundImage = `linear-gradient(to bottom,rgba(0,0,0,.05),rgba(0,0,0,.26)),url("${banner.replace(/"/g,'\\"')}")`;
+    cover.style.backgroundImage = banner
+      ? `linear-gradient(to bottom,rgba(0,0,0,.05),rgba(0,0,0,.26)),url("${banner.replace(/"/g,'\\"')}")`
+      : '';
 
     const avatar = document.getElementById('profile-avatar');
-    avatar.textContent = initialsFor(loadedProfile.displayName);
-    const avatarUrl = loadedProfile.imageUrl || loadedProfile.avatarUrl || loadedProfile.photoURL || '';
+    avatar.replaceChildren();
     if (avatarUrl) {
       const img = document.createElement('img');
       img.src = avatarUrl;
       img.alt = `${loadedProfile.displayName || 'Member'} profile image`;
       img.addEventListener('error', () => { avatar.textContent = initialsFor(loadedProfile.displayName); });
-      avatar.replaceChildren(img);
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = initialsFor(loadedProfile.displayName);
     }
 
     layout.badges.forEach(key => addBadge(loadedProfile[key]));
@@ -191,9 +227,12 @@ async function loadProfile(user) {
       const userSnap = await getDoc(doc(db, 'users', user.uid));
       signedInProfile = profileSnap.exists() ? profileSnap.data() : (userSnap.exists() ? userSnap.data() : {});
       shareButton.hidden = false;
-      editButton.hidden = loadedProfile.ownerId !== user.uid;
+      editButton.href = `profile-setup.html?id=${encodeURIComponent(profileId)}`;
+      editButton.textContent = 'Edit Profile';
+      editButton.hidden = !isOwner;
     }
 
+    content.dataset.assetsReady = 'true';
     status.hidden = true;
     content.hidden = false;
   } catch (error) {

@@ -4,27 +4,80 @@ import { collection, doc, getDoc, getDocs, limit, query, where } from 'https://w
 
 const avatarUrlFor = (profile = {}) => profile.imageUrl || profile.avatarUrl || profile.profileImageUrl || profile.photoURL || '';
 
+const composerAvatar = document.getElementById('composer-avatar');
+if (composerAvatar) {
+  // Do not expose BT/BA while the real composer identity is still resolving.
+  composerAvatar.textContent = '';
+  composerAvatar.style.visibility = 'hidden';
+}
+
 async function resolveComposerProfile(user) {
+  let directMatch = null;
   try {
     const direct = await getDoc(doc(db, 'profiles', user.uid));
-    if (direct.exists()) {
-      const data = direct.data();
-      if (avatarUrlFor(data)) return { id: direct.id, data };
-    }
+    if (direct.exists()) directMatch = { id: direct.id, data: direct.data() };
   } catch (error) {
     console.error('Could not load direct composer profile:', error);
   }
 
   try {
     const owned = await getDocs(query(collection(db, 'profiles'), where('ownerId', '==', user.uid), limit(20)));
-    if (owned.empty) return null;
     const choices = owned.docs.map((snapshot) => ({ id: snapshot.id, data: snapshot.data() }));
-    return choices.find(({ data }) => /bandtroductions\s+admin/i.test(data.displayName || ''))
-      || choices.find(({ data }) => Boolean(avatarUrlFor(data)))
-      || choices[0];
+
+    const adminWithImage = choices.find(({ data }) =>
+      /bandtroductions\s+admin/i.test(data.displayName || '') && Boolean(avatarUrlFor(data))
+    );
+    const anyWithImage = choices.find(({ data }) => Boolean(avatarUrlFor(data)));
+    return adminWithImage
+      || anyWithImage
+      || (directMatch && avatarUrlFor(directMatch.data) ? directMatch : null)
+      || choices.find(({ data }) => /bandtroductions\s+admin/i.test(data.displayName || ''))
+      || directMatch
+      || choices[0]
+      || null;
   } catch (error) {
-    console.error('Could not load owned composer profile:', error);
-    return null;
+    console.error('Could not load owned composer profiles:', error);
+    return directMatch;
+  }
+}
+
+function initialsFor(name) {
+  return (name || 'BT').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BT';
+}
+
+function setAvatarElement(avatar, profile, imageUrl) {
+  if (!avatar) return;
+  const wantedName = profile.displayName || 'Member';
+  avatar.style.visibility = 'hidden';
+
+  if (imageUrl) {
+    const current = avatar.matches('img') ? avatar : avatar.querySelector('img');
+    if (current?.src === imageUrl) {
+      avatar.style.visibility = '';
+      return;
+    }
+
+    if (avatar.matches('img')) {
+      avatar.src = imageUrl;
+      avatar.alt = `${wantedName} profile image`;
+      avatar.style.visibility = '';
+      return;
+    }
+
+    const image = document.createElement('img');
+    image.src = imageUrl;
+    image.alt = `${wantedName} profile image`;
+    image.className = avatar.classList.contains('community-author-avatar') ? 'community-author-avatar' : '';
+    image.addEventListener('load', () => { avatar.style.visibility = ''; }, { once: true });
+    image.addEventListener('error', () => {
+      avatar.textContent = initialsFor(wantedName);
+      avatar.style.visibility = '';
+    }, { once: true });
+    avatar.replaceChildren(image);
+    if (image.complete) avatar.style.visibility = '';
+  } else if (!avatar.matches('img')) {
+    avatar.textContent = initialsFor(wantedName);
+    avatar.style.visibility = '';
   }
 }
 
@@ -34,7 +87,7 @@ function applyComposerProfile(match, user) {
   const name = document.getElementById('composer-name');
   const type = document.getElementById('composer-type');
   const profileLink = document.getElementById('composer-profile-link');
-  if (!avatar || !name) return;
+  if (!name) return;
 
   const profile = match.data || {};
   const imageUrl = avatarUrlFor(profile);
@@ -42,24 +95,33 @@ function applyComposerProfile(match, user) {
   if (type) type.textContent = profile.accountType === 'fan' ? 'Scene Supporter' : (profile.accountType || 'Member');
   if (profileLink) profileLink.href = `profile.html?id=${encodeURIComponent(match.id)}`;
 
-  if (imageUrl) {
-    const image = document.createElement('img');
-    image.src = imageUrl;
-    image.alt = `${profile.displayName || 'Member'} profile image`;
-    image.addEventListener('error', () => {
-      avatar.textContent = (profile.displayName || 'BT').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BT';
-    });
-    avatar.replaceChildren(image);
-  }
+  setAvatarElement(avatar, profile, imageUrl);
+
+  document.querySelectorAll('.community-composer-person .community-author-avatar').forEach((secondary) => {
+    setAvatarElement(secondary, profile, imageUrl);
+  });
 }
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
   const match = await resolveComposerProfile(user);
-  if (!match) return;
+  if (!match) {
+    if (composerAvatar) composerAvatar.style.visibility = '';
+    return;
+  }
 
-  // The Community page's inline module fills the composer first. These
-  // delayed one-time passes run afterward without observing or looping.
-  setTimeout(() => applyComposerProfile(match, user), 500);
-  setTimeout(() => applyComposerProfile(match, user), 1800);
+  applyComposerProfile(match, user);
+
+  const heading = document.querySelector('.community-composer-heading');
+  if (!heading) return;
+
+  let repairing = false;
+  const observer = new MutationObserver(() => {
+    if (repairing) return;
+    repairing = true;
+    applyComposerProfile(match, user);
+    queueMicrotask(() => { repairing = false; });
+  });
+
+  observer.observe(heading, { childList: true, subtree: true, characterData: true });
 });
