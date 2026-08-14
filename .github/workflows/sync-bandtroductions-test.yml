@@ -19,21 +19,21 @@ jobs:
           path: test-site
           fetch-depth: 0
 
-      - - name: Check out BANDtroductions no-app test branch
-  uses: actions/checkout@v4
-  with:
-    repository: curiositydrop/bandtroductions
-    ref: no-app-app-test
-    path: live-site
+      - name: Check out BANDtroductions no-app test branch
+        uses: actions/checkout@v4
+        with:
+          repository: curiositydrop/bandtroductions
+          ref: no-app-app-test
+          path: live-site
 
-      - name: Replace test site with current live BANDtroductions files
+      - name: Replace test site with current BANDtroductions test branch files
         run: |
           set -euo pipefail
           test -d live-site
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
-            live-site/test-site/
+            live-site/ test-site/
 
       - name: Commit synchronized test site
         working-directory: test-site
@@ -45,5 +45,5 @@ jobs:
             echo "Test repository is already synchronized."
             exit 0
           fi
-          git commit -m "Sync test site with live BANDtroductions"
+          git commit -m "Sync test site with BANDtroductions no-app test branch"
           git push
