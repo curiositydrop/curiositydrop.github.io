@@ -4,212 +4,222 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="color-scheme" content="dark">
-  <title>BANDtroductions — Modern Homepage Preview</title>
+  <title>BANDtroductions — Homepage Preview</title>
   <link rel="stylesheet" href="home.css">
   <script src="preview.js" defer></script>
 </head>
 <body>
-  <div class="preview-bar">
-    <strong>NEW BANDtro HOMEPAGE PREVIEW</strong>
-    <span>Design only · live site untouched</span>
-  </div>
+  <div class="preview-note">BANDtro redesign preview · live site untouched</div>
 
-  <div class="site-shell">
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="BANDtroductions home">
-        <img src="https://raw.githubusercontent.com/curiositydrop/bandtroductions/preview/homepage-design-20260927/preview/homepage/assets/bandtro-logo.png" alt="">
-        <span class="brand-word">BAND<span>troductions</span></span>
+  <div class="page-shell">
+    <header class="header">
+      <a class="brand" href="#top">
+        <img src="https://raw.githubusercontent.com/curiositydrop/bandtroductions/preview/homepage-design-20260927/preview/homepage/assets/bandtro-logo.png" alt="BANDtroductions">
+        <div class="brand-copy">
+          <strong>BAND<span>troductions</span></strong>
+          <small>Independent music lives here.</small>
+        </div>
       </a>
 
-      <nav class="primary-nav" aria-label="Main navigation">
+      <nav>
         <a href="#discover">Discover</a>
-        <a href="#shows">Shows</a>
         <a href="#community">Community</a>
-        <a href="#tools">For Artists</a>
+        <a href="#artists">For Artists</a>
+        <a href="#shows">Shows</a>
         <a href="#marketplace">Buy · Sell · Trade</a>
       </nav>
 
       <div class="header-actions">
-        <button class="icon-button" aria-label="Search">⌕</button>
-        <button class="ghost-button">Log in</button>
-        <button class="solid-button">Join free</button>
+        <button class="plain">Log in</button>
+        <button class="pill dark">Join free</button>
       </div>
     </header>
 
     <main id="top">
       <section class="hero">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <p class="kicker">Independent music lives here.</p>
-          <h1>Find the bands.<br>Find the shows.<br><span>Find your scene.</span></h1>
-          <p class="hero-copy">BANDtroductions brings independent artists, musicians, venues and fans together in one music-first community.</p>
+        <div class="hero-copy">
+          <p class="eyebrow">THE MUSIC COMMUNITY BUILT FOR INDEPENDENT ARTISTS</p>
+          <h1>Get heard.<br>Get discovered.<br><span>Get connected.</span></h1>
+          <p class="lede">Music, videos, shows, merch, booking, community and professional band websites — together in one place.</p>
           <div class="hero-actions">
-            <button class="solid-button large">Explore BANDtro <span>→</span></button>
-            <button class="glass-button large">Create a free profile</button>
+            <button class="pill dark large">Explore BANDtro <span>→</span></button>
+            <button class="pill outline large">Create a free profile</button>
           </div>
-          <div class="hero-meta">
-            <span>Music</span><i></i><span>Videos</span><i></i><span>Shows</span><i></i><span>Community</span><i></i><span>Merch</span><i></i><span>Booking</span>
+          <div class="trust-row">
+            <span>For bands</span>
+            <span>For musicians</span>
+            <span>For venues</span>
+            <span>For fans</span>
+          </div>
+        </div>
+
+        <div class="hero-art">
+          <div class="hero-image"></div>
+          <div class="floating-card top-card">
+            <small>NOW DISCOVERING</small>
+            <strong>Independent music</strong>
+            <span>Across the BANDtro community</span>
+          </div>
+          <div class="floating-card bottom-card">
+            <span class="dot"></span>
+            <div>
+              <small>BANDtroductions Radio</small>
+              <strong>Always playing</strong>
+            </div>
+            <button>▶</button>
           </div>
         </div>
       </section>
 
-      <section class="quick-links" id="discover" aria-label="Explore BANDtroductions">
-        <a class="quick-card" href="#">
-          <span class="quick-image photo-1"></span>
-          <span class="quick-shade"></span>
-          <span class="quick-text"><small>DISCOVER</small><strong>Bands & Artists</strong><em>Hear something new →</em></span>
+      <section class="feature-nav" id="discover">
+        <a href="#">
+          <span class="num">01</span>
+          <div><strong>Discover Bands</strong><small>Find your next favorite artist.</small></div>
+          <em>→</em>
         </a>
-        <a class="quick-card" id="shows" href="#">
-          <span class="quick-image photo-2"></span>
-          <span class="quick-shade"></span>
-          <span class="quick-text"><small>GO OUT</small><strong>Live Shows</strong><em>See what’s happening →</em></span>
+        <a href="#" id="shows">
+          <span class="num">02</span>
+          <div><strong>Find Shows</strong><small>See what’s happening near you.</small></div>
+          <em>→</em>
         </a>
-        <a class="quick-card" href="#">
-          <span class="quick-image photo-3"></span>
-          <span class="quick-shade"></span>
-          <span class="quick-text"><small>WATCH</small><strong>Music Videos</strong><em>Enter Music Videos →</em></span>
+        <a href="#">
+          <span class="num">03</span>
+          <div><strong>Music Videos</strong><small>Watch independent artists.</small></div>
+          <em>→</em>
+        </a>
+        <a href="#community">
+          <span class="num">04</span>
+          <div><strong>Community</strong><small>Join the conversation.</small></div>
+          <em>→</em>
         </a>
       </section>
 
-      <section class="section intro-section">
-        <div class="section-label">ONE PLATFORM. THE WHOLE SCENE.</div>
-        <div class="intro-grid">
-          <div>
-            <h2>Built around independent music,<br>not around an algorithm.</h2>
-          </div>
-          <div>
-            <p>Profiles are only the beginning. BANDtro connects music, shows, video, merch, booking, radio, community and artist tools without sending people across six different platforms.</p>
-            <button class="text-link">See everything BANDtro does <span>→</span></button>
-          </div>
+      <section class="section why-section">
+        <div class="section-kicker">WHY BANDtro</div>
+        <div class="split-heading">
+          <h2>Less bouncing around.<br>More music in one place.</h2>
+          <p>BANDtroductions gives independent artists and the people who support them a connected home instead of scattering everything across a dozen different platforms.</p>
+        </div>
+
+        <div class="benefit-grid">
+          <article>
+            <span class="icon">♪</span>
+            <h3>Music + Radio</h3>
+            <p>Put your music where people are already discovering new artists.</p>
+          </article>
+          <article>
+            <span class="icon">▶</span>
+            <h3>Videos + Shows</h3>
+            <p>Promote releases, videos and live dates without sending fans elsewhere.</p>
+          </article>
+          <article>
+            <span class="icon">✦</span>
+            <h3>Community</h3>
+            <p>Connect bands, musicians, venues and fans around the scene itself.</p>
+          </article>
+          <article>
+            <span class="icon">↗</span>
+            <h3>Growth Tools</h3>
+            <p>Booking, merch, websites, custom domains and more built for artists.</p>
+          </article>
         </div>
       </section>
 
-      <section class="feature-grid">
-        <article class="feature-card feature-large">
-          <div class="feature-art radio-art"></div>
-          <div class="feature-content">
-            <p class="kicker">BANDtroductions Radio</p>
-            <h3>Independent music.<br>Always playing.</h3>
-            <p>Discover artists while you browse the platform.</p>
-            <button class="text-link">Listen now <span>→</span></button>
-          </div>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-number">01</div>
-          <div class="feature-content">
-            <p class="kicker">COMMUNITY</p>
-            <h3>Talk music with people who actually care about music.</h3>
-            <p>Posts, reactions, tagging and real connections between fans, artists and venues.</p>
-            <button class="text-link">Enter community <span>→</span></button>
-          </div>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-number">02</div>
-          <div class="feature-content">
-            <p class="kicker">LIVE MUSIC</p>
-            <h3>Shows should be easy to find.</h3>
-            <p>Artists and venues can promote upcoming dates while fans discover what’s happening nearby.</p>
-            <button class="text-link">Browse shows <span>→</span></button>
-          </div>
-        </article>
-      </section>
-
-      <section class="section community-section" id="community">
-        <div class="community-copy">
-          <p class="kicker">BANDtroductions Social</p>
-          <h2>The conversation doesn’t stop when the set ends.</h2>
-          <p>Share releases, show announcements, photos, videos and whatever is happening in your scene.</p>
-          <div class="community-actions">
-            <button class="solid-button">Join the community</button>
-            <button class="text-link">See recent posts <span>→</span></button>
-          </div>
+      <section class="dark-section" id="community">
+        <div class="dark-copy">
+          <p class="eyebrow light">BANDtroductions SOCIAL</p>
+          <h2>Your scene should feel like a community.</h2>
+          <p>Post what you’re working on, announce a show, share a release, find musicians, react, tag people and keep the conversation moving.</p>
+          <button class="pill teal large">Enter the community <span>→</span></button>
         </div>
 
-        <div class="post-stack">
+        <div class="community-preview">
           <article class="post-card">
-            <div class="post-head"><span class="avatar photo-5"></span><div><strong>Independent Artist</strong><small>Band · Sample post</small></div><span>•••</span></div>
-            <p>New single is out now. Thanks to everyone who’s been supporting the ride.</p>
-            <span class="post-image photo-1"></span>
-            <div class="post-footer"><span>🤘 Rock On</span><span>Comment</span><span>Share</span></div>
+            <div class="post-head">
+              <span class="avatar a1"></span>
+              <div><strong>Local Artist</strong><small>Band · Sample post</small></div>
+              <b>•••</b>
+            </div>
+            <p>New track is up. Appreciate everyone who’s been checking it out.</p>
+            <span class="post-photo p1"></span>
+            <div class="post-actions"><span>🤘 Rock On</span><span>Comment</span><span>Share</span></div>
           </article>
-          <article class="post-card post-back">
-            <div class="post-head"><span class="avatar photo-7"></span><div><strong>Local Venue</strong><small>Venue · Sample post</small></div><span>•••</span></div>
-            <p>Who should hit this stage next?</p>
+          <article class="mini-card">
+            <span class="avatar a2"></span>
+            <div><strong>Local Venue</strong><small>Who should play here next?</small></div>
           </article>
         </div>
       </section>
 
-      <section class="section tools-section" id="tools">
-        <div class="section-head">
-          <div><p class="kicker">FOR BANDS & ARTISTS</p><h2>More than a profile.</h2></div>
-          <p class="section-summary">Give your band a home base and let BANDtro help carry your content across the platform.</p>
+      <section class="section artist-section" id="artists">
+        <div class="section-kicker">FOR BANDS & ARTISTS</div>
+        <div class="split-heading">
+          <h2>More than a profile.<br>A real home for your band.</h2>
+          <p>Build a customizable site around the same music, videos, merch, shows and booking tools you’re already using inside BANDtro.</p>
         </div>
 
-        <div class="tool-grid">
-          <article><span>01</span><h3>Custom band websites</h3><p>Music, videos, photos, shows, booking and merch in one customizable site.</p></article>
-          <article><span>02</span><h3>Booking tools</h3><p>Let venues request dates and keep approved shows connected to your calendar.</p></article>
-          <article><span>03</span><h3>Merch Hub</h3><p>Put your store in front of the same people already discovering your music.</p></article>
-          <article><span>04</span><h3>Custom domains</h3><p>Your own band domain, connected to your BANDtro website.</p></article>
-        </div>
-
-        <div class="website-promo">
-          <div>
-            <p class="kicker">BAND WEBSITES</p>
-            <h2>Your domain.<br>Your site.<br>Your music.</h2>
+        <div class="artist-showcase">
+          <div class="mock-browser">
+            <div class="browser-top"><span></span><span></span><span></span><em>yourband.com</em></div>
+            <div class="browser-body">
+              <div class="browser-bg"></div>
+              <div class="browser-copy">
+                <small>YOUR BAND</small>
+                <strong>Own your space.</strong>
+                <span>Music · Shows · Booking · Merch</span>
+              </div>
+            </div>
           </div>
-          <div class="promo-details">
-            <p>Professional band websites built into the same platform already handling your music, shows, merch and booking.</p>
-            <strong>$15/month</strong>
-            <small>Free profiles remain available.</small>
-            <button class="solid-button">Explore band websites <span>→</span></button>
+
+          <div class="artist-points">
+            <div><span>01</span><strong>Custom band website</strong><small>Professional site connected to your BANDtro profile.</small></div>
+            <div><span>02</span><strong>Custom domain</strong><small>Use your own domain and point it to your band site.</small></div>
+            <div><span>03</span><strong>Booking + calendar</strong><small>Let venues request dates and keep shows organized.</small></div>
+            <div><span>04</span><strong>Merch + promotion</strong><small>Bring your store and releases into the same ecosystem.</small></div>
+
+            <div class="pricing">
+              <div><small>Band website</small><strong>$15/month</strong></div>
+              <button class="pill dark">See band websites →</button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="section role-strip">
-        <p class="kicker">WHO BANDtro IS FOR</p>
-        <div class="roles">
-          <a href="#"><span>01</span><strong>Bands</strong><em>Build your audience →</em></a>
-          <a href="#"><span>02</span><strong>Musicians</strong><em>Find your people →</em></a>
-          <a href="#"><span>03</span><strong>Venues</strong><em>Fill your room →</em></a>
-          <a href="#"><span>04</span><strong>Fans</strong><em>Discover more →</em></a>
+      <section class="scene-strip">
+        <div>
+          <small>BUILT FOR THE WHOLE SCENE</small>
+          <h2>Bands. Musicians. Venues. Fans.</h2>
         </div>
+        <button class="pill outline-dark">Explore BANDtro →</button>
       </section>
 
       <section class="final-cta">
-        <p class="kicker">THE NEXT BAND YOU LOVE IS OUT THERE.</p>
-        <h2>Go find them.</h2>
-        <button class="solid-button large">Explore BANDtro <span>→</span></button>
+        <p class="eyebrow">INDEPENDENT MUSIC DESERVES MORE ROOM TO GROW.</p>
+        <h2>Come be part of it.</h2>
+        <button class="pill teal large">Join BANDtro free <span>→</span></button>
       </section>
     </main>
 
     <footer class="footer">
-      <div>
-        <a class="brand footer-brand" href="#top"><img src="https://raw.githubusercontent.com/curiositydrop/bandtroductions/preview/homepage-design-20260927/preview/homepage/assets/bandtro-logo.png" alt=""><span class="brand-word">BAND<span>troductions</span></span></a>
-        <p>The social platform for local music. Everywhere.</p>
-      </div>
-      <div class="footer-links">
-        <a href="#">About</a><a href="#">Contact</a><a href="#">Sponsors</a><a href="#">Terms</a><a href="#">Privacy</a>
-      </div>
-      <div class="footer-tag">Support the scene.<br><strong>Keep music alive.</strong></div>
+      <a class="brand" href="#top">
+        <img src="https://raw.githubusercontent.com/curiositydrop/bandtroductions/preview/homepage-design-20260927/preview/homepage/assets/bandtro-logo.png" alt="">
+        <div class="brand-copy"><strong>BAND<span>troductions</span></strong></div>
+      </a>
+      <div class="footer-links"><a href="#">About</a><a href="#">Contact</a><a href="#">Sponsors</a><a href="#">Terms</a><a href="#">Privacy</a></div>
+      <p>Support the scene. Keep music alive.</p>
     </footer>
 
-    <section class="player" aria-label="Radio player preview">
-      <div class="now-playing">
+    <section class="player" aria-label="BANDtroductions Radio preview">
+      <div class="track-info">
         <img src="https://raw.githubusercontent.com/curiositydrop/bandtroductions/preview/homepage-design-20260927/preview/homepage/assets/bandtro-logo.png" alt="">
-        <div><small>NOW PLAYING</small><strong>BANDtroductions Radio</strong><span>Independent music · Player preview</span></div>
+        <div><small>BANDtroductions Radio</small><strong>Independent music · always playing</strong></div>
       </div>
-      <div class="player-center">
-        <div class="controls"><button>◀</button><button class="play">▶</button><button>▶</button></div>
-        <div class="progress"><i></i></div>
-      </div>
-      <div class="player-right"><button>♡</button><span>♪</span><div class="volume"><i></i></div><button>☰</button></div>
+      <div class="player-controls"><button>◀</button><button class="play">▶</button><button>▶</button></div>
+      <div class="track-line"><i></i></div>
+      <button class="queue">☰</button>
     </section>
   </div>
 
-  <div id="preview-toast" role="status" aria-live="polite" hidden>Preview only — controls are intentionally not connected.</div>
+  <div id="preview-toast" role="status" aria-live="polite" hidden>Preview only — this control is not connected yet.</div>
 </body>
 </html>
