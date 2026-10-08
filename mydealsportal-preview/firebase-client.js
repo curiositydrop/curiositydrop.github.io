@@ -97,8 +97,13 @@ export async function getDealById(id){
   return snap.exists()?{id:snap.id,...snap.data()}:null;
 }
 
+export async function getBusinessById(id){
+  const snap=await getDoc(doc(db,"businesses",id));
+  return snap.exists()?{id:snap.id,...snap.data()}:null;
+}
+
 export async function getBusinessByName(name){
-  const q=query(collection(db,"businesses"),where("name","==",name));
+  const q=query(collection(db,"businesses"),where("name","==",name),where("status","==","active"));
   const snap=await getDocs(q);
   if(snap.empty) return null;
   const d=snap.docs[0];
@@ -106,7 +111,7 @@ export async function getBusinessByName(name){
 }
 
 export async function getBusinessBySlug(slug){
-  const q=query(collection(db,"businesses"),where("slug","==",slug));
+  const q=query(collection(db,"businesses"),where("slug","==",slug),where("status","==","active"));
   const snap=await getDocs(q);
   if(snap.empty) return null;
   const d=snap.docs[0];
