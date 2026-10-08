@@ -2,12 +2,99 @@
 import {waitForUser,getMyBusiness,getMyDeals,saveDeal,setDealActive,removeDeal,logoutBusiness} from "./firebase-client.js";
 document.getElementById("nav").innerHTML=nav();document.getElementById("footer").innerHTML=footer();
 let editing=null,biz=null,deals=[];
-const user=await waitForUser();if(!user){location.href="login.html";throw new Error("not signed in")}
-biz=await getMyBusiness(user.uid);if(!biz){loading.innerHTML='Business profile not found.';throw new Error("business missing")}
-loading.style.display="none";portal.style.display="grid";bizInfo.innerHTML='<b>'+esc(biz.name)+'</b><div class="tiny">'+esc(user.email)+' · '+esc(biz.city||"")+' '+esc(biz.zip||"")+'</div>'+(biz.phone?'<div class="tiny">'+esc(biz.phone)+'</div>':'')+(biz.website?'<div class="tiny">'+esc(biz.website)+'</div>':'');
-pCategory.value=biz.category||"Home Services";pZip.value=biz.zip||"";pCity.value=biz.city||"";
-async function refresh(){deals=await getMyDeals(user.uid);businessDeals.innerHTML=deals.length?deals.map(d=>'<div class="dealrow"><div class="status">'+(d.active===false?'PAUSED':'ACTIVE')+'</div><h4>'+esc(d.title)+'</h4><div class="tiny">'+esc(d.category)+' · '+esc(d.zip)+'</div><div class="actions"><button class="btn btn-soft" data-edit="'+d.id+'">Edit</button><button class="btn btn-ghost" data-toggle="'+d.id+'">'+(d.active===false?'Reactivate':'Pause')+'</button><button class="btn btn-danger" data-delete="'+d.id+'">Delete</button>'+(d.active===false?'':'<a class="btn btn-ghost" href="deal.html?id='+encodeURIComponent(d.id)+'">View Live</a>')+'</div></div>').join(""):'<p class="tiny">No deals yet. Add your first one.</p>'}
-businessDeals.onclick=async e=>{const id=e.target.dataset.edit||e.target.dataset.toggle||e.target.dataset.delete;if(!id)return;const d=deals.find(x=>x.id===id);if(e.target.dataset.edit){editing=id;formTitle.textContent="Edit deal";pTitle.value=d.title;pCategory.value=d.category;pZip.value=d.zip;pCity.value=d.city;pPrice.value=d.price;pDescription.value=d.description;pTerms.value=d.terms}else if(e.target.dataset.toggle){await setDealActive(id,d.active===false);await refresh()}else if(e.target.dataset.delete){if(confirm("Delete this deal?")){await removeDeal(id);await refresh()}}};
-function clearForm(){editing=null;formTitle.textContent="Add a deal";pTitle.value="";pCategory.value=biz.category||"Home Services";pZip.value=biz.zip||"";pCity.value=biz.city||"";pPrice.value="";pDescription.value="";pTerms.value=""}
-save.onclick=async()=>{if(!pTitle.value.trim()||!pZip.value.trim())return alert("Add a deal title and ZIP code.");save.disabled=true;msg.textContent="Saving...";const old=editing?deals.find(x=>x.id===editing):null;try{await saveDeal(user.uid,biz,{title:pTitle.value.trim(),zip:pZip.value.trim(),city:pCity.value.trim()||"Local area",category:pCategory.value,price:pPrice.value.trim()||"Special offer",description:pDescription.value.trim()||"Local business deal.",terms:pTerms.value.trim()||"See business for details.",active:old?old.active!==false:true},editing);clearForm();await refresh();msg.textContent="Saved."}catch(e){msg.textContent=e.message||"Could not save."}save.disabled=false};clear.onclick=clearForm;logout.onclick=async()=>{await logoutBusiness();location.href="login.html"};await refresh();
+const loadingEl=document.getElementById("loading");
+const portalEl=document.getElementById("portal");
+const bizInfoEl=document.getElementById("bizInfo");
+const businessDealsEl=document.getElementById("businessDeals");
+const formTitleEl=document.getElementById("formTitle");
+const pTitleEl=document.getElementById("pTitle");
+const pCategoryEl=document.getElementById("pCategory");
+const pZipEl=document.getElementById("pZip");
+const pCityEl=document.getElementById("pCity");
+const pPriceEl=document.getElementById("pPrice");
+const pDescriptionEl=document.getElementById("pDescription");
+const pTermsEl=document.getElementById("pTerms");
+const saveBtn=document.getElementById("save");
+const clearBtn=document.getElementById("clear");
+const logoutBtn=document.getElementById("logout");
+const msgEl=document.getElementById("msg");
+
+const user=await waitForUser();
+if(!user){location.href="login.html";throw new Error("not signed in")}
+biz=await getMyBusiness(user.uid);
+if(!biz){loadingEl.innerHTML='Business profile not found.';throw new Error("business missing")}
+loadingEl.style.display="none";
+portalEl.style.display="grid";
+bizInfoEl.innerHTML='<b>'+esc(biz.name)+'</b><div class="tiny">'+esc(user.email)+' · '+esc(biz.city||"")+' '+esc(biz.zip||"")+'</div>'+(biz.phone?'<div class="tiny">'+esc(biz.phone)+'</div>':'')+(biz.website?'<div class="tiny">'+esc(biz.website)+'</div>':'');
+pCategoryEl.value=biz.category||"Home Services";
+pZipEl.value=biz.zip||"";
+pCityEl.value=biz.city||"";
+
+async function refresh(){
+  deals=await getMyDeals(user.uid);
+  businessDealsEl.innerHTML=deals.length?deals.map(d=>'<div class="dealrow"><div class="status">'+(d.active===false?'PAUSED':'ACTIVE')+'</div><h4>'+esc(d.title)+'</h4><div class="tiny">'+esc(d.category)+' · '+esc(d.zip)+'</div><div class="actions"><button class="btn btn-soft" data-edit="'+d.id+'">Edit</button><button class="btn btn-ghost" data-toggle="'+d.id+'">'+(d.active===false?'Reactivate':'Pause')+'</button><button class="btn btn-danger" data-delete="'+d.id+'">Delete</button>'+(d.active===false?'':'<a class="btn btn-ghost" href="deal.html?id='+encodeURIComponent(d.id)+'">View Live</a>')+'</div></div>').join(""):'<p class="tiny">No deals yet. Add your first one.</p>';
+}
+
+businessDealsEl.addEventListener("click",async e=>{
+  const id=e.target.dataset.edit||e.target.dataset.toggle||e.target.dataset.delete;
+  if(!id)return;
+  const d=deals.find(x=>x.id===id);
+  if(e.target.dataset.edit){
+    editing=id;
+    formTitleEl.textContent="Edit deal";
+    pTitleEl.value=d.title||"";
+    pCategoryEl.value=d.category||"Home Services";
+    pZipEl.value=d.zip||"";
+    pCityEl.value=d.city||"";
+    pPriceEl.value=d.price||"";
+    pDescriptionEl.value=d.description||"";
+    pTermsEl.value=d.terms||"";
+  }else if(e.target.dataset.toggle){
+    await setDealActive(id,d.active===false);
+    await refresh();
+  }else if(e.target.dataset.delete){
+    if(confirm("Delete this deal?")){await removeDeal(id);await refresh()}
+  }
+});
+
+function clearForm(){
+  editing=null;
+  formTitleEl.textContent="Add a deal";
+  pTitleEl.value="";
+  pCategoryEl.value=biz.category||"Home Services";
+  pZipEl.value=biz.zip||"";
+  pCityEl.value=biz.city||"";
+  pPriceEl.value="";
+  pDescriptionEl.value="";
+  pTermsEl.value="";
+}
+
+saveBtn.addEventListener("click",async()=>{
+  if(!pTitleEl.value.trim()||!pZipEl.value.trim())return alert("Add a deal title and ZIP code.");
+  saveBtn.disabled=true;
+  msgEl.textContent="Saving...";
+  const old=editing?deals.find(x=>x.id===editing):null;
+  try{
+    await saveDeal(user.uid,biz,{
+      title:pTitleEl.value.trim(),
+      zip:pZipEl.value.trim(),
+      city:pCityEl.value.trim()||"Local area",
+      category:pCategoryEl.value,
+      price:pPriceEl.value.trim()||"Special offer",
+      description:pDescriptionEl.value.trim()||"Local business deal.",
+      terms:pTermsEl.value.trim()||"See business for details.",
+      active:old?old.active!==false:true
+    },editing);
+    clearForm();
+    await refresh();
+    msgEl.textContent="Saved — your deal is live.";
+  }catch(e){
+    console.error(e);
+    msgEl.textContent=(e&&e.message)?e.message:"Could not save.";
+  }
+  saveBtn.disabled=false;
+});
+clearBtn.addEventListener("click",clearForm);
+logoutBtn.addEventListener("click",async()=>{await logoutBusiness();location.href="login.html"});
+await refresh();
 </script></body></html>
