@@ -10,7 +10,7 @@ loginBtn.addEventListener("click",async()=>{
   statusEl.textContent="Signing in...";
   loginBtn.disabled=true;
   try{
-    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Login timed out after 12 seconds.")),12000));
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Login timed out after 20 seconds.")),20000));
     await Promise.race([loginBusiness(emailEl.value.trim(),pwEl.value),timeout]);
     statusEl.textContent="Signed in. Opening dashboard...";
     location.href="dashboard.html";
