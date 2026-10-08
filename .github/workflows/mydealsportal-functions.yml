@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Authenticate for Firebase (service account stored in GitHub Secrets)
+      - name: Authenticate to Google Cloud (keyless GitHub OIDC)
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: 'projects/423834035461/locations/global/workloadIdentityPools/mydealsportal-github-deploy/providers/mydealsportal-github'
