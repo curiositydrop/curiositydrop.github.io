@@ -1,0 +1,30 @@
+name: MyDealsPortal Firebase Functions (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate for Firebase (service account stored in GitHub Secrets)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.MYDEALSPORTAL_FIREBASE_SERVICE_ACCOUNT }}'
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+      - name: Install backend dependencies
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund
+      - name: Validate JavaScript
+        working-directory: mydealsportal-backend
+        run: npm run check
+      - name: Deploy only MyDealsPortal Functions
+        run: firebase deploy --project mydealsportal --only functions:mydealsportal --non-interactive
