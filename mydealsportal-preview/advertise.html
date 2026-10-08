@@ -1,1 +1,43 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Advertise | MyDealsPortal</title><link rel="stylesheet" href="styles.css"></head><body><div id="nav"></div><section class="section"><div class="wrap"><div class="detail"><div><div class="eyebrow">Advertise your business</div><h1 style="font-size:3rem">Founding 100: $44.99/month, locked in.</h1><p class="sub">First 100 paid, activated businesses pay month 1, get months 2 & 3 free, then stay at $44.99/month while continuously subscribed. Business #101 onward is $49.99/month with month 2 free.</p><div class="benefits" style="grid-template-columns:1fr"><div class="card"><b>What you get</b><p>Business profile, unlimited active deals, keyword/ZIP/category discovery, individual deal pages, and a self-serve business portal.</p></div></div></div><div class="panel"><h3>Create your business account</h3><div class="formgrid"><div class="full"><label class="label">Business name</label><input id="name"></div><div><label class="label">Email</label><input id="email" type="email"></div><div><label class="label">Password</label><input id="password" type="password" minlength="6" placeholder="At least 6 characters"></div><div><label class="label">Phone</label><input id="phone"></div><div><label class="label">Website</label><input id="website" placeholder="https://..."></div><div><label class="label">ZIP code</label><input id="zip"></div><div><label class="label">City, State</label><input id="city"></div><div class="full"><label class="label">Category</label><select id="cat"><option>Home Services</option><option>Restaurants</option><option>Automotive</option><option>Health & Beauty</option><option>Retail</option></select></div></div><div class="actions"><button class="btn btn-primary" id="go">Create Account</button></div><p id="status" class="tiny"></p><p class="tiny">Firebase account creation is live. Stripe Checkout will be connected next.</p><p class="tiny">By continuing, advertisers agree to the <a href="advertiser-terms.html"><u>Advertiser Terms</u></a>.</p></div></div></div></section><div id="footer"></div><script src="app.js"></script><script type="module">import {registerBusiness} from "./firebase-client.js";document.getElementById("nav").innerHTML=nav();document.getElementById("footer").innerHTML=footer();go.onclick=async()=>{status.textContent="";if(!name.value.trim()||!email.value.trim()||!password.value||!zip.value.trim())return alert("Enter business name, email, password, and ZIP code.");go.disabled=true;status.textContent="Creating your account...";try{await registerBusiness({name:name.value.trim(),email:email.value.trim(),password:password.value,phone:phone.value.trim(),website:website.value.trim(),zip:zip.value.trim(),city:city.value.trim(),category:cat.value});location.href="dashboard.html"}catch(e){status.textContent=e.message||"Could not create account.";go.disabled=false}}</script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Advertise | MyDealsPortal</title><link rel="stylesheet" href="styles.css"></head><body><div id="nav"></div><section class="section"><div class="wrap"><div class="detail"><div><div class="eyebrow">Advertise your business</div><h1 style="font-size:3rem">Founding 100: $44.99/month, locked in.</h1><p class="sub">First 100 paid, activated businesses pay month 1, get months 2 & 3 free, then stay at $44.99/month while continuously subscribed. Business #101 onward is $49.99/month with month 2 free.</p><div class="benefits" style="grid-template-columns:1fr"><div class="card"><b>What you get</b><p>Business profile, unlimited active deals, keyword/ZIP/category discovery, individual deal pages, and a self-serve business portal.</p></div></div></div><div class="panel"><h3>Create your business account</h3><div class="formgrid"><div class="full"><label class="label">Business name</label><input id="name"></div><div><label class="label">Email</label><input id="email" type="email"></div><div><label class="label">Password</label><input id="password" type="password" minlength="6" placeholder="At least 6 characters"></div><div><label class="label">Phone</label><input id="phone"></div><div><label class="label">Website</label><input id="website" placeholder="https://..."></div><div><label class="label">ZIP code</label><input id="zip"></div><div><label class="label">City, State</label><input id="city"></div><div class="full"><label class="label">Category</label><select id="cat"><option>Home Services</option><option>Restaurants</option><option>Automotive</option><option>Health & Beauty</option><option>Retail</option></select></div></div><div class="actions"><button class="btn btn-primary" id="go">Create Account</button></div><p id="status" class="tiny"></p><p class="tiny">Firebase account creation is live. Stripe Checkout will be connected next.</p><p class="tiny">By continuing, advertisers agree to the <a href="advertiser-terms.html"><u>Advertiser Terms</u></a>.</p></div></div></div></section><div id="footer"></div><script src="app.js"></script><script type="module">
+import {registerBusiness} from "./firebase-client.js";
+document.getElementById("nav").innerHTML=nav();
+document.getElementById("footer").innerHTML=footer();
+
+const btn=document.getElementById("go");
+const statusEl=document.getElementById("status");
+const nameEl=document.getElementById("name");
+const emailEl=document.getElementById("email");
+const passwordEl=document.getElementById("password");
+const phoneEl=document.getElementById("phone");
+const websiteEl=document.getElementById("website");
+const zipEl=document.getElementById("zip");
+const cityEl=document.getElementById("city");
+const catEl=document.getElementById("cat");
+
+btn.addEventListener("click",async()=>{
+  statusEl.textContent="";
+  if(!nameEl.value.trim()||!emailEl.value.trim()||!passwordEl.value||!zipEl.value.trim()){
+    alert("Enter business name, email, password, and ZIP code.");
+    return;
+  }
+  btn.disabled=true;
+  statusEl.textContent="Creating your account...";
+  try{
+    await registerBusiness({
+      name:nameEl.value.trim(),
+      email:emailEl.value.trim(),
+      password:passwordEl.value,
+      phone:phoneEl.value.trim(),
+      website:websiteEl.value.trim(),
+      zip:zipEl.value.trim(),
+      city:cityEl.value.trim(),
+      category:catEl.value
+    });
+    location.href="dashboard.html";
+  }catch(e){
+    console.error(e);
+    statusEl.textContent=(e && e.message)?e.message:"Could not create account.";
+    btn.disabled=false;
+  }
+});
+</script></body></html>
