@@ -2,6 +2,15 @@ name: MyDealsPortal Firebase Functions (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Verification only (safe) or deploy functions'
+        type: choice
+        required: true
+        default: verify
+        options:
+          - verify
+          - deploy
 
 permissions:
   contents: read
@@ -28,5 +37,8 @@ jobs:
       - name: Validate JavaScript
         working-directory: mydealsportal-backend
         run: npm run check
+      - name: Verify Google Cloud authentication
+        run: gcloud auth print-access-token >/dev/null
       - name: Deploy only MyDealsPortal Functions
+        if: ${{ inputs.mode == 'deploy' }}
         run: firebase deploy --project mydealsportal --only functions:mydealsportal --non-interactive
