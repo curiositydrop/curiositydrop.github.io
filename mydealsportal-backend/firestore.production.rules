@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(data) { return signedIn() && data.ownerUid == request.auth.uid; }
+    function isActive(data) {
+      return data.status == "active" && data.subscriptionStatus == "active";
+    }
+
+    match /users/{uid} {
+      allow create: if signedIn() && uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'role', 'createdAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'business';
+      allow read: if signedIn() && uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /businesses/{businessId} {
+      allow get: if isActive(resource.data) || owner(resource.data);
+      allow list: if isActive(resource.data);
+      // Registration will instead be completed by a trusted backend.
+      allow create, delete: if false;
+      allow update: if owner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'slug', 'phone', 'website', 'zip', 'city', 'category', 'updatedAt'
+        ])
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    match /deals/{dealId} {
+      allow get: if (resource.data.active == true
+          && exists(/databases/$(database)/documents/businesses/$(resource.data.businessId))
+          && isActive(get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data))
+        || owner(resource.data);
+      allow list: if resource.data.active == true
+        && exists(/databases/$(database)/documents/businesses/$(resource.data.businessId))
+        && isActive(get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data);
+      // Server-side endpoints should handle creation and subscription checks.
+      allow create, update, delete: if false;
+    }
+  }
+}
