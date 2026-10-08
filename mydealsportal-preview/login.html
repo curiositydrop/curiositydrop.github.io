@@ -10,11 +10,14 @@ loginBtn.addEventListener("click",async()=>{
   statusEl.textContent="Signing in...";
   loginBtn.disabled=true;
   try{
-    await loginBusiness(emailEl.value.trim(),pwEl.value);
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Login timed out after 12 seconds.")),12000));
+    await Promise.race([loginBusiness(emailEl.value.trim(),pwEl.value),timeout]);
+    statusEl.textContent="Signed in. Opening dashboard...";
     location.href="dashboard.html";
   }catch(e){
     console.error(e);
-    statusEl.textContent="Login failed. Check your email and password.";
+    const code=e && e.code ? e.code : "";
+    statusEl.textContent=code ? ("Login failed: "+code) : (e.message||"Login failed.");
     loginBtn.disabled=false;
   }
 });
