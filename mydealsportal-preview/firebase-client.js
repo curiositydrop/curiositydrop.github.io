@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, getCountFromServer, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB206HdEqEIgaBLob1EWpR7GNUG1DQAyxM",
@@ -119,9 +119,3 @@ export async function getBusinessBySlug(slug){
 }
 
 
-export async function getLaunchSpotsRemaining(){
-  const q=query(collection(db,"businesses"),where("status","==","active"));
-  const snap=await getCountFromServer(q);
-  const used=snap.data().count||0;
-  return Math.max(0,100-used);
-}
