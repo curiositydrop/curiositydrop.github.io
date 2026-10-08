@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy:
@@ -17,7 +18,8 @@ jobs:
       - name: Authenticate for Firebase (service account stored in GitHub Secrets)
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.MYDEALSPORTAL_FIREBASE_SERVICE_ACCOUNT }}'
+          workload_identity_provider: 'projects/423834035461/locations/global/workloadIdentityPools/mydealsportal-github-deploy/providers/mydealsportal-github'
+          service_account: 'mydealsportal-github-deploy@mydealsportal.iam.gserviceaccount.com'
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
       - name: Install backend dependencies
