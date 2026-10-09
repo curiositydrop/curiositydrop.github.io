@@ -2,6 +2,7 @@
 // webhook until the complete billing lifecycle is reviewed and tested.
 import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
+import {planFromKey} from "./billing-policy.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
  if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list ||
@@ -24,6 +25,12 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
  if(!["founding","standard"].includes(subscription.metadata.plan) ||
     (business.checkoutPlan && business.checkoutPlan!==subscription.metadata.plan))
    throw new Error("Subscription plan mismatch");
+ // Subscription metadata alone is not evidence the correct price was sold.
+ const expectedPrice=planFromKey(subscription.metadata.plan).priceId;
+ const items=subscription.items?.data;
+ if(!Array.isArray(items) || items.length!==1 ||
+    items[0].price?.id!==expectedPrice || items[0].quantity!==1)
+   throw new Error("Subscription price mismatch");
  // An administrative hold cannot be overridden by a Stripe payment.
  const businessSuspended=business.billingSuspended===true || business.suspended===true;
  // Fail closed on incomplete invoice history; do not guess if the first
