@@ -4,7 +4,7 @@ import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
- if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.refunds?.list ||
+ if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list ||
     !/^sub_[A-Za-z0-9]+$/.test(subscriptionId||"") ||
     !Number.isSafeInteger(nowSeconds)||nowSeconds<0)
    throw new Error("Verified Stripe subscription context required");
@@ -36,7 +36,16 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
  const latest=[...invoices].sort((a,b)=>b.created-a.created)[0];
  // A refund of the initial charge must revoke the paid-first entitlement.
  // Partial refunds are conservatively treated as disputed until reviewed.
- const paymentIntent=typeof initial.payment_intent==="string" ? initial.payment_intent : initial.payment_intent?.id;
+ const paidInvoice=await stripe.invoices.retrieve(initial.id,{expand:["payments.data.payment.payment_intent"]});
+ if(paidInvoice.id!==initial.id)throw new Error("Initial invoice retrieval mismatch");
+ const paymentRecords=paidInvoice.payments?.data;
+ if(!Array.isArray(paymentRecords) || paidInvoice.payments.has_more)
+   throw new Error("Complete invoice payment records required");
+ const settled=paymentRecords.filter(p=>p.status==="paid" || p.status==="succeeded");
+ if(settled.length!==1)throw new Error("Single verified initial payment required");
+ const payment=settled[0].payment;
+ const rawIntent=payment?.payment_intent;
+ const paymentIntent=typeof rawIntent==="string"?rawIntent:rawIntent?.id;
  if(!paymentIntent)throw new Error("Initial payment intent required for refund verification");
  const refunds=await stripe.refunds.list({payment_intent:paymentIntent,limit:100});
  if(!Array.isArray(refunds.data)||refunds.has_more)throw new Error("Refund history incomplete");
