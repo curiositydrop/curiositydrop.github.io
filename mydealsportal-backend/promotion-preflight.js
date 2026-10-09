@@ -6,7 +6,7 @@ export function preparePromotionSchedule({subscription,planKey,initialInvoicePai
      subscription.status!=="active" || subscription.schedule ||
      !Number.isSafeInteger(nowSeconds) || nowSeconds<0 ||
      !Number.isSafeInteger(subscription.current_period_end) ||
-     subscription.current_period_end<=nowSeconds)
+     (subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end)<=nowSeconds)
   throw new Error("Subscription not eligible for schedule creation");
  const item=subscription.items?.data;
  if(!Array.isArray(item) || item.length!==1 || item[0].quantity!==1 ||
@@ -16,6 +16,6 @@ export function preparePromotionSchedule({subscription,planKey,initialInvoicePai
   throw new Error("Subscription plan mismatch");
  return buildPromotionPhases({
    planKey,priceId:item[0].price.id,initialInvoicePaid,
-   firstPeriodEnd:subscription.current_period_end
+   firstPeriodEnd:subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end
  });
 }
