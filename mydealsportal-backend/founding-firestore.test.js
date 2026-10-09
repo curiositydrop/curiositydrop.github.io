@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {reserveFoundingSlot} from "./founding-firestore.js";
-function setup({confirmed=0,reserved=0,existing=null,ownerUid="u1"}={}){
+function setup({confirmed=0,reserved=0,existing=null,ownerUid="u1",nextSlot=99,freeSlots=[]}={}){
  const writes=[], refs={};
  const db={collection(name){return {doc(id){return refs[name]??=( {name,id} );}}},runTransaction(fn){return fn({
- get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({confirmed,reserved})}:
+ get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({confirmed,reserved,nextSlot,freeSlots})}:
  ref.name==="foundingReservations"?{exists:!!existing,data:()=>existing}:
  {exists:true,data:()=>({ownerUid})},
  set:(ref,value)=>writes.push({name:ref.name,value})
@@ -34,4 +34,17 @@ test("expired holds are blocked until cleanup",async()=>{
 test("ownership mismatch rejects reservation",async()=>{
  const {db}=setup({ownerUid:"other"});
  await assert.rejects(reserveFoundingSlot({db,uid:"u1",nowSeconds:100}));
+});
+
+test("reuses only explicitly released slots, not confirmed slot numbers",async()=>{
+ const {db,writes}=setup({confirmed:80,reserved:0,nextSlot:100,freeSlots:[12]});
+ const result=await reserveFoundingSlot({db,uid:"u1",nowSeconds:100});
+ assert.equal(result.slot,12);
+ assert.equal(writes[0].value.nextSlot,100);
+ assert.deepEqual(writes[0].value.freeSlots,[]);
+});
+test("never creates a duplicate number when all slot numbers were used",async()=>{
+ const {db,writes}=setup({confirmed:99,reserved:0,nextSlot:101,freeSlots:[]});
+ assert.equal((await reserveFoundingSlot({db,uid:"u1",nowSeconds:100})).status,"standard");
+ assert.equal(writes.length,0);
 });
