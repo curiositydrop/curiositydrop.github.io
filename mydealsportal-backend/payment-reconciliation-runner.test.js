@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {reconcilePaymentEvent} from "./payment-reconciliation-runner.js";
-const subscription={id:"sub_1",livemode:true,metadata:{project:"mydealsportal",firebaseUid:"u1",plan:"standard"},customer:"cus_1",status:"active",current_period_end:2000};
+const subscription={id:"sub_1",livemode:true,metadata:{project:"mydealsportal",firebaseUid:"u1",plan:"standard"},customer:"cus_1",status:"active",items:{data:[{price:{id:"price_1UOVlJIHJWXNHkKxDCIpogsu"},quantity:1}]},current_period_end:2000};
 const initial={id:"in_1",subscription:"sub_1",billing_reason:"subscription_create",status:"paid",amount_paid:4499,payment_intent:"pi_123",created:1};
 const latest={id:"in_2",subscription:"sub_1",billing_reason:"subscription_cycle",status:"paid",amount_paid:0,created:2};
 function setup({history={data:[latest,initial],has_more:false},sub=subscription,suspended=false,customer="cus_1",refunds=[]}={}){
@@ -70,4 +70,10 @@ test("unpaid invoice does not require PaymentIntent or refund history",async()=>
  args.stripe.invoices.retrieve=async()=>{throw Error("No payment should be looked up");};
  await reconcilePaymentEvent(args);
  assert.equal(writes[0].publishingEnabled,false);
+});
+
+test("forged plan metadata with wrong Stripe price cannot activate",async()=>{
+ const {args,writes}=setup({sub:{...subscription,items:{data:[{price:{id:"price_wrong"},quantity:1}]}}});
+ await assert.rejects(reconcilePaymentEvent(args),/price mismatch/);
+ assert.equal(writes.length,0);
 });
