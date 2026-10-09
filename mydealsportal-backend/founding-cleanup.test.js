@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {releaseExpiredFoundingHold} from "./founding-cleanup.js";
-function setup({hold={uid:"u1",status:"reserved",expiresAt:100},reserved=1,nextSlot=2,freeSlots=[]}={}){
+function setup({hold={uid:"u1",status:"reserved",slot:1,expiresAt:100},reserved=1,nextSlot=2,freeSlots=[]}={}){
  const writes=[], refs={};
  const db={collection(name){return {doc(){return refs[name]??={name};}}},runTransaction(fn){return fn({
   get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({reserved,nextSlot,freeSlots})}:{exists:!!hold,data:()=>hold},
