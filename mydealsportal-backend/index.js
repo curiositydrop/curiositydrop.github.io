@@ -128,3 +128,46 @@ export const stripeSandboxWebhook = onRequest({
     res.status(500).send("Retry");
   }
 });
+
+
+// Production webhook STAGING ONLY: no billing entitlement writes or checkout.
+// This endpoint is intentionally isolated from sandbox credentials/collections.
+const liveStripeKey = defineSecret("MYDEALSPORTAL_STRIPE_LIVE_KEY");
+const liveWebhookSecret = defineSecret("MYDEALSPORTAL_STRIPE_LIVE_WEBHOOK_SECRET");
+export const stripeLiveWebhook = onRequest({
+  region: "us-central1",
+  secrets: [liveStripeKey, liveWebhookSecret]
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).send("POST only");
+    return;
+  }
+  let event;
+  try {
+    const key = liveStripeKey.value();
+    const secret = liveWebhookSecret.value();
+    if (!key?.startsWith("sk_live_") || !secret?.startsWith("whsec_"))
+      throw new Error("Live Stripe configuration unavailable");
+    const stripe = new Stripe(key);
+    event = stripe.webhooks.constructEvent(req.rawBody, req.get("stripe-signature"), secret);
+    const classified = classifyStripeEvent(event, {expectedLiveMode:true});
+    // Durable, audit-only event recording. Do not grant advertising access.
+    const audit = db.collection("stripeLiveAuditEvents").doc(classified.eventId);
+    await audit.create({
+      eventType: classified.type,
+      objectId: classified.objectId,
+      subscriptionId: classified.stripeSubscriptionId,
+      action: classified.action,
+      livemode: true,
+      receivedAt: FieldValue.serverTimestamp()
+    }).catch(err => {
+      if (err.code !== 6 && err.code !== "already-exists") throw err;
+    });
+    res.status(200).json({received:true});
+  } catch (err) {
+    // Invalid signatures must not be accepted; storage failures should retry.
+    const badSignature = err?.type === "StripeSignatureVerificationError";
+    console.error("Production webhook failure", err?.message);
+    res.status(badSignature ? 400 : 500).send(badSignature ? "Invalid signature" : "Retry");
+  }
+});
