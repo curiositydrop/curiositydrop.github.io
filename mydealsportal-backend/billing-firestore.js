@@ -23,12 +23,16 @@ export async function recordBillingReconciliation({ db, FieldValue, uid, eventId
     if ((current.stripeCustomerId && current.stripeCustomerId !== state.stripeCustomerId) ||
         (current.stripeSubscriptionId && current.stripeSubscriptionId !== state.stripeSubscriptionId))
       throw new Error("Subscription mismatch");
+    // A suspension may have been set after Stripe verification started.
+    // Use the business state read inside THIS transaction, not stale state.
+    const publishingEnabled = state.publishingEnabled &&
+      current.billingSuspended !== true && current.suspended !== true;
     tx.update(businessRef, {
       stripeCustomerId: state.stripeCustomerId,
       stripeSubscriptionId: state.stripeSubscriptionId,
       subscriptionStatus: state.stripeStatus,
       initialInvoicePaid: state.initialInvoicePaid,
-      publishingEnabled: state.publishingEnabled,
+      publishingEnabled,
       billingUpdatedAt: FieldValue.serverTimestamp()
     });
     tx.create(eventRef, {
