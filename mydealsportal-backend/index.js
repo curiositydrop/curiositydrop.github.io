@@ -173,3 +173,36 @@ export const stripeLiveWebhook = onRequest({
     res.status(badSignature ? 400 : 500).send(badSignature ? "Invalid signature" : "Retry");
   }
 });
+
+
+// Live checkout preflight. No Stripe session is created and no customer is
+// charged. Read-only until reservation lifecycle / promotion scheduling are
+// integrated and tested. Do not expose a production charging function yet.
+export const liveCheckoutPreflight = onRequest({region:"us-central1"}, async(req,res)=>{
+  if (!sameOrigin(req,res)) return;
+  if (req.method==="OPTIONS"){res.status(204).end();return;}
+  if (req.method!=="POST"){send(res,405,{error:"POST only"});return;}
+  try {
+    const auth = await userFromRequest(req);
+    if (auth.email_verified !== true) {
+      send(res,403,{error:"Verify your email before subscribing"});return;
+    }
+    const business = await db.collection("businesses").doc(auth.uid).get();
+    if (!business.exists || business.data().ownerUid!==auth.uid) {
+      send(res,403,{error:"Business account required"});return;
+    }
+    // Readiness only: existing and pending subscriptions must not be duplicated.
+    const data = business.data();
+    if (data.stripeSubscriptionId || data.checkoutSessionId ||
+        ["active","trialing","pending","incomplete","past_due"].includes(data.subscriptionStatus)) {
+      send(res,409,{error:"Existing subscription or checkout must be managed"});return;
+    }
+    // Do not let callers choose the paid price or force a founding slot.
+    // The eventual charging endpoint must reserve inventory transactionally.
+    send(res,200,{eligible:true,checkoutEnabled:false,
+      message:"Business verified. Live checkout is not enabled yet."});
+  }catch(err){
+    console.error("liveCheckoutPreflight",err);
+    send(res,401,{error:"Authentication or eligibility could not be verified"});
+  }
+});
