@@ -4,6 +4,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
+import { classifyStripeEvent } from "./webhook-policy.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -99,7 +100,8 @@ export const stripeSandboxWebhook = onRequest({
     res.status(400).send("Invalid signature");return;
   }
   try {
-    const eventRef=db.collection("stripeSandboxEvents").doc(event.id);
+    const classified = classifyStripeEvent(event, {expectedLiveMode:false});
+    const eventRef=db.collection("stripeSandboxEvents").doc(classified.eventId);
     // Sandbox audit only. Reject live-mode events without recording them.
     if (event.livemode !== false) {
       res.status(403).send("Live Stripe events not accepted by sandbox webhook");
@@ -107,9 +109,11 @@ export const stripeSandboxWebhook = onRequest({
     }
     // No publication or entitlement changes yet.
     await eventRef.create({
-      type:event.type,
+      type:classified.type,
       livemode:event.livemode,
-      objectId:event.data.object.id,
+      objectId:classified.objectId,
+      action:classified.action,
+      stripeSubscriptionId:classified.stripeSubscriptionId,
       receivedAt:FieldValue.serverTimestamp()
     }).catch(err=>{if(err.code!==6&&err.code!=="already-exists")throw err;});
     res.status(200).json({received:true});
