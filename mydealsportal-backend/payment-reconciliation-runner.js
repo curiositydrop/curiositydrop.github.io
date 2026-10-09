@@ -21,6 +21,9 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
  const customer=typeof subscription.customer==="string"?subscription.customer:subscription.customer?.id;
  if(!customer || (business.stripeCustomerId && business.stripeCustomerId!==customer))
    throw new Error("Subscription customer mismatch");
+ if(!["founding","standard"].includes(subscription.metadata.plan) ||
+    (business.checkoutPlan && business.checkoutPlan!==subscription.metadata.plan))
+   throw new Error("Subscription plan mismatch");
  // An administrative hold cannot be overridden by a Stripe payment.
  const businessSuspended=business.billingSuspended===true || business.suspended===true;
  // Fail closed on incomplete invoice history; do not guess if the first
