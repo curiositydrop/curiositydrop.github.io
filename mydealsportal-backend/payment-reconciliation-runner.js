@@ -34,7 +34,14 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
    .sort((a,b)=>a.created-b.created)[0];
  if(!initial)throw new Error("Initial subscription invoice missing");
  const latest=[...invoices].sort((a,b)=>b.created-a.created)[0];
- // A refund of the initial charge must revoke the paid-first entitlement.\n // Partial refunds are conservatively treated as disputed until reviewed.\n const paymentIntent=typeof initial.payment_intent==="string" ? initial.payment_intent : initial.payment_intent?.id;\n if(!paymentIntent)throw new Error("Initial payment intent required for refund verification");\n const refunds=await stripe.refunds.list({payment_intent:paymentIntent,limit:100});\n if(!Array.isArray(refunds.data)||refunds.has_more)throw new Error("Refund history incomplete");\n const initialPaymentRefunded=refunds.data.some(r=>r.status!=="failed" && r.status!=="canceled");\n const state=reconcileVerifiedSubscription({
+ // A refund of the initial charge must revoke the paid-first entitlement.
+ // Partial refunds are conservatively treated as disputed until reviewed.
+ const paymentIntent=typeof initial.payment_intent==="string" ? initial.payment_intent : initial.payment_intent?.id;
+ if(!paymentIntent)throw new Error("Initial payment intent required for refund verification");
+ const refunds=await stripe.refunds.list({payment_intent:paymentIntent,limit:100});
+ if(!Array.isArray(refunds.data)||refunds.has_more)throw new Error("Refund history incomplete");
+ const initialPaymentRefunded=refunds.data.some(r=>r.status!=="failed" && r.status!=="canceled");
+ const state=reconcileVerifiedSubscription({
    subscription,firstInvoice:initial,latestInvoice:latest,businessSuspended:businessSuspended||initialPaymentRefunded,nowSeconds
  });
  return recordBillingReconciliation({
