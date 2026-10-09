@@ -3,14 +3,14 @@ import assert from "node:assert/strict";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 
 const state = {stripeCustomerId:"cus_1",stripeSubscriptionId:"sub_1",stripeStatus:"active",initialInvoicePaid:true,publishingEnabled:true};
-function fixture({ownerUid="user1",customer=null,subscription=null,duplicate=false}={}) {
+function fixture({ownerUid="user1",customer=null,subscription=null,duplicate=false,suspended=false,billingSuspended=false}={}) {
   const writes = [];
   const businessRef={type:"business"}, eventRef={type:"event"};
   const db={
     collection(name){return {doc(){return name==="businesses"?businessRef:eventRef;}}},
     runTransaction(fn){return fn({
       get:async ref=>ref===businessRef
-        ? {exists:true,data:()=>({ownerUid,stripeCustomerId:customer,stripeSubscriptionId:subscription})}
+        ? {exists:true,data:()=>({ownerUid,stripeCustomerId:customer,stripeSubscriptionId:subscription,suspended,billingSuspended})}
         : {exists:duplicate},
       update:(ref,data)=>writes.push(["update",data]),
       create:(ref,data)=>writes.push(["create",data])
@@ -41,4 +41,12 @@ test("rejects missing verified identifiers",async()=>{
  const {args}=fixture();
  await assert.rejects(recordBillingReconciliation({...args,eventId:"invalid"}));
  await assert.rejects(recordBillingReconciliation({...args,state:{...state,stripeCustomerId:"invalid"}}));
+});
+
+test("transaction rechecks administrative suspension before enabling listings",async()=>{
+ for(const option of [{suspended:true},{billingSuspended:true}]){
+  const {args,writes}=fixture(option);
+  assert.equal(await recordBillingReconciliation(args),"updated");
+  assert.equal(writes[0][1].publishingEnabled,false);
+ }
 });
