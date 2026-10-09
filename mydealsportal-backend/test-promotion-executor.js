@@ -7,11 +7,14 @@ export async function applyTestPromotionSchedule({
  if(typeof apiKey!=="string" || !apiKey.startsWith("sk_test_") ||
     !stripe?.subscriptionSchedules?.create ||
     !stripe?.subscriptionSchedules?.update ||
-    !stripe?.subscriptions?.retrieve)
+    !stripe?.subscriptions?.retrieve || !stripe?.coupons?.retrieve)
    throw new Error("Stripe TEST-only schedule client required");
  if(subscription?.livemode!==false || subscription?.schedule)
    throw new Error("Only unscheduled test subscriptions are permitted");
  const preview=previewPromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds});
+ const serverCoupon=await stripe.coupons.retrieve(coupon?.id);
+ if(serverCoupon.id!==coupon?.id || serverCoupon.valid!==true || serverCoupon.percent_off!==100)
+   throw new Error("Verified 100% Stripe TEST coupon required");
  // Re-read from Stripe immediately before the mutation; fail on changed state.
  const latest=await stripe.subscriptions.retrieve(subscription.id);
  if(latest.livemode!==false || latest.schedule ||
@@ -26,7 +29,7 @@ export async function applyTestPromotionSchedule({
  );
  if(created.livemode!==false)
    throw new Error("Unexpected non-test schedule");
- const request=proposeScheduleUpdate({preview,schedule:created,coupon});
+ const request=proposeScheduleUpdate({preview,schedule:created,coupon:serverCoupon});
  const result=await stripe.subscriptionSchedules.update(created.id,request,{
    idempotencyKey:"mdp-test-promotion-"+subscription.id+"-"+coupon.id
  });
