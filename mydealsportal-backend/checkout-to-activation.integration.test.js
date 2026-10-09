@@ -85,3 +85,13 @@ for(const [name,settings] of [
   assert.equal(records.get("businesses/u1").publishingEnabled,false);
  });
 }
+
+test("unpaid checkout stays inactive without a Stripe payment record",async()=>{
+ const {db,records}=firestore(),{stripe}=stripeFixture({paid:false});
+ stripe.invoices.retrieve=async()=>{throw new Error("Unexpected invoice payment lookup");};
+ await prepareAndRecordCheckout({...checkoutArgs,stripe,db});
+ await reconcilePaymentEvent({stripe,db,FieldValue:{serverTimestamp:()=>123},
+  eventId:"evt_unpaid123",subscriptionId:"sub_123",nowSeconds:1000});
+ assert.equal(records.get("businesses/u1").initialInvoicePaid,false);
+ assert.equal(records.get("businesses/u1").publishingEnabled,false);
+});
