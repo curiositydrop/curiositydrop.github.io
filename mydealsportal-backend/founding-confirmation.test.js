@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {confirmFoundingPayment} from "./founding-confirmation.js";
-const subscription={id:"sub_1",metadata:{firebaseUid:"u1",plan:"founding"}};
+const subscription={id:"sub_1",customer:"cus_1",metadata:{firebaseUid:"u1",plan:"founding"}};
 const invoice={id:"in_1",subscription:"sub_1",status:"paid",amount_paid:4499};
-function setup({reservation={slot:1,status:"reserved",expiresAt:200},confirmed=0,reserved=1,ownerUid="u1"}={}){
+function setup({reservation={slot:1,status:"reserved",expiresAt:200},confirmed=0,reserved=1,ownerUid="u1",stripeCustomerId="cus_1"}={}){
  const writes=[],refs={};
  const db={collection(name){return {doc(){return refs[name]??={name};}}},runTransaction(fn){return fn({
   get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({confirmed,reserved})}:
   ref.name==="foundingReservations"?{exists:!!reservation,data:()=>reservation}:
-  {exists:true,data:()=>({ownerUid})},
+  {exists:true,data:()=>({ownerUid,stripeCustomerId})},
   update:(ref,data)=>writes.push({name:ref.name,data})
  });}};
  return {db,writes};
@@ -39,4 +39,16 @@ test("unpaid invoices and mismatched metadata are rejected",async()=>{
 test("unknown slot or owner mismatch blocks confirmation",async()=>{
  const {db}=setup({ownerUid:"other"});
  await assert.rejects(confirmFoundingPayment(args(db)),/Ownership/);
+});
+
+test("modern nested invoice subscription can confirm founding payment",async()=>{
+ const {db,writes}=setup();
+ const modern={...invoice,subscription:undefined,parent:{subscription_details:{subscription:"sub_1"}}};
+ assert.equal((await confirmFoundingPayment({...args(db),invoice:modern})).status,"confirmed");
+ assert.equal(writes.length,3);
+});
+test("payment with the wrong Stripe customer cannot claim founding slot",async()=>{
+ const {db,writes}=setup({stripeCustomerId:"cus_elsewhere"});
+ await assert.rejects(confirmFoundingPayment(args(db)),/customer mismatch/);
+ assert.equal(writes.length,0);
 });
