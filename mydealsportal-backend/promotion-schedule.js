@@ -17,7 +17,7 @@ export function buildPromotionPhases({planKey,priceId,initialInvoicePaid,firstPe
   startAfterPaidPeriod:firstPeriodEnd,
   promotionCycles:freeMonths,
   phases:[
-   {iterations:freeMonths,items:[{price:plan.priceId,quantity:1}],discountPercent:100},
+   {duration:{interval:"month",interval_count:freeMonths},items:[{price:plan.priceId,quantity:1}],discountPercent:100},
    {items:[{price:plan.priceId,quantity:1}],discountPercent:0}
   ],
   endBehavior:"release"
