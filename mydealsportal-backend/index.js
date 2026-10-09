@@ -5,6 +5,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
+import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -101,6 +102,9 @@ export const stripeSandboxWebhook = onRequest({
   }
   try {
     const classified = classifyStripeEvent(event, {expectedLiveMode:false});
+    const resolution = classified.action === "reconcile"
+      ? await resolveSandboxSubscription({stripe:stripeClient(),event})
+      : {status:"ignored",subscriptionId:null};
     const eventRef=db.collection("stripeSandboxEvents").doc(classified.eventId);
     // Sandbox audit only. Reject live-mode events without recording them.
     if (event.livemode !== false) {
@@ -113,7 +117,9 @@ export const stripeSandboxWebhook = onRequest({
       livemode:event.livemode,
       objectId:classified.objectId,
       action:classified.action,
-      stripeSubscriptionId:classified.stripeSubscriptionId,
+      stripeSubscriptionId:resolution.subscriptionId,
+      resolutionStatus:resolution.status,
+      businessUid:resolution.uid || null,
       receivedAt:FieldValue.serverTimestamp()
     }).catch(err=>{if(err.code!==6&&err.code!=="already-exists")throw err;});
     res.status(200).json({received:true});
