@@ -9,11 +9,12 @@ function setup({ownerUid="u1",existingSession=null,hold={uid:"u1",status:"reserv
  });}};
  return {db,writes};
 }
-const args=db=>({db,uid:"u1",sessionId:"cs_live_123",planKey:"founding",nowSeconds:100});
+const args=db=>({db,uid:"u1",sessionId:"cs_live_123",planKey:"founding",customerId:"cus_123",nowSeconds:100});
 test("records verified business checkout session",async()=>{
  const {db,writes}=setup();const result=await recordCheckoutSession(args(db));
  assert.equal(result.status,"recorded");
  assert.equal(writes[0].subscriptionStatus,"pending");
+ assert.equal(writes[0].stripeCustomerId,"cus_123");
 });
 test("rejects duplicate checkout session and incorrect owner",async()=>{
  for(const fixture of [{existingSession:"cs_other"},{ownerUid:"other"}]){
