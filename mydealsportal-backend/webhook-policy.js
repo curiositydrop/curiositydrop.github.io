@@ -39,7 +39,7 @@ export function classifyStripeEvent(event, { expectedLiveMode } = {}) {
   const identifier = event.type.startsWith("customer.subscription.")
     ? object.id
     : event.type.startsWith("invoice.")
-      ? typeof object.subscription === "string" ? object.subscription : null
+      ? typeof (object.parent?.subscription_details?.subscription ?? object.subscription) === "string" ? (object.parent?.subscription_details?.subscription ?? object.subscription) : null
       : event.type.startsWith("checkout.session.")
         ? typeof object.subscription === "string" ? object.subscription : null
         : null;
