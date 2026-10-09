@@ -38,3 +38,9 @@ test("rejects invalid coupon fetched from Stripe without creating a schedule",as
  await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/100%/);
  assert.deepEqual(f.stats(),{create:0,update:0});
 });
+
+test("failed phase update reports existing schedule ID for recovery",async()=>{
+ const f=setup();f.stripe.subscriptionSchedules.update=async()=>{throw new Error("Stripe temporarily unavailable");};
+ await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/inspect schedule sub_sched_123/);
+ assert.equal(f.stats().create,1);
+});
