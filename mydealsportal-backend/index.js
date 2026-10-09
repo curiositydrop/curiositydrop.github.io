@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
+import { evaluateLiveCheckoutPreflight } from "./live-checkout-preflight.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -184,23 +185,13 @@ export const liveCheckoutPreflight = onRequest({region:"us-central1"}, async(req
   if (req.method!=="POST"){send(res,405,{error:"POST only"});return;}
   try {
     const auth = await userFromRequest(req);
-    if (auth.email_verified !== true) {
-      send(res,403,{error:"Verify your email before subscribing"});return;
-    }
     const business = await db.collection("businesses").doc(auth.uid).get();
-    if (!business.exists || business.data().ownerUid!==auth.uid) {
-      send(res,403,{error:"Business account required"});return;
-    }
-    // Readiness only: existing and pending subscriptions must not be duplicated.
-    const data = business.data();
-    if (data.stripeSubscriptionId || data.checkoutSessionId ||
-        ["active","trialing","pending","incomplete","past_due"].includes(data.subscriptionStatus)) {
-      send(res,409,{error:"Existing subscription or checkout must be managed"});return;
-    }
-    // Do not let callers choose the paid price or force a founding slot.
+    const result = evaluateLiveCheckoutPreflight({
+      auth,
+      business:business.exists ? business.data() : null
+    });
     // The eventual charging endpoint must reserve inventory transactionally.
-    send(res,200,{eligible:true,checkoutEnabled:false,
-      message:"Business verified. Live checkout is not enabled yet."});
+    send(res,200,{...result,message:"Business verified. Live checkout is not enabled yet."});
   }catch(err){
     console.error("liveCheckoutPreflight",err);
     send(res,401,{error:"Authentication or eligibility could not be verified"});
