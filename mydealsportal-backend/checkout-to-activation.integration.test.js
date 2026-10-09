@@ -35,7 +35,8 @@ function stripeFixture({paid=true,refunded=false}={}){
   subscriptions:{retrieve:async()=>({
    id:"sub_123",customer:"cus_123",status:"active",livemode:true,
    metadata:{firebaseUid:"u1",project:"mydealsportal",plan:"standard"},
-   current_period_end:2000
+   current_period_end:2000,
+   items:{data:[{price:{id:"price_1UOVlJIHJWXNHkKxDCIpogsu"},quantity:1}]}
   })},
   invoices:{
    list:async()=>({has_more:false,data:[
