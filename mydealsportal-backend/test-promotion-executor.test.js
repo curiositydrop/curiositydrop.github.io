@@ -60,3 +60,9 @@ test("refuses to overwrite an already customized promotion",async()=>{
  await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe,subscription:{...subscription,schedule:"sub_sched_123"}}),/will not overwrite/);
  assert.deepEqual(f.stats(),{create:0,update:0});
 });
+
+test("refuses unexpected schedule added concurrently",async()=>{
+ const f=setup();f.stripe.subscriptions.retrieve=async()=>({...subscription,schedule:"sub_sched_other"});
+ await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/changed/);
+ assert.deepEqual(f.stats(),{create:0,update:0});
+});
