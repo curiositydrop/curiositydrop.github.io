@@ -3,6 +3,17 @@
 // Event payloads, query strings and browser state are never authoritative.
 import { deriveEntitlement } from "./entitlement-policy.js";
 
+function invoiceSubscriptionId(invoice) {
+ const v=invoice?.parent?.subscription_details?.subscription ?? invoice?.subscription;
+ return typeof v==="string" ? v : v?.id;
+}
+function billingPeriodEnd(subscription) {
+ const itemEnds=subscription?.items?.data?.map(x=>x.current_period_end);
+ if(Array.isArray(itemEnds)&&itemEnds.length && itemEnds.every(Number.isSafeInteger))
+   return Math.min(...itemEnds);
+ return subscription?.current_period_end;
+}
+
 export function reconcileVerifiedSubscription({
   subscription, firstInvoice, latestInvoice, businessSuspended = false, nowSeconds
 }) {
@@ -11,11 +22,10 @@ export function reconcileVerifiedSubscription({
       typeof subscription.status !== "string" ||
       !firstInvoice || typeof firstInvoice.id !== "string" ||
       !firstInvoice.id.startsWith("in_") ||
-      typeof firstInvoice.subscription !== "string" ||
-      firstInvoice.subscription !== subscription.id ||
+      invoiceSubscriptionId(firstInvoice) !== subscription.id ||
       !latestInvoice || typeof latestInvoice.id !== "string" ||
       !latestInvoice.id.startsWith("in_") ||
-      latestInvoice.subscription !== subscription.id)
+      invoiceSubscriptionId(latestInvoice) !== subscription.id)
     throw new Error("Incomplete or mismatched verified Stripe records");
 
   // Initial payment is confirmed only when Stripe reports a paid invoice
@@ -29,7 +39,7 @@ export function reconcileVerifiedSubscription({
     subscriptionStatus: subscription.status,
     suspended: businessSuspended,
     latestInvoiceStatus: latestInvoice.status,
-    periodEnd: subscription.current_period_end ?? null,
+    periodEnd: billingPeriodEnd(subscription) ?? null,
     nowSeconds
   });
   return Object.freeze({
