@@ -38,7 +38,7 @@ jobs:
       - name: Validate JavaScript
         working-directory: mydealsportal-backend
         run: npm run check
-      - name: Verify Google Cloud authentication
+      - name: Test billing policy\n        working-directory: mydealsportal-backend\n        run: npm test\n      - name: Verify Google Cloud authentication
         run: gcloud auth print-access-token >/dev/null
       - name: Deploy only MyDealsPortal Functions
         if: ${{ inputs.mode == 'deploy' }}
