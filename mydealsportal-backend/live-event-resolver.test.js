@@ -20,3 +20,15 @@ test("rejects live/test crossover and forged checkout sessions",async()=>{
  const spoof={checkout:{sessions:{retrieve:async()=>({id:"cs_other",livemode:true,subscription:"sub_1"})}}};
  await assert.rejects(resolveLiveEventSubscription({stripe:spoof,event:mk("checkout.session.completed",{id:"cs_1"})}),/mismatch/);
 });
+
+test("refund updates stay reviewable and never guess a subscription",async()=>{
+ for(const type of ["refund.created","refund.updated","charge.refunded"]){
+  const result=await resolveLiveEventSubscription({stripe,event:mk(type,{id:"re_or_ch_123",customer:"cus_1",payment_intent:"pi_123"})});
+  assert.deepEqual(result,{status:"manual_review",subscriptionId:null});
+ }
+});
+test("missing checkout subscription is unresolved, not misattributed",async()=>{
+ const noSub={checkout:{sessions:{retrieve:async id=>({id,livemode:true,subscription:null})}}};
+ const result=await resolveLiveEventSubscription({stripe:noSub,event:mk("checkout.session.completed",{id:"cs_987"})});
+ assert.equal(result.status,"unresolved");
+});
