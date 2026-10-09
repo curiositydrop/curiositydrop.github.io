@@ -37,6 +37,18 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
    .sort((a,b)=>a.created-b.created)[0];
  if(!initial)throw new Error("Initial subscription invoice missing");
  const latest=[...invoices].sort((a,b)=>b.created-a.created)[0];
+ // An unpaid initial invoice has no settled payment to inspect. It must
+ // reconcile as inactive, not throw and endlessly retry its webhook.
+ if(initial.status!=="paid" || !Number.isSafeInteger(initial.amount_paid) ||
+    initial.amount_paid<=0){
+   const state=reconcileVerifiedSubscription({
+     subscription,firstInvoice:initial,latestInvoice:latest,
+     businessSuspended,nowSeconds
+   });
+   return recordBillingReconciliation({
+     db,FieldValue,uid,eventId,state
+   });
+ }
  // A refund of the initial charge must revoke the paid-first entitlement.
  // Partial refunds are conservatively treated as disputed until reviewed.
  const paidInvoice=await stripe.invoices.retrieve(initial.id,{expand:["payments.data.payment.payment_intent"]});
