@@ -7,7 +7,7 @@ import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
-import { evaluateLiveCheckoutPreflight } from "./live-checkout-preflight.js";
+import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -190,8 +190,11 @@ export const liveCheckoutPreflight = onRequest({region:"us-central1"}, async(req
       auth,
       business:business.exists ? business.data() : null
     });
-    // The eventual charging endpoint must reserve inventory transactionally.
-    send(res,200,{...result,message:"Business verified. Live checkout is not enabled yet."});
+    // Informational only: a real checkout must reserve the slot atomically.
+    const inventory = await db.collection("billingInventory").doc("founding100").get();
+    const stock = inventory.exists ? inventory.data() : {confirmed:0,reserved:0};
+    const pricing = prospectivePricing({confirmed:stock.confirmed,reserved:stock.reserved});
+    send(res,200,{...result,...pricing,message:"Price is indicative; live checkout is not enabled yet."});
   }catch(err){
     console.error("liveCheckoutPreflight",err);
     send(res,401,{error:"Authentication or eligibility could not be verified"});
