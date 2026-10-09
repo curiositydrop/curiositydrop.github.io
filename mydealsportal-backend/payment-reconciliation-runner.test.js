@@ -10,7 +10,7 @@ function setup({history={data:[latest,initial],has_more:false},sub=subscription,
   get:async ref=>ref.name==="businesses"?{exists:true,data:()=>({ownerUid:"u1",stripeCustomerId:"cus_1"})}:{exists:false},
   update:(_,data)=>writes.push(data),create:()=>{}
  })};
- const stripe={subscriptions:{retrieve:async()=>sub},invoices:{list:async()=>history},refunds:{list:async()=>({data:refunds,has_more:false})}};
+ const stripe={subscriptions:{retrieve:async()=>sub},invoices:{list:async()=>history,retrieve:async id=>({id,payments:{data:[{status:"paid",payment:{payment_intent:"pi_123"}}],has_more:false}})},refunds:{list:async()=>({data:refunds,has_more:false})}};
  const args={stripe,db,FieldValue:{serverTimestamp:()=>123},eventId:"evt_1",subscriptionId:"sub_1",nowSeconds:1000};
  return {args,writes};
 }
@@ -51,4 +51,10 @@ test("pending refund conservatively prevents publishing",async()=>{
  const {args,writes}=setup({refunds:[{id:"re_2",status:"pending"}]});
  await reconcilePaymentEvent(args);
  assert.equal(writes[0].publishingEnabled,false);
+});
+
+test("incomplete modern invoice payment history fails closed",async()=>{
+ const {args}=setup();
+ args.stripe.invoices.retrieve=async id=>({id,payments:{data:[],has_more:true}});
+ await assert.rejects(reconcilePaymentEvent(args),/Complete invoice payment/);
 });
