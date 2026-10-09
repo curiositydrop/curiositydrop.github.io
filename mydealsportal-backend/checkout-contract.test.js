@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {assertCheckoutOrigin,validateOwnedBusiness,requireServerPlan,buildCheckoutParams} from "./checkout-contract.js";
 
-const business={ownerUid:"uid-1",name:"Test Business",subscriptionStatus:"pending"};
-const base={authenticatedUid:"uid-1",authenticatedEmail:"owner@example.com",business,stripeCustomerId:"cus_verified",planKey:"standard",origin:"https://curiositydrop.github.io"};
+const business={ownerUid:"uid-1",name:"Test Business",subscriptionStatus:"none"};
+const base={authenticatedUid:"uid-1",authenticatedEmail:"owner@example.com",authenticatedEmailVerified:true,business,stripeCustomerId:"cus_verified",planKey:"standard",origin:"https://curiositydrop.github.io"};
 test("allows only exact trusted origins",()=>{
   assert.equal(assertCheckoutOrigin(base.origin),base.origin);
   for(const origin of ["https://evil.example","https://mydealsportal.com.evil.test","http://mydealsportal.com",null,""])
@@ -30,4 +30,10 @@ test("founding needs server slot bound to same user",()=>{
   const grant={uid:"uid-1",plan:"founding",status:"reserved",slot:100};
   assert.equal(buildCheckoutParams({...base,planKey:"founding",foundingGrant:grant}).line_items[0].price,"price_1UOVlFIHJWXNHkKxKgfNFoRy");
   for (const slot of [0,101,-1,"1"]) assert.throws(()=>requireServerPlan({planKey:"founding",uid:"uid-1",foundingGrant:{...grant,slot}}));
+});
+
+test("checkout rejects unverified email and pending sessions",()=>{
+ assert.throws(()=>buildCheckoutParams({...base,authenticatedEmailVerified:false}),/Verified email/);
+ assert.throws(()=>buildCheckoutParams({...base,business:{...business,subscriptionStatus:"pending"}}),/existing subscription/i);
+ assert.throws(()=>buildCheckoutParams({...base,business:{...business,checkoutSessionId:"cs_pending"}}),/existing subscription/i);
 });
