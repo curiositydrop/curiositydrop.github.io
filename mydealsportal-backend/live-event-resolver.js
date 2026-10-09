@@ -18,8 +18,8 @@ export async function resolveLiveEventSubscription({stripe,event}) {
    const v=session.subscription;
    id=typeof v==="string"?v:v?.id;
  } else if(["charge.refunded","refund.created","refund.updated"].includes(type)) {
-   // Refunds can't safely be mapped to one subscription using event contents
-   // alone. Launch must implement verified payment -> invoice resolution.
+   // Payment-to-invoice mapping isn't always included in Stripe webhook data.
+   // Never guess the subscription based on customer ID or event metadata.
    return {status:"manual_review",subscriptionId:null};
  } else return {status:"ignored",subscriptionId:null};
  if(typeof id!=="string" || !/^sub_[A-Za-z0-9]+$/.test(id))
