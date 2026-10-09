@@ -26,9 +26,21 @@ export async function reserveFoundingSlot({db,uid,nowSeconds,holdSeconds=1800}) 
    const reserved=stock.exists?stock.data().reserved:0;
    const decision=reserveDecision({confirmed,reserved});
    if(decision==="standard") return {status:"standard"};
-   const slot=confirmed+reserved+1;
-   if(slot>FOUNDING_CAP) throw new Error("Founding inventory exhausted");
-   tx.set(inventory,{confirmed,reserved:reserved+1},{merge:true});
+   // Slot numbers are identities, not occupancy counts. Released slots go
+   // into an explicit free list; otherwise allocate a never-before-used number.
+   const nextSlot=stock.exists?stock.data().nextSlot ?? 1:1;
+   const freeSlots=stock.exists?stock.data().freeSlots ?? []:[];
+   if(!Number.isSafeInteger(nextSlot) || nextSlot<1 || nextSlot>FOUNDING_CAP+1 ||
+      !Array.isArray(freeSlots) || new Set(freeSlots).size!==freeSlots.length ||
+      freeSlots.some(n=>!Number.isSafeInteger(n)||n<1||n>=nextSlot))
+     throw new Error("Invalid slot inventory");
+   const slot=freeSlots.length ? freeSlots[0] : nextSlot;
+   if(slot>FOUNDING_CAP) return {status:"standard"};
+   tx.set(inventory,{
+     confirmed,reserved:reserved+1,
+     nextSlot:freeSlots.length ? nextSlot : nextSlot+1,
+     freeSlots:freeSlots.length ? freeSlots.slice(1) : []
+   },{merge:true});
    tx.set(reservation,{uid,status:"reserved",slot,expiresAt:nowSeconds+holdSeconds});
    return {status:"reserved",slot,expiresAt:nowSeconds+holdSeconds};
  });
