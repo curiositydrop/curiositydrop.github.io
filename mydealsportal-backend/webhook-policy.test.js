@@ -43,3 +43,10 @@ test("blocks live/test crossover and malformed events", () => {
   assert.throws(() => classifyStripeEvent({...evt("invoice.paid"),id:""}, {expectedLiveMode:false}), /Malformed/);
   assert.throws(() => classifyStripeEvent({...evt("invoice.paid"),data:{}}, {expectedLiveMode:false}), /Malformed/);
 });
+
+test("modern invoice subscription reference resolves for reconciliation",()=>{
+ const event={id:"evt_nested1",type:"invoice.paid",livemode:true,data:{object:{id:"in_nested",parent:{subscription_details:{subscription:"sub_nested"}}}}};
+ const result=classifyStripeEvent(event,{expectedLiveMode:true});
+ assert.equal(result.stripeSubscriptionId,"sub_nested");
+ assert.equal(result.action,"reconcile");
+});
