@@ -64,3 +64,10 @@ test("rejects a subscription associated with the wrong checkout plan",async()=>{
  await assert.rejects(reconcilePaymentEvent(args),/plan mismatch/);
  assert.equal(writes.length,0);
 });
+
+test("unpaid invoice does not require PaymentIntent or refund history",async()=>{
+ const {args,writes}=setup({history:{data:[{...initial,status:"open",amount_paid:0,payment_intent:null}],has_more:false}});
+ args.stripe.invoices.retrieve=async()=>{throw Error("No payment should be looked up");};
+ await reconcilePaymentEvent(args);
+ assert.equal(writes[0].publishingEnabled,false);
+});
