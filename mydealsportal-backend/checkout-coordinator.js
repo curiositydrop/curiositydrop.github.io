@@ -25,7 +25,7 @@ export async function prepareAndRecordCheckout({
   });
   try {
     await recordCheckoutSession({
-      db,uid,sessionId:created.sessionId,planKey,nowSeconds
+      db,uid,sessionId:created.sessionId,planKey,customerId:verifiedCustomerId,nowSeconds
     });
   } catch(err) {
     try {
