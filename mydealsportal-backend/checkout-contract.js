@@ -15,14 +15,16 @@ export function assertCheckoutOrigin(origin) {
   return origin;
 }
 
-export function validateOwnedBusiness({ authenticatedUid, authenticatedEmail, business }) {
+export function validateOwnedBusiness({ authenticatedUid, authenticatedEmail, authenticatedEmailVerified, business }) {
   if (typeof authenticatedUid !== "string" || !authenticatedUid.trim())
     throw new Error("Authenticated user required");
   if (!business || business.ownerUid !== authenticatedUid)
     throw new Error("Business must belong to authenticated user");
+  if (authenticatedEmailVerified !== true)
+    throw new Error("Verified email required");
   if (!authenticatedEmail || typeof authenticatedEmail !== "string")
     throw new Error("Verified account email required");
-  if (business.stripeSubscriptionId || business.subscriptionStatus === "active")
+  if (business.stripeSubscriptionId || ["active", "trialing", "pending", "incomplete", "past_due"].includes(business.subscriptionStatus) || business.checkoutSessionId)
     throw new Error("An existing subscription must be managed, not duplicated");
   return {
     uid: authenticatedUid,
@@ -51,10 +53,10 @@ export function requireServerPlan({ planKey, foundingGrant, uid }) {
 // securely resolve or create the Stripe customer after auth/ownership checks.
 // No user-provided price/customer IDs are ever accepted.
 export function buildCheckoutParams({
-  authenticatedUid, authenticatedEmail, business, stripeCustomerId,
+  authenticatedUid, authenticatedEmail, authenticatedEmailVerified, business, stripeCustomerId,
   planKey, foundingGrant, origin
 }) {
-  const owned = validateOwnedBusiness({authenticatedUid,authenticatedEmail,business});
+  const owned = validateOwnedBusiness({authenticatedUid,authenticatedEmail,authenticatedEmailVerified,business});
   assertCheckoutOrigin(origin);
   const plan = requireServerPlan({planKey, foundingGrant,uid:owned.uid});
   if (typeof stripeCustomerId !== "string" || !stripeCustomerId.startsWith("cus_"))
