@@ -157,6 +157,21 @@ export const stripeLiveWebhook = onRequest({
     event = stripe.webhooks.constructEvent(req.rawBody, req.get("stripe-signature"), secret);
     verifyProductionEvent(event, "acct_1UNxa7IHJWXNHkKx");
     const classified = classifyStripeEvent(event, {expectedLiveMode:true});
+    // Refunds without a verified subscription must remain visible for review,
+    // never silently acknowledged as a successful entitlement reconciliation.
+    const resolution = classified.action === "reconcile"
+      ? await resolveLiveEventSubscription({stripe,event})
+      : {status:"ignored",subscriptionId:null};
+    const requiresManualReview=resolution.status==="manual_review" ||
+      (classified.action==="reconcile" && resolution.status!=="resolved");
+    if(requiresManualReview){
+      await db.collection("stripeLiveReviewQueue").doc(classified.eventId).set({
+        eventType:classified.type,
+        objectId:classified.objectId,
+        reason:resolution.status,
+        receivedAt:FieldValue.serverTimestamp()
+      },{merge:true});
+    }
     // Durable, audit-only event recording. Do not grant advertising access.
     const audit = db.collection("stripeLiveAuditEvents").doc(classified.eventId);
     await audit.create({
@@ -164,6 +179,9 @@ export const stripeLiveWebhook = onRequest({
       objectId: classified.objectId,
       subscriptionId: classified.stripeSubscriptionId,
       action: classified.action,
+      resolutionStatus:resolution.status,
+      subscriptionIdResolved:resolution.subscriptionId,
+      requiresManualReview,
       livemode: true,
       receivedAt: FieldValue.serverTimestamp()
     }).catch(err => {
@@ -174,7 +192,6 @@ export const stripeLiveWebhook = onRequest({
     // Firestore permissions before allowing entitlement changes.
     const LIVE_ENTITLEMENT_WRITES_ENABLED = false;
     if (LIVE_ENTITLEMENT_WRITES_ENABLED && classified.action === "reconcile") {
-      const resolution = await resolveLiveEventSubscription({stripe,event});
       if(resolution.status!=="resolved")
         throw new Error("Event needs reviewed subscription resolution");
       const subscriptionId=resolution.subscriptionId;
