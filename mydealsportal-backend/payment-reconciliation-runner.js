@@ -3,6 +3,7 @@
 import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 import {planFromKey} from "./billing-policy.js";
+import {confirmFoundingPayment} from "./founding-confirmation.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
  if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list ||
@@ -75,6 +76,15 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
  const state=reconcileVerifiedSubscription({
    subscription,firstInvoice:initial,latestInvoice:latest,businessSuspended:businessSuspended||initialPaymentRefunded,nowSeconds
  });
+ if(subscription.metadata.plan==="founding" && state.publishingEnabled){
+   // Claim the reserved founding inventory only after Stripe confirms the
+   // paid initial invoice and it has not been refunded.
+   const founding=await confirmFoundingPayment({
+     db,uid,subscription,invoice:initial,nowSeconds
+   });
+   if(!["confirmed","already_confirmed"].includes(founding.status))
+     throw new Error("Founding reservation requires manual payment review");
+ }
  return recordBillingReconciliation({
    db,FieldValue,uid:subscription.metadata.firebaseUid,eventId,state
  });
