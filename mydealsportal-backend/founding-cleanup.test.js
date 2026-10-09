@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {releaseExpiredFoundingHold} from "./founding-cleanup.js";
-function setup({hold={uid:"u1",status:"reserved",expiresAt:100},reserved=1}={}){
+function setup({hold={uid:"u1",status:"reserved",expiresAt:100},reserved=1,nextSlot=2,freeSlots=[]}={}){
  const writes=[], refs={};
  const db={collection(name){return {doc(){return refs[name]??={name};}}},runTransaction(fn){return fn({
-  get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({reserved})}:{exists:!!hold,data:()=>hold},
+  get:async ref=>ref.name==="billingInventory"?{exists:true,data:()=>({reserved,nextSlot,freeSlots})}:{exists:!!hold,data:()=>hold},
   update:(ref,data)=>writes.push({name:ref.name,data})
  });}};
  return {db,writes};
@@ -14,6 +14,7 @@ test("releases verified-cleared expired hold and decrements inventory",async()=>
  const {db,writes}=setup();
  assert.equal((await releaseExpiredFoundingHold(args(db))).status,"released");
  assert.equal(writes[0].data.reserved,0);
+ assert.deepEqual(writes[0].data.freeSlots,[1]);
  assert.equal(writes[1].data.status,"released");
 });
 test("does not release before expiration",async()=>{
