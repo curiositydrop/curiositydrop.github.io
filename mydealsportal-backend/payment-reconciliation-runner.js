@@ -4,7 +4,7 @@ import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
- if(!stripe?.subscriptions?.retrieve || !stripe?.invoices?.list ||
+ if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list ||
     !/^sub_[A-Za-z0-9]+$/.test(subscriptionId||"") ||
     !Number.isSafeInteger(nowSeconds)||nowSeconds<0)
    throw new Error("Verified Stripe subscription context required");
@@ -13,6 +13,16 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
     subscription.metadata?.project!=="mydealsportal" ||
     !subscription.metadata?.firebaseUid)
    throw new Error("Verified live MyDealsPortal subscription required");
+ const uid=subscription.metadata.firebaseUid;
+ const businessSnapshot=await db.collection("businesses").doc(uid).get();
+ if(!businessSnapshot.exists || businessSnapshot.data().ownerUid!==uid)
+   throw new Error("Verified business owner required");
+ const business=businessSnapshot.data();
+ const customer=typeof subscription.customer==="string"?subscription.customer:subscription.customer?.id;
+ if(!customer || (business.stripeCustomerId && business.stripeCustomerId!==customer))
+   throw new Error("Subscription customer mismatch");
+ // An administrative hold cannot be overridden by a Stripe payment.
+ const businessSuspended=business.billingSuspended===true || business.suspended===true;
  // Fail closed on incomplete invoice history; do not guess if the first
  // paid invoice is missing. Pagination is required before launch for accounts
  // with longer histories.
@@ -25,7 +35,7 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
  if(!initial)throw new Error("Initial subscription invoice missing");
  const latest=[...invoices].sort((a,b)=>b.created-a.created)[0];
  const state=reconcileVerifiedSubscription({
-   subscription,firstInvoice:initial,latestInvoice:latest,nowSeconds
+   subscription,firstInvoice:initial,latestInvoice:latest,businessSuspended,nowSeconds
  });
  return recordBillingReconciliation({
    db,FieldValue,uid:subscription.metadata.firebaseUid,eventId,state
