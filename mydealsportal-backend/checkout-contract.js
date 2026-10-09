@@ -66,8 +66,8 @@ export function buildCheckoutParams({
     customer: stripeCustomerId,
     line_items: [{price: plan.priceId, quantity: 1}],
     client_reference_id: owned.uid,
-    metadata: {firebaseUid:owned.uid,plan:plan.key},
-    subscription_data: {metadata:{firebaseUid:owned.uid,plan:plan.key}},
+    metadata: {firebaseUid:owned.uid,plan:plan.key,project:"mydealsportal"},
+    subscription_data: {metadata:{firebaseUid:owned.uid,plan:plan.key,project:"mydealsportal"}},
     success_url: origin + "/mydealsportal-preview/dashboard.html?checkout=success",
     cancel_url: origin + "/mydealsportal-preview/dashboard.html?checkout=cancel"
     // No trial_period_days: first invoice MUST charge normally.
