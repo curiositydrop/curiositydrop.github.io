@@ -13,7 +13,9 @@ export const RECONCILE_EVENTS = Object.freeze(new Set([
   "customer.subscription.created",
   "customer.subscription.updated",
   "customer.subscription.deleted",
-  "charge.refunded"
+  "charge.refunded",
+  "refund.created",
+  "refund.updated"
 ]));
 
 function nonempty(value) {
