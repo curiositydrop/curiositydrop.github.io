@@ -5,6 +5,7 @@ const subscription={id:"sub_123",livemode:false,status:"active",schedule:null,cu
 const coupon={id:"coupon_123",percent_off:100,valid:true};
 function setup(){
  let create=0,update=0;const stripe={coupons:{retrieve:async()=>coupon},subscriptions:{retrieve:async()=>subscription},subscriptionSchedules:{
+  retrieve:async()=>({id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOVlFIHJWXNHkKxKgfNFoRy",quantity:1}]}]}),
   create:async()=>{create++;return {id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOVlFIHJWXNHkKxKgfNFoRy",quantity:1}]}]};},
   update:async(id,body)=>{update++;assert.equal(body.phases[1].duration.interval_count,2);return {id,livemode:false};}
  }};
@@ -43,4 +44,19 @@ test("failed phase update reports existing schedule ID for recovery",async()=>{
  const f=setup();f.stripe.subscriptionSchedules.update=async()=>{throw new Error("Stripe temporarily unavailable");};
  await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/inspect schedule sub_sched_123/);
  assert.equal(f.stats().create,1);
+});
+
+test("resumes existing unconfigured test schedule without creating another",async()=>{
+ const f=setup();
+ f.stripe.subscriptions.retrieve=async()=>({...subscription,schedule:"sub_sched_123"});
+ const result=await applyTestPromotionSchedule({...opts,stripe:f.stripe,subscription:{...subscription,schedule:"sub_sched_123"}});
+ assert.equal(result.scheduleId,"sub_sched_123");
+ assert.deepEqual(f.stats(),{create:0,update:1});
+});
+test("refuses to overwrite an already customized promotion",async()=>{
+ const f=setup();
+ f.stripe.subscriptions.retrieve=async()=>({...subscription,schedule:"sub_sched_123"});
+ f.stripe.subscriptionSchedules.retrieve=async()=>({id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{},{}]});
+ await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe,subscription:{...subscription,schedule:"sub_sched_123"}}),/will not overwrite/);
+ assert.deepEqual(f.stats(),{create:0,update:0});
 });
