@@ -9,6 +9,7 @@ import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
 import { prepareAndRecordCheckout } from "./checkout-coordinator.js";
+import { reconcilePaymentEvent } from "./payment-reconciliation-runner.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -167,6 +168,19 @@ export const stripeLiveWebhook = onRequest({
     }).catch(err => {
       if (err.code !== 6 && err.code !== "already-exists") throw err;
     });
+    // Deliberately disabled: reconciliation must be fully validated against
+    // production Stripe invoice versions, dispute/refund behavior, and
+    // Firestore permissions before allowing entitlement changes.
+    const LIVE_ENTITLEMENT_WRITES_ENABLED = false;
+    if (LIVE_ENTITLEMENT_WRITES_ENABLED && classified.action === "reconcile") {
+      const subscriptionId = classified.stripeSubscriptionId;
+      if (!subscriptionId) throw new Error("Cannot reconcile event without subscription ID");
+      await reconcilePaymentEvent({
+        stripe, db, FieldValue,
+        eventId: classified.eventId, subscriptionId,
+        nowSeconds: Math.floor(Date.now()/1000)
+      });
+    }
     res.status(200).json({received:true});
   } catch (err) {
     // Invalid signatures must not be accepted; storage failures should retry.
