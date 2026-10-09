@@ -14,7 +14,13 @@ const webhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 // The test checkout does NOT grant publishing rights. Promotion schedules,
 // founding-slot allocation, and subscription synchronization are still pending.
 
-function stripeClient() { return new Stripe(stripeKey.value()); }
+function stripeClient() {
+  const key = stripeKey.value();
+  if (!key?.startsWith("sk_test_")) {
+    throw new Error("Sandbox functions require a Stripe TEST secret key");
+  }
+  return new Stripe(key);
+}
 function send(res, status, data) {
   res.status(status).set("Cache-Control", "no-store").json(data);
 }
@@ -94,7 +100,12 @@ export const stripeSandboxWebhook = onRequest({
   }
   try {
     const eventRef=db.collection("stripeSandboxEvents").doc(event.id);
-    // Sandbox audit only. No publication or entitlement changes yet.
+    // Sandbox audit only. Reject live-mode events without recording them.
+    if (event.livemode !== false) {
+      res.status(403).send("Live Stripe events not accepted by sandbox webhook");
+      return;
+    }
+    // No publication or entitlement changes yet.
     await eventRef.create({
       type:event.type,
       livemode:event.livemode,
