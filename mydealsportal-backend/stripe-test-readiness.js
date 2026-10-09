@@ -20,10 +20,14 @@ if(!key?.startsWith("sk_test_")){
    const price=await stripe.prices.retrieve(priceId);
    if(price.livemode!==false)throw Error("LIVE Stripe price: "+planKey);
    if(price.active!==true || price.type!=="recurring" ||
-      price.recurring?.interval!=="month" || price.unit_amount!==(planKey==="founding"?4499:4999))
+      price.recurring?.interval!=="month" || price.unit_amount!==(planKey==="founding"?4499:4999) ||
+      price.currency!=="usd" || price.recurring?.interval_count!==1)
      throw Error("Test-mode price mismatch: "+planKey);
    console.log(planKey,"test price verified:",price.id);
   }
+  const founding=process.env.MYDEALSPORTAL_STRIPE_TEST_FOUNDING_PRICE;
+  const standard=process.env.MYDEALSPORTAL_STRIPE_TEST_STANDARD_PRICE;
+  if(founding===standard)throw Error("Test plans cannot share a price ID");
   console.log("Readiness passed; NO Stripe objects were created or charged.");
  }catch(e){
   console.error("Stripe test readiness failed:",e.message);
