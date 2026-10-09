@@ -220,8 +220,12 @@ export const liveCheckout = onRequest({
   if(!LIVE_CHECKOUT_ENABLED){
     send(res,503,{error:"Checkout is not yet available"});return;
   }
-  // Live charging route is not ready: this guard must remain off.
-  // Wiring here documents the integration boundary without exposing a link.
+  // Second independent fail-closed guard: enabling the feature switch alone
+  // cannot enable billing without a reviewed replacement of this block.
+  send(res,503,{error:"Checkout activation requires completed billing review"});
+  return;
+  // Future integration draft (unreachable until reviewed):
+  /*
   try{
     const auth=await userFromRequest(req);
     const ref=db.collection("businesses").doc(auth.uid);
@@ -246,4 +250,5 @@ export const liveCheckout = onRequest({
     console.error("Live checkout disabled integration",err);
     send(res,409,{error:"Checkout not available"});
   }
+  */
 });
