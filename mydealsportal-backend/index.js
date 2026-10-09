@@ -10,6 +10,7 @@ import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
 import { prepareAndRecordCheckout } from "./checkout-coordinator.js";
 import { reconcilePaymentEvent } from "./payment-reconciliation-runner.js";
+import { resolveLiveEventSubscription } from "./live-event-resolver.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -173,8 +174,10 @@ export const stripeLiveWebhook = onRequest({
     // Firestore permissions before allowing entitlement changes.
     const LIVE_ENTITLEMENT_WRITES_ENABLED = false;
     if (LIVE_ENTITLEMENT_WRITES_ENABLED && classified.action === "reconcile") {
-      const subscriptionId = classified.stripeSubscriptionId;
-      if (!subscriptionId) throw new Error("Cannot reconcile event without subscription ID");
+      const resolution = await resolveLiveEventSubscription({stripe,event});
+      if(resolution.status!=="resolved")
+        throw new Error("Event needs reviewed subscription resolution");
+      const subscriptionId=resolution.subscriptionId;
       await reconcilePaymentEvent({
         stripe, db, FieldValue,
         eventId: classified.eventId, subscriptionId,
