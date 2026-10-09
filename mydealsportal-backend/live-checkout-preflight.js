@@ -9,3 +9,16 @@ export function evaluateLiveCheckoutPreflight({auth,business}) {
  });
  return Object.freeze({eligible:true,checkoutEnabled:false,businessUid:owner.uid});
 }
+
+// Read-only pricing indication, never an actual slot reservation or guarantee.
+export function prospectivePricing({confirmed,reserved}) {
+ if(!Number.isSafeInteger(confirmed)||!Number.isSafeInteger(reserved)||
+    confirmed<0||reserved<0||confirmed+reserved>100)
+   throw new Error("Invalid founding inventory");
+ return Object.freeze({
+   possiblePlan:confirmed+reserved<100?"founding":"standard",
+   foundingPlacesRemaining:100-confirmed-reserved,
+   reservationConfirmed:false,
+   checkoutEnabled:false
+ });
+}
