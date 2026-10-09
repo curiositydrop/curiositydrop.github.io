@@ -7,7 +7,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "check": "node --check index.js"
+    "check": "node --check index.js && node --check billing-policy.js && node --check billing-policy.test.js",
+    "test": "node --test billing-policy.test.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
