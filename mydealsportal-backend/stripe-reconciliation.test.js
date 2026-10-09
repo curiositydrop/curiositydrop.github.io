@@ -30,3 +30,14 @@ test("reject cross-subscription invoice mixups",()=>{
 test("reject elapsed subscription period",()=>{
  assert.equal(reconcileVerifiedSubscription({...args,nowSeconds:2001}).publishingEnabled,false);
 });
+
+test("supports newer nested subscription invoice references",()=>{
+ const inv1={...initial,subscription:undefined,parent:{subscription_details:{subscription:"sub_1"}}};
+ const inv2={...latest,subscription:undefined,parent:{subscription_details:{subscription:"sub_1"}}};
+ assert.equal(reconcileVerifiedSubscription({...args,firstInvoice:inv1,latestInvoice:inv2}).publishingEnabled,true);
+});
+test("uses current period from subscription items when present",()=>{
+ const subscription={...sub,current_period_end:undefined,items:{data:[{current_period_end:2000}]}};
+ assert.equal(reconcileVerifiedSubscription({...args,subscription}).publishingEnabled,true);
+ assert.equal(reconcileVerifiedSubscription({...args,subscription,nowSeconds:2001}).publishingEnabled,false);
+});
