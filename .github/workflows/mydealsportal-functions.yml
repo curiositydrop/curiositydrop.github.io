@@ -1,6 +1,10 @@
 name: MyDealsPortal Firebase Functions (manual)
 
 on:
+  pull_request:
+    paths:
+      - 'mydealsportal-backend/**'
+      - '.github/workflows/mydealsportal-functions.yml'
   workflow_dispatch:
     inputs:
       mode:
