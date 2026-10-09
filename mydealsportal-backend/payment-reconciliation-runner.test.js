@@ -77,3 +77,16 @@ test("forged plan metadata with wrong Stripe price cannot activate",async()=>{
  await assert.rejects(reconcilePaymentEvent(args),/price mismatch/);
  assert.equal(writes.length,0);
 });
+
+test("founding payment cannot activate without a confirmed reservation",async()=>{
+ const foundingSub={...subscription,metadata:{...subscription.metadata,plan:"founding"},items:{data:[{price:{id:"price_1UOVlFIHJWXNHkKxKgfNFoRy"},quantity:1}]}};
+ const {args,writes}=setup({sub:foundingSub});
+ await assert.rejects(reconcilePaymentEvent(args),/founding reservation|No founding reservation/i);
+ assert.equal(writes.length,0);
+});
+test("refunded founding payment never claims a reservation",async()=>{
+ const foundingSub={...subscription,metadata:{...subscription.metadata,plan:"founding"},items:{data:[{price:{id:"price_1UOVlFIHJWXNHkKxKgfNFoRy"},quantity:1}]}};
+ const {args,writes}=setup({sub:foundingSub,refunds:[{id:"re_123",status:"succeeded"}]});
+ assert.equal(await reconcilePaymentEvent(args),"updated");
+ assert.equal(writes[0].publishingEnabled,false);
+});
