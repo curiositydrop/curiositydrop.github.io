@@ -6,29 +6,36 @@ export async function applyTestPromotionSchedule({
 }){
  if(typeof apiKey!=="string" || !apiKey.startsWith("sk_test_") ||
     !stripe?.subscriptionSchedules?.create ||
-    !stripe?.subscriptionSchedules?.update ||
+    !stripe?.subscriptionSchedules?.update || !stripe?.subscriptionSchedules?.retrieve ||
     !stripe?.subscriptions?.retrieve || !stripe?.coupons?.retrieve)
    throw new Error("Stripe TEST-only schedule client required");
- if(subscription?.livemode!==false || subscription?.schedule)
-   throw new Error("Only unscheduled test subscriptions are permitted");
+ if(subscription?.livemode!==false)
+   throw new Error("Only test subscriptions are permitted");
  const preview=previewPromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds});
  const serverCoupon=await stripe.coupons.retrieve(coupon?.id);
  if(serverCoupon.id!==coupon?.id || serverCoupon.valid!==true || serverCoupon.percent_off!==100)
    throw new Error("Verified 100% Stripe TEST coupon required");
  // Re-read from Stripe immediately before the mutation; fail on changed state.
  const latest=await stripe.subscriptions.retrieve(subscription.id);
- if(latest.livemode!==false || latest.schedule ||
+ if(latest.livemode!==false ||
+    (subscription.schedule && latest.schedule!==subscription.schedule) ||
     latest.status!==subscription.status ||
     latest.metadata?.plan!==planKey ||
     latest.items?.data?.[0]?.price?.id!==preview.priceId ||
     (latest.items?.data?.[0]?.current_period_end ?? latest.current_period_end)!==preview.paidPeriodEnds)
    throw new Error("Subscription changed; retry after verification");
- const created=await stripe.subscriptionSchedules.create(
-   {from_subscription:subscription.id},
-   {idempotencyKey:"mdp-test-schedule-"+subscription.id}
- );
- if(created.livemode!==false)
+ const existingId=typeof latest.schedule==="string"?latest.schedule:latest.schedule?.id;
+ const created=existingId
+   ? await stripe.subscriptionSchedules.retrieve(existingId)
+   : await stripe.subscriptionSchedules.create(
+      {from_subscription:subscription.id},
+      {idempotencyKey:"mdp-test-schedule-"+subscription.id}
+     );
+ if(created.livemode!==false || created.subscription!==subscription.id)
    throw new Error("Unexpected non-test schedule");
+ // An already configured schedule is never overwritten by a retry.
+ if(created.phases?.length!==1)
+   throw new Error("Existing schedule must be reviewed; will not overwrite promotion");
  const request=proposeScheduleUpdate({preview,schedule:created,coupon:serverCoupon});
  let result;
  try {
