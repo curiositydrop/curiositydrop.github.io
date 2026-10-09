@@ -8,6 +8,7 @@ import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
+import { prepareAndRecordCheckout } from "./checkout-coordinator.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -198,5 +199,51 @@ export const liveCheckoutPreflight = onRequest({region:"us-central1"}, async(req
   }catch(err){
     console.error("liveCheckoutPreflight",err);
     send(res,401,{error:"Authentication or eligibility could not be verified"});
+  }
+});
+
+
+// INACTIVE production Checkout integration, standard plan only.
+// This is a dry-wired path with a hardcoded off switch. Do not enable until
+// Founding 100 inventory and customer creation lifecycle are audited.
+// It never creates a session while disabled.
+const LIVE_CHECKOUT_ENABLED = false;
+export const liveCheckout = onRequest({
+  region:"us-central1",secrets:[liveStripeKey]
+},async(req,res)=>{
+  if(req.method==="OPTIONS"){
+    if(!sameOrigin(req,res))return;
+    res.status(204).end();return;
+  }
+  if(req.method!=="POST"){send(res,405,{error:"POST only"});return;}
+  if(!sameOrigin(req,res))return;
+  if(!LIVE_CHECKOUT_ENABLED){
+    send(res,503,{error:"Checkout is not yet available"});return;
+  }
+  // Live charging route is not ready: this guard must remain off.
+  // Wiring here documents the integration boundary without exposing a link.
+  try{
+    const auth=await userFromRequest(req);
+    const ref=db.collection("businesses").doc(auth.uid);
+    const snapshot=await ref.get();
+    const business=snapshot.exists?snapshot.data():null;
+    evaluateLiveCheckoutPreflight({auth,business});
+    const key=liveStripeKey.value();
+    if(!key?.startsWith("sk_live_"))throw new Error("Live secret unavailable");
+    // A production launch must additionally implement customer creation,
+    // atomic checkout locks, and Founding 100 allocation before this is on.
+    const customerId=business?.stripeCustomerId;
+    if(!customerId)throw new Error("Customer creation must be configured");
+    const stripe=new Stripe(key);
+    const result=await prepareAndRecordCheckout({
+      stripe,db,uid:auth.uid,email:auth.email,emailVerified:auth.email_verified,
+      business,customerId,planKey:"standard",origin:siteOrigin(),
+      requestId:"checkout_"+auth.uid.replace(/[^a-zA-Z0-9_-]/g,"").slice(0,60),
+      nowSeconds:Math.floor(Date.now()/1000)
+    });
+    send(res,200,{url:result.url});
+  }catch(err){
+    console.error("Live checkout disabled integration",err);
+    send(res,409,{error:"Checkout not available"});
   }
 });
