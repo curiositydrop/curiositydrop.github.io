@@ -4,7 +4,7 @@ import {applyTestPromotionSchedule} from "./test-promotion-executor.js";
 const subscription={id:"sub_123",livemode:false,status:"active",schedule:null,current_period_end:2000,metadata:{plan:"founding"},items:{data:[{quantity:1,price:{id:"price_1UOVlFIHJWXNHkKxKgfNFoRy"},current_period_end:2000}]}};
 const coupon={id:"coupon_123",percent_off:100,valid:true};
 function setup(){
- let create=0,update=0;const stripe={subscriptions:{retrieve:async()=>subscription},subscriptionSchedules:{
+ let create=0,update=0;const stripe={coupons:{retrieve:async()=>coupon},subscriptions:{retrieve:async()=>subscription},subscriptionSchedules:{
   create:async()=>{create++;return {id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOVlFIHJWXNHkKxKgfNFoRy",quantity:1}]}]};},
   update:async(id,body)=>{update++;assert.equal(body.phases[1].duration.interval_count,2);return {id,livemode:false};}
  }};
@@ -30,5 +30,11 @@ test("unpaid initial invoices and already scheduled subscriptions cannot mutate"
 test("changed subscription before application fails without creating schedule",async()=>{
  const f=setup();f.stripe.subscriptions.retrieve=async()=>({...subscription,current_period_end:2001,items:{data:[{...subscription.items.data[0],current_period_end:2001}]}});
  await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/changed/);
+ assert.deepEqual(f.stats(),{create:0,update:0});
+});
+
+test("rejects invalid coupon fetched from Stripe without creating a schedule",async()=>{
+ const f=setup();f.stripe.coupons.retrieve=async()=>({...coupon,percent_off:50});
+ await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/100%/);
  assert.deepEqual(f.stats(),{create:0,update:0});
 });
