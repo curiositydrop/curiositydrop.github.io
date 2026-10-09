@@ -30,9 +30,15 @@ export async function applyTestPromotionSchedule({
  if(created.livemode!==false)
    throw new Error("Unexpected non-test schedule");
  const request=proposeScheduleUpdate({preview,schedule:created,coupon:serverCoupon});
- const result=await stripe.subscriptionSchedules.update(created.id,request,{
+ let result;
+ try {
+   result=await stripe.subscriptionSchedules.update(created.id,request,{
    idempotencyKey:"mdp-test-promotion-"+subscription.id+"-"+coupon.id
- });
+   });
+ } catch(error) {
+   // The schedule already exists. Never silently create another one.
+   throw new Error("Test schedule created but update failed; inspect schedule "+created.id+" before retrying",{cause:error});
+ }
  if(result.id!==created.id || result.livemode!==false)
    throw new Error("Unexpected updated schedule result");
  return {scheduleId:result.id,testMode:true};
