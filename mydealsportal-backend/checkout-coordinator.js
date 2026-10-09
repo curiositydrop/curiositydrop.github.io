@@ -11,8 +11,16 @@ export async function prepareAndRecordCheckout({
 }) {
   if(!stripe?.checkout?.sessions?.expire)
     throw new Error("Stripe checkout expiration API required");
+  if(!stripe?.customers?.create)throw new Error("Stripe customer API required");
+  if(!emailVerified || business?.ownerUid!==uid)throw new Error("Verified owner required");
+  const verifiedCustomerId = customerId || (await stripe.customers.create({
+    email,name:String(business.name||"").slice(0,200),
+    metadata:{firebaseUid:uid,project:"mydealsportal"}
+  },{idempotencyKey:"mdp-live-customer-"+uid})).id;
+  if(typeof verifiedCustomerId!=="string" || !verifiedCustomerId.startsWith("cus_"))
+    throw new Error("Stripe customer creation failed");
   const created=await createVerifiedCheckoutSession({
-    stripe,uid,email,emailVerified,business,customerId,planKey,
+    stripe,uid,email,emailVerified,business,customerId:verifiedCustomerId,planKey,
     foundingGrant,origin,requestId
   });
   try {
