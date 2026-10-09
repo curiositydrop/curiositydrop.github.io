@@ -17,7 +17,12 @@ export async function releaseExpiredFoundingHold({db,uid,nowSeconds,paymentClear
      return {status:"not_expired"};
    if(!stock.exists || !Number.isSafeInteger(stock.data().reserved) ||
        stock.data().reserved<1) throw new Error("Inventory invalid");
-   tx.update(stockRef,{reserved:stock.data().reserved-1});
+   const nextSlot=stock.data().nextSlot ?? 1;
+   const freeSlots=stock.data().freeSlots ?? [];
+   if(!Number.isSafeInteger(entry.slot) || entry.slot<1 || entry.slot>=nextSlot ||
+      !Array.isArray(freeSlots) || freeSlots.includes(entry.slot))
+     throw new Error("Invalid released slot");
+   tx.update(stockRef,{reserved:stock.data().reserved-1,freeSlots:[...freeSlots,entry.slot]});
    tx.update(holdRef,{status:"released",releasedAt:nowSeconds,releaseReason:"expired_payment_cleared"});
    return {status:"released"};
  });
