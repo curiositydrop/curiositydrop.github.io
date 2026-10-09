@@ -4,7 +4,7 @@ import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
- if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list ||
+ if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.refunds?.list ||
     !/^sub_[A-Za-z0-9]+$/.test(subscriptionId||"") ||
     !Number.isSafeInteger(nowSeconds)||nowSeconds<0)
    throw new Error("Verified Stripe subscription context required");
@@ -34,8 +34,8 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
    .sort((a,b)=>a.created-b.created)[0];
  if(!initial)throw new Error("Initial subscription invoice missing");
  const latest=[...invoices].sort((a,b)=>b.created-a.created)[0];
- const state=reconcileVerifiedSubscription({
-   subscription,firstInvoice:initial,latestInvoice:latest,businessSuspended,nowSeconds
+ // A refund of the initial charge must revoke the paid-first entitlement.\n // Partial refunds are conservatively treated as disputed until reviewed.\n const paymentIntent=typeof initial.payment_intent==="string" ? initial.payment_intent : initial.payment_intent?.id;\n if(!paymentIntent)throw new Error("Initial payment intent required for refund verification");\n const refunds=await stripe.refunds.list({payment_intent:paymentIntent,limit:100});\n if(!Array.isArray(refunds.data)||refunds.has_more)throw new Error("Refund history incomplete");\n const initialPaymentRefunded=refunds.data.some(r=>r.status!=="failed" && r.status!=="canceled");\n const state=reconcileVerifiedSubscription({
+   subscription,firstInvoice:initial,latestInvoice:latest,businessSuspended:businessSuspended||initialPaymentRefunded,nowSeconds
  });
  return recordBillingReconciliation({
    db,FieldValue,uid:subscription.metadata.firebaseUid,eventId,state
