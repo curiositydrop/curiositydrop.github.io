@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {reconcilePaymentEvent} from "./payment-reconciliation-runner.js";
-const subscription={id:"sub_1",livemode:true,metadata:{project:"mydealsportal",firebaseUid:"u1"},customer:"cus_1",status:"active",current_period_end:2000};
+const subscription={id:"sub_1",livemode:true,metadata:{project:"mydealsportal",firebaseUid:"u1",plan:"standard"},customer:"cus_1",status:"active",current_period_end:2000};
 const initial={id:"in_1",subscription:"sub_1",billing_reason:"subscription_create",status:"paid",amount_paid:4499,payment_intent:"pi_123",created:1};
 const latest={id:"in_2",subscription:"sub_1",billing_reason:"subscription_cycle",status:"paid",amount_paid:0,created:2};
 function setup({history={data:[latest,initial],has_more:false},sub=subscription,suspended=false,customer="cus_1",refunds=[]}={}){
@@ -57,4 +57,10 @@ test("incomplete modern invoice payment history fails closed",async()=>{
  const {args}=setup();
  args.stripe.invoices.retrieve=async id=>({id,payments:{data:[],has_more:true}});
  await assert.rejects(reconcilePaymentEvent(args),/Complete invoice payment/);
+});
+
+test("rejects a subscription associated with the wrong checkout plan",async()=>{
+ const {args,writes}=setup({sub:{...subscription,metadata:{...subscription.metadata,plan:"unknown"}}});
+ await assert.rejects(reconcilePaymentEvent(args),/plan mismatch/);
+ assert.equal(writes.length,0);
 });
