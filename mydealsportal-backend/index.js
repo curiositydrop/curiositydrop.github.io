@@ -6,6 +6,7 @@ import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
+import { verifyProductionEvent } from "./production-event-guard.js";
 
 if (!getApps().length) initializeApp();
 const db = getFirestore();
@@ -150,6 +151,7 @@ export const stripeLiveWebhook = onRequest({
       throw new Error("Live Stripe configuration unavailable");
     const stripe = new Stripe(key);
     event = stripe.webhooks.constructEvent(req.rawBody, req.get("stripe-signature"), secret);
+    verifyProductionEvent(event, "acct_1UNxa7IHJWXNHkKx");
     const classified = classifyStripeEvent(event, {expectedLiveMode:true});
     // Durable, audit-only event recording. Do not grant advertising access.
     const audit = db.collection("stripeLiveAuditEvents").doc(classified.eventId);
