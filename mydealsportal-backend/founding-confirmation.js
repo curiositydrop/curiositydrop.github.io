@@ -6,7 +6,7 @@ export async function confirmFoundingPayment({db,uid,subscription,invoice,nowSec
     !subscription || !/^sub_[A-Za-z0-9]+$/.test(subscription.id||"") ||
     subscription.metadata?.firebaseUid!==uid || subscription.metadata?.plan!=="founding" ||
     !invoice || !/^in_[A-Za-z0-9]+$/.test(invoice.id||"") ||
-    invoice.subscription!==subscription.id || invoice.status!=="paid" ||
+    (invoice.parent?.subscription_details?.subscription ?? invoice.subscription)!==subscription.id || invoice.status!=="paid" ||
     !Number.isSafeInteger(invoice.amount_paid) || invoice.amount_paid<4499)
    throw new Error("Verified first payment required");
  const stockRef=db.collection("billingInventory").doc("founding100");
@@ -24,7 +24,10 @@ export async function confirmFoundingPayment({db,uid,subscription,invoice,nowSec
      throw new Error("Reservation already assigned to another payment");
    }
    if(reservation.status!=="reserved") throw new Error("Reservation not held");
-   if(reservation.expiresAt<=nowSeconds) return {status:"expired_requires_review"};
+   if(!Number.isSafeInteger(reservation.expiresAt) || reservation.expiresAt<=nowSeconds) return {status:"expired_requires_review"};
+   const customer=typeof subscription.customer==="string"?subscription.customer:subscription.customer?.id;
+   if(!customer || (biz.data().stripeCustomerId && biz.data().stripeCustomerId!==customer))
+     throw new Error("Stripe customer mismatch");
    if(biz.data().stripeSubscriptionId && biz.data().stripeSubscriptionId!==subscription.id)
      throw new Error("Subscription mismatch");
    const counts=stock.exists?stock.data():null;
