@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -36,9 +36,10 @@ export async function registerBusiness({email,password,name,phone,website,zip,ci
   });
   await setDoc(doc(db,"businesses",uid),{
     ownerUid:uid,name,slug,phone:phone||"",website:website||"",zip,city:city||"",
-    category,status:"active",subscriptionStatus:"sandbox",foundingEligible:true,
+    category,status:"draft",subscriptionStatus:"unpaid",
     createdAt:serverTimestamp(),updatedAt:serverTimestamp()
   });
+  await sendEmailVerification(cred.user);
   return cred.user;
 }
 
@@ -53,7 +54,8 @@ export async function getMyBusiness(uid){
 }
 
 export async function saveBusiness(uid,data){
-  await setDoc(doc(db,"businesses",uid),{...data,ownerUid:uid,updatedAt:serverTimestamp()},{merge:true});
+  const {name,phone,website,zip,city,category}=data;
+  await updateDoc(doc(db,"businesses",uid),{name,phone,website,zip,city,category,updatedAt:serverTimestamp()});
 }
 
 export async function getMyDeals(uid){
@@ -63,8 +65,9 @@ export async function getMyDeals(uid){
 }
 
 export async function saveDeal(uid,business,data,id=null){
+  const {title,category,zip,city,price,description,terms,imageUrl}=data;
   const payload={
-    ...data,
+    title,category,zip,city,price,description,terms,
     ownerUid:uid,
     businessId:business.id,
     business:business.name,
@@ -73,9 +76,13 @@ export async function saveDeal(uid,business,data,id=null){
     updatedAt:serverTimestamp()
   };
   if(id){
-    await updateDoc(doc(db,"deals",id),payload);
+    await updateDoc(doc(db,"deals",id),{
+      title,category,zip,city,price,description,terms,active:data.active!==false,
+      updatedAt:serverTimestamp()
+    });
     return id;
   }
+  payload.publishingApproved=false;
   payload.createdAt=serverTimestamp();
   const ref=await addDoc(collection(db,"deals"),payload);
   return ref.id;
@@ -87,7 +94,7 @@ export async function setDealActive(id,active){
 export async function removeDeal(id){ await deleteDoc(doc(db,"deals",id)); }
 
 export async function getPublicDeals(){
-  const q=query(collection(db,"deals"),where("active","==",true));
+  const q=query(collection(db,"deals"),where("active","==",true),where("publishingApproved","==",true));
   const snap=await getDocs(q);
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }

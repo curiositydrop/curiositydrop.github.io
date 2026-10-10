@@ -1,0 +1,41 @@
+name: MyDealsPortal Test Promotion (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter APPLY_TEST_ONLY to confirm test-mode subscription schedule'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydealsportal-stripe-test-promotion
+  cancel-in-progress: false
+
+jobs:
+  apply-test-promotion:
+    if: ${{ inputs.confirmation == 'APPLY_TEST_ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install locked backend dependencies
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Validate test promotion code
+        working-directory: mydealsportal-backend
+        run: npm run check && npm test
+      - name: Apply promotion to pre-verified Stripe TEST subscription only
+        working-directory: mydealsportal-backend
+        env:
+          MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
+          MYDEALSPORTAL_TEST_PROMOTION_CONFIRM: APPLY_TEST_ONLY
+        run: npm run stripe:test:apply-promotion
