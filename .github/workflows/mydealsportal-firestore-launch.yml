@@ -1,4 +1,5 @@
 name: MyDealsPortal Firestore launch safety
+# Retry production security deployment after adding Rules and Index Admin roles.
 on:
   push:
     branches: [main]
