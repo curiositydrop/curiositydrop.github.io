@@ -17,29 +17,30 @@ function fixture({paid=true,refunded=false,price="price_1UOpZgIHJWXNHkKxIi1crSCn
 test("paid Stripe test invoice activates matching business",async()=>{
  const {args,records}=fixture();
  assert.equal(await reconcileSandboxPayment(args),"updated");
- assert.equal(records.get("businesses/u1").publishingEnabled,true);
- assert.equal(records.get("businesses/u1").initialInvoicePaid,true);
+ assert.equal(records.get("businesses/u1").sandboxPublishingEnabled,true);
+ assert.equal(records.get("businesses/u1").publishingEnabled,undefined);
+ assert.equal(records.get("businesses/u1").sandboxInitialInvoicePaid,true);
 });
 test("second free paid invoice preserves paid-first entitlement",async()=>{
  const {args,records}=fixture({latestFree:true});
  await reconcileSandboxPayment(args);
- assert.equal(records.get("businesses/u1").publishingEnabled,true);
+ assert.equal(records.get("businesses/u1").sandboxPublishingEnabled,true);
 });
 test("unpaid first invoice stays inactive",async()=>{
  const {args,records}=fixture({paid:false});
  await reconcileSandboxPayment(args);
- assert.equal(records.get("businesses/u1").publishingEnabled,false);
+ assert.equal(records.get("businesses/u1").sandboxPublishingEnabled,false);
 });
 test("refund and wrong price reject activation",async()=>{
  for(const settings of [{refunded:true},{price:"price_wrong"},{owner:"other"}]){
   const {args,records}=fixture(settings);
   await assert.rejects(reconcileSandboxPayment(args));
-  assert.equal(records.get("businesses/u1").publishingEnabled,undefined);
+  assert.equal(records.get("businesses/u1").sandboxPublishingEnabled,undefined);
  }
 });
 test("duplicate event is idempotent",async()=>{
  const {args,records}=fixture();
  assert.equal(await reconcileSandboxPayment(args),"updated");
  assert.equal(await reconcileSandboxPayment(args),"duplicate");
- assert.equal(records.get("businesses/u1").publishingEnabled,true);
+ assert.equal(records.get("businesses/u1").sandboxPublishingEnabled,true);
 });
