@@ -1,0 +1,43 @@
+name: MyDealsPortal Stripe test promotion (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type APPLY_TEST_ONLY to apply promotion to the specific test subscription"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydealsportal-test-stripe-promotion
+  cancel-in-progress: false
+
+jobs:
+  test-only:
+    if: ${{ inputs.confirmation == 'APPLY_TEST_ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed, immutable development snapshot
+        uses: actions/checkout@v5
+        with:
+          ref: 325c95b18ca8fc3a668d8f8f9515a32729c87bb8
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install backend dependencies without lifecycle scripts
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Verify billing checks and tests
+        working-directory: mydealsportal-backend
+        run: npm run check && npm test
+      - name: Apply to John Wick's test subscription only
+        working-directory: mydealsportal-backend
+        env:
+          MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
+          MYDEALSPORTAL_TEST_PROMOTION_CONFIRM: APPLY_TEST_ONLY
+        run: npm run stripe:test:apply-promotion
