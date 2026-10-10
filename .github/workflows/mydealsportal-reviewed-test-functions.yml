@@ -34,4 +34,4 @@ jobs:
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
       - name: Deploy MyDealsPortal Functions only
-        run: firebase deploy --project mydealsportal --only functions:sandboxCheckout,functions:stripeSandboxWebhook --non-interactive
+        run: firebase deploy --project mydealsportal --only functions:mydealsportal:sandboxCheckout,functions:mydealsportal:stripeSandboxWebhook --non-interactive
