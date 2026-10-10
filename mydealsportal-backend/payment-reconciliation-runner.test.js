@@ -6,7 +6,7 @@ const initial={id:"in_1",subscription:"sub_1",billing_reason:"subscription_creat
 const latest={id:"in_2",subscription:"sub_1",billing_reason:"subscription_cycle",status:"paid",amount_paid:0,created:2};
 function setup({history={data:[latest,initial],has_more:false},sub=subscription,suspended=false,customer="cus_1",refunds=[]}={}){
  const writes=[];const refs={};
- const db={collection(name){return {doc(){return refs[name]??={name,get:async()=>({exists:true,data:()=>({ownerUid:"u1",stripeCustomerId:customer,billingSuspended:suspended})})};}}},runTransaction:fn=>fn({
+ const db={batch:()=>({update(){},commit:async()=>{}}),collection(name){return {where:()=>({get:async()=>({docs:[]})}),doc(){return refs[name]??={name,get:async()=>({exists:true,data:()=>({ownerUid:"u1",stripeCustomerId:customer,billingSuspended:suspended})})};}}},runTransaction:fn=>fn({
   get:async ref=>ref.name==="businesses"?{exists:true,data:()=>({ownerUid:"u1",stripeCustomerId:"cus_1"})}:{exists:false},
   update:(_,data)=>writes.push(data),create:()=>{}
  })};
