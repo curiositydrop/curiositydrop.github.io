@@ -1,0 +1,29 @@
+name: MyDealsPortal Firestore rules emulator
+on:
+  push:
+    branches:
+      - mydealsportal/billing-live-readiness
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  firestore-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install test dependencies
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Run actual Firestore authorization tests
+        working-directory: mydealsportal-backend
+        run: npm run test:firestore:emulator
