@@ -5,7 +5,7 @@ export function preparePromotionSchedule({subscription,planKey,initialInvoicePai
  if (!subscription || !/^sub_[A-Za-z0-9]+$/.test(subscription.id||"") ||
      subscription.status!=="active" || subscription.schedule ||
      !Number.isSafeInteger(nowSeconds) || nowSeconds<0 ||
-     !Number.isSafeInteger(subscription.current_period_end) ||
+     !Number.isSafeInteger(subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end) ||
      (subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end)<=nowSeconds)
   throw new Error("Subscription not eligible for schedule creation");
  const item=subscription.items?.data;
