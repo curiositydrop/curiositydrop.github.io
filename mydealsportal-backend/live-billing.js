@@ -1,6 +1,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
 
@@ -141,6 +142,11 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
           subscriptionStatus:sub.status,plan:sub.metadata.plan,status:"active",updatedAt:FieldValue.serverTimestamp()};
         await ref.update(updates);
         if(sub.metadata.plan==="founder")await commitReservation(uid);
+        const drafts=await db.collection("deals").where("ownerUid","==",uid).get();
+        for(let i=0;i<drafts.docs.length;i+=400){
+          const batch=db.batch();drafts.docs.slice(i,i+400).forEach(d=>batch.update(d.ref,{publishingApproved:true}));
+          await batch.commit();
+        }
       }
     }
     if(["customer.subscription.updated","customer.subscription.deleted"].includes(event.type)){
@@ -150,11 +156,13 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
         if(snap.exists&&snap.data().stripeSubscriptionId===obj.id){
           const enabled=["active","trialing"].includes(obj.status);
           await ref.update({subscriptionStatus:obj.status,status:enabled?"active":"draft",updatedAt:FieldValue.serverTimestamp()});
+          if(enabled){
+            const deals=await db.collection("deals").where("ownerUid","==",uid).get();
+            for(let i=0;i<deals.docs.length;i+=400){const batch=db.batch();deals.docs.slice(i,i+400).forEach(d=>batch.update(d.ref,{publishingApproved:true}));await batch.commit();}
+          }
           if(!enabled){
             const deals=await db.collection("deals").where("ownerUid","==",uid).get();
-            const batch=db.batch();
-            deals.docs.forEach(d=>batch.update(d.ref,{publishingApproved:false}));
-            if(!deals.empty)await batch.commit();
+            for(let i=0;i<deals.docs.length;i+=400){const batch=db.batch();deals.docs.slice(i,i+400).forEach(d=>batch.update(d.ref,{publishingApproved:false}));await batch.commit();}
           }
         }
       }
@@ -166,4 +174,16 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
     },{merge:true});
     res.status(200).json({received:true});
   }catch(e){console.error("liveStripeWebhook",e);res.status(500).send("Webhook retry");}
+});
+
+
+export const approveNewPaidDeal=onDocumentCreated({document:"deals/{dealId}",region:"us-central1"},async event=>{
+  const snap=event.data;if(!snap)return;
+  const data=snap.data();
+  if(!data?.ownerUid||data.publishingApproved!==false)return;
+  const biz=await db.collection("businesses").doc(data.ownerUid).get();
+  if(!biz.exists)return;
+  const b=biz.data();
+  if(b.ownerUid!==data.ownerUid||b.status!=="active"||!["active","trialing"].includes(b.subscriptionStatus)||!b.stripeSubscriptionId)return;
+  await snap.ref.update({publishingApproved:true});
 });
