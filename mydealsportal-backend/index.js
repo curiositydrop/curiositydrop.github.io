@@ -118,3 +118,6 @@ export const stripeSandboxWebhook = onRequest({
     res.status(500).send("Retry");
   }
 });
+
+// Production functions deployed only after live secrets and webhook are configured.
+export {liveCheckout,liveStripeWebhook,approveNewPaidDeal} from './live-billing.js';
