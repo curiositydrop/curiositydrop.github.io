@@ -93,7 +93,7 @@ saveBtn.addEventListener("click",async()=>{
     },editing);
     clearForm();
     await refresh();
-    msgEl.textContent="Saved — your deal is live.";
+    msgEl.textContent="Deal saved. It will appear publicly once your paid subscription is verified and approved.";
   }catch(e){
     console.error(e);
     msgEl.textContent=(e&&e.message)?e.message:"Could not save.";
