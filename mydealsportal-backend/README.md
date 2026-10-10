@@ -30,3 +30,13 @@ The initial coupons exist in Stripe but are not yet wired; do not mistake them f
 GitHub workflow `.github/workflows/mydealsportal-functions.yml` uses the dedicated deployer account `mydealsportal-github-deploy@mydealsportal.iam.gserviceaccount.com` and the GitHub OIDC pool/provider in project `423834035461`. Do **not** create or commit a service account JSON key. The last safe verification run succeeded before Actions version upgrades; verify once more after the upgrades. Firebase deploy may require additional scoped IAM roles beyond Cloud Functions Developer and Service Account User (such as Artifact Registry, Cloud Build, and Secret Manager access); investigate specific error output, and avoid granting Editor/Owner indiscriminately.
 
 Never deploy as part of a normal Pages build, or use this root Firebase config against the BANDtroductions project.
+
+## Live launch implementation decision (2026-10-10)
+
+Live Stripe prices verified in MyDealsPortal account:
+- founding one-time first month: price_1UP2L5IHJWXNHkKxWInYRa84 ($44.99)
+- standard one-time first month: price_1UP2MMIHJWXNHkKxvuZuVWQO ($49.99)
+- founding monthly: price_1UOVlFIHJWXNHkKxKgfNFoRy ($44.99)
+- standard monthly: price_1UOVlJIHJWXNHkKxDCIpogsu ($49.99)
+
+Agreed simple strategy: one-time payment via Stripe Checkout for month 1; on confirmed paid webhook create recurring subscription with next billing at month 4 for founding customers and month 3 for standard customers. Use saved payment method and idempotency keys. Founding slots must be secured atomically before Checkout, expire for unpaid sessions, and become permanent only after paid. Never enable live checkout before webhook, Firebase permissions and live secret bindings are verified. Existing sandbox functions remain unchanged until implementation is ready.
