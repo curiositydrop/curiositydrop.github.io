@@ -5,7 +5,7 @@ import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 const TEST_PRICES={founding:"price_1UOpZeIHJWXNHkKxQP3tbT6i",standard:"price_1UOpZgIHJWXNHkKxIi1crSCn"};
 export async function reconcileSandboxPayment({stripe,db,FieldValue,subscriptionId,eventId,nowSeconds}){
- if(!stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !db?.collection ||
+ if(!stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list || !db?.collection ||
     !/^sub_[A-Za-z0-9]+$/.test(subscriptionId||"") ||
     !Number.isSafeInteger(nowSeconds))
    throw new Error("Sandbox verification context required");
@@ -33,8 +33,23 @@ export async function reconcileSandboxPayment({stripe,db,FieldValue,subscription
     subscription:sub,firstInvoice:initial,latestInvoice:latest,
     businessSuspended:snap.data().suspended===true || snap.data().billingSuspended===true,nowSeconds
  });
- // This test-only bridge refuses to grant access without a paid first invoice.
- // Refund/dispute resolution MUST be wired before enabling automatic access.
- if(state.publishingEnabled)throw new Error("Test activation requires refund/dispute verification before enabling");
+ if(state.publishingEnabled){
+   const paidInvoice=await stripe.invoices.retrieve(initial.id,{expand:["payments.data.payment.payment_intent"]});
+   if(paidInvoice.id!==initial.id || paidInvoice.livemode!==false ||
+      paidInvoice.status!=="paid" || paidInvoice.payments?.has_more ||
+      !Array.isArray(paidInvoice.payments?.data))
+     throw new Error("Incomplete sandbox paid-invoice verification");
+   const settled=paidInvoice.payments.data.filter(p=>p.status==="paid" || p.status==="succeeded");
+   if(settled.length!==1)throw new Error("Single settled Stripe test payment required");
+   const raw=settled[0].payment?.payment_intent;
+   const intent=typeof raw==="string"?raw:raw?.id;
+   if(!/^pi_[A-Za-z0-9]+$/.test(intent||""))throw new Error("PaymentIntent verification required");
+   const refunds=await stripe.refunds.list({payment_intent:intent,limit:100});
+   if(refunds.has_more || !Array.isArray(refunds.data))
+     throw new Error("Refund history incomplete");
+   if(refunds.data.some(r=>!["failed","canceled"].includes(r.status)))
+     throw new Error("Refunded test payment requires manual review");
+ }
+
  return recordBillingReconciliation({db,FieldValue,uid,eventId,state});
 }
