@@ -2,11 +2,6 @@ name: MyDealsPortal reviewed sandbox Functions deploy
 
 on:
   workflow_dispatch:
-    inputs:
-      confirmation:
-        description: 'Type DEPLOY_TEST_FUNCTIONS_ONLY'
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -14,7 +9,6 @@ permissions:
 
 jobs:
   deploy-test-functions:
-    if: ${{ inputs.confirmation == 'DEPLOY_TEST_FUNCTIONS_ONLY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
