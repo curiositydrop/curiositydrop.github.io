@@ -36,7 +36,7 @@ export async function registerBusiness({email,password,name,phone,website,zip,ci
   });
   await setDoc(doc(db,"businesses",uid),{
     ownerUid:uid,name,slug,phone:phone||"",website:website||"",zip,city:city||"",
-    category,status:"active",subscriptionStatus:"sandbox",foundingEligible:true,
+    category,status:"draft",subscriptionStatus:"unpaid",
     createdAt:serverTimestamp(),updatedAt:serverTimestamp()
   });
   return cred.user;
@@ -76,6 +76,7 @@ export async function saveDeal(uid,business,data,id=null){
     await updateDoc(doc(db,"deals",id),payload);
     return id;
   }
+  payload.publishingApproved=false;
   payload.createdAt=serverTimestamp();
   const ref=await addDoc(collection(db,"deals"),payload);
   return ref.id;
@@ -87,7 +88,7 @@ export async function setDealActive(id,active){
 export async function removeDeal(id){ await deleteDoc(doc(db,"deals",id)); }
 
 export async function getPublicDeals(){
-  const q=query(collection(db,"deals"),where("active","==",true));
+  const q=query(collection(db,"deals"),where("active","==",true),where("publishingApproved","==",true));
   const snap=await getDocs(q);
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
