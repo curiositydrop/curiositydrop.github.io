@@ -35,7 +35,7 @@ pCityEl.value=biz.city||"";
 
 async function refresh(){
   deals=await getMyDeals(user.uid);
-  businessDealsEl.innerHTML=deals.length?deals.map(d=>'<div class="dealrow"><div class="status">'+(d.active===false?'PAUSED':'ACTIVE')+'</div><h4>'+esc(d.title)+'</h4><div class="tiny">'+esc(d.category)+' · '+esc(d.zip)+'</div><div class="actions"><button class="btn btn-soft" data-edit="'+d.id+'">Edit</button><button class="btn btn-ghost" data-toggle="'+d.id+'">'+(d.active===false?'Reactivate':'Pause')+'</button><button class="btn btn-danger" data-delete="'+d.id+'">Delete</button>'+(d.active!==false&&d.publishingApproved===true?'<a class="btn btn-ghost" href="deal.html?id='+encodeURIComponent(d.id)+'">View Live</a>':'')+'</div></div>').join(""):'<p class="tiny">No deals yet. Add your first one.</p>';
+  businessDealsEl.innerHTML=deals.length?deals.map(d=>'<div class="dealrow"><div class="status">'+(d.publishingApproved===true?(d.active===false?'PAUSED':'LIVE'):'DRAFT')+'</div><h4>'+esc(d.title)+'</h4><div class="tiny">'+esc(d.category)+' · '+esc(d.zip)+'</div><div class="actions"><button class="btn btn-soft" data-edit="'+d.id+'">Edit</button><button class="btn btn-ghost" data-toggle="'+d.id+'">'+(d.active===false?'Reactivate':'Pause')+'</button><button class="btn btn-danger" data-delete="'+d.id+'">Delete</button>'+(d.active!==false&&d.publishingApproved===true?'<a class="btn btn-ghost" href="deal.html?id='+encodeURIComponent(d.id)+'">View Live</a>':'')+'</div></div>').join(""):'<p class="tiny">No deals yet. Add your first one.</p>';
 }
 
 businessDealsEl.addEventListener("click",async e=>{
