@@ -39,7 +39,8 @@ export async function registerBusiness({email,password,name,phone,website,zip,ci
     category,status:"draft",subscriptionStatus:"unpaid",
     createdAt:serverTimestamp(),updatedAt:serverTimestamp()
   });
-  await sendEmailVerification(cred.user);\n  return cred.user;
+  await sendEmailVerification(cred.user);
+  return cred.user;
 }
 
 export function loginBusiness(email,password){
