@@ -163,8 +163,9 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
       if(uid){
         const ref=db.collection("businesses").doc(uid),snap=await ref.get();
         if(snap.exists&&snap.data().stripeSubscriptionId===obj.id){
-          const enabled=["active","trialing"].includes(obj.status);
-          await ref.update({subscriptionStatus:obj.status,status:enabled?"active":"draft",updatedAt:FieldValue.serverTimestamp()});
+          const current=event.type==="customer.subscription.deleted"?obj:await api.subscriptions.retrieve(obj.id);
+          const enabled=["active","trialing"].includes(current.status);
+          await ref.update({subscriptionStatus:current.status,status:enabled?"active":"draft",updatedAt:FieldValue.serverTimestamp()});
           if(enabled){
             const deals=await db.collection("deals").where("ownerUid","==",uid).get();
             for(let i=0;i<deals.docs.length;i+=400){const batch=db.batch();deals.docs.slice(i,i+400).forEach(d=>batch.update(d.ref,{publishingApproved:true}));await batch.commit();}
