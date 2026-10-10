@@ -15,7 +15,7 @@ jobs:
       - name: Checkout fixed reviewed billing snapshot
         uses: actions/checkout@v5
         with:
-          ref: 795618db6487f3775a0505f40167cecc273154ac
+          ref: 56beb5c095293d130027c261741930bf289ba30a
           persist-credentials: false
       - uses: actions/setup-node@v5
         with:
@@ -33,5 +33,7 @@ jobs:
           service_account: 'mydealsportal-github-deploy@mydealsportal.iam.gserviceaccount.com'
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
+      - name: Switch staging build to sandbox-only entrypoint
+        run: cp mydealsportal-backend/index-sandbox.js mydealsportal-backend/index.js
       - name: Deploy MyDealsPortal Functions only
         run: firebase deploy --project mydealsportal --only functions:mydealsportal:sandboxCheckout,functions:mydealsportal:stripeSandboxWebhook --non-interactive
