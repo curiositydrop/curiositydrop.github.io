@@ -122,3 +122,5 @@ export const stripeSandboxWebhook = onRequest({
 // Production handlers are separate from sandbox endpoints. Deployment is manual.
 export { liveCheckout } from "./live-checkout.js";
 export { liveStripeWebhook } from "./live-webhook.js";
+
+export { liveBillingPortal } from "./live-portal.js";
