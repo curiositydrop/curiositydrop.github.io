@@ -1,0 +1,64 @@
+name: MyDealsPortal Standard $49.99 test promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Diagnose or apply Standard plan TEST promotion'
+        type: choice
+        required: true
+        default: diagnose
+        options:
+          - diagnose
+          - apply
+      confirmation:
+        description: 'For apply only, enter APPLY_STANDARD_TEST_ONLY'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydealsportal-standard-test-promotion
+  cancel-in-progress: false
+
+jobs:
+  standard-test-only:
+    if: ${{ inputs.mode == 'diagnose' || (inputs.mode == 'apply' && inputs.confirmation == 'APPLY_STANDARD_TEST_ONLY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: 7780d94370bfbd3e3eb2fa43df93fee263475f4c
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install dependencies without lifecycle scripts
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Verify backend checks and billing tests
+        working-directory: mydealsportal-backend
+        run: npm run check && npm test
+      - name: Validate test key prefix without printing the secret
+        env:
+          MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const key=process.env.MYDEALSPORTAL_STRIPE_TEST_KEY||'';
+          if(!key.startsWith('sk_test_')||key!==key.trim()){
+            console.error('Expected an exact sk_test_ Stripe secret; value hidden. No mutation made.');
+            process.exit(1);
+          }
+          console.log('Stripe test secret format verified; value hidden.');
+          NODE
+      - name: Apply one free month to standard test subscription only
+        if: ${{ inputs.mode == 'apply' && inputs.confirmation == 'APPLY_STANDARD_TEST_ONLY' }}
+        working-directory: mydealsportal-backend
+        env:
+          MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
+          MYDEALSPORTAL_TEST_PROMOTION_CONFIRM: APPLY_TEST_ONLY
+        run: npm run stripe:test:apply-standard-promotion
