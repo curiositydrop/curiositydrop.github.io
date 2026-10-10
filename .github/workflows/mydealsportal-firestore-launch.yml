@@ -1,0 +1,40 @@
+name: MyDealsPortal Firestore launch safety
+on:
+  push:
+    branches: [main]
+    paths:
+      - mydealsportal-preview/firestore.rules
+      - mydealsportal-preview/firestore.indexes.json
+      - firebase.json
+      - .github/workflows/mydealsportal-firestore-launch.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install emulator testing dependencies
+        working-directory: mydealsportal-backend
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Test Firestore permissions
+        working-directory: mydealsportal-backend
+        run: npm run test:firestore:emulator
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/423834035461/locations/global/workloadIdentityPools/mydealsportal-github-deploy/providers/mydealsportal-github
+          service_account: mydealsportal-github-deploy@mydealsportal.iam.gserviceaccount.com
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+      - name: Deploy Firestore security rules and index (no Functions)
+        run: firebase deploy --project mydealsportal --only firestore:rules,firestore:indexes --non-interactive
