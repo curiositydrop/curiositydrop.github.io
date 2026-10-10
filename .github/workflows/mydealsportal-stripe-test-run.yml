@@ -3,6 +3,14 @@ name: MyDealsPortal Stripe test promotion (manual)
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Run diagnostics first; only select apply after review"
+        required: true
+        default: diagnose
+        type: choice
+        options:
+          - diagnose
+          - apply
       confirmation:
         description: "Type APPLY_TEST_ONLY to apply promotion to the specific test subscription"
         required: true
@@ -17,7 +25,7 @@ concurrency:
 
 jobs:
   test-only:
-    if: ${{ inputs.confirmation == 'APPLY_TEST_ONLY' }}
+    if: ${{ inputs.mode == 'diagnose' || (inputs.mode == 'apply' && inputs.confirmation == 'APPLY_TEST_ONLY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -66,6 +74,7 @@ jobs:
           console.log('Secret format verified: sk_test_ prefix, no surrounding whitespace. Value hidden.');
           NODE
       - name: Apply to John Wick's test subscription only
+        if: ${{ inputs.mode == 'apply' && inputs.confirmation == 'APPLY_TEST_ONLY' }}
         working-directory: mydealsportal-backend
         env:
           MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
