@@ -10,5 +10,9 @@
         "firebase-debug.*.log"
       ]
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "mydealsportal-preview/firestore.rules",
+    "indexes": "mydealsportal-preview/firestore.indexes.json"
+  }
 }
