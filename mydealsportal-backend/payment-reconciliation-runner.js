@@ -4,6 +4,7 @@ import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
 import {recordBillingReconciliation} from "./billing-firestore.js";
 import {planFromKey} from "./billing-policy.js";
 import {confirmFoundingPayment} from "./founding-confirmation.js";
+import {synchronizeDeals} from "./publication-sync.js";
 
 export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscriptionId,nowSeconds}) {
  if(!db?.collection || !stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list ||
@@ -85,7 +86,9 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
    if(!["confirmed","already_confirmed"].includes(founding.status))
      throw new Error("Founding reservation requires manual payment review");
  }
- return recordBillingReconciliation({
+ const outcome=await recordBillingReconciliation({
    db,FieldValue,uid:subscription.metadata.firebaseUid,eventId,state
  });
+ await synchronizeDeals(db,uid);
+ return outcome;
 }
