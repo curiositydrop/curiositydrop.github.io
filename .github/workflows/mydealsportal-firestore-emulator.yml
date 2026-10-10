@@ -3,6 +3,12 @@ on:
   push:
     branches:
       - mydealsportal/billing-live-readiness
+  pull_request:
+    paths:
+      - "mydealsportal-preview/firestore.rules"
+      - "mydealsportal-backend/**"
+      - "firebase.json"
+      - ".github/workflows/mydealsportal-firestore-emulator.yml"
   workflow_dispatch:
 
 permissions:
