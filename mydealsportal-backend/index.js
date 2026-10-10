@@ -118,3 +118,7 @@ export const stripeSandboxWebhook = onRequest({
     res.status(500).send("Retry");
   }
 });
+
+// Production handlers are separate from sandbox endpoints. Deployment is manual.
+export { liveCheckout } from "./live-checkout.js";
+export { liveStripeWebhook } from "./live-webhook.js";
