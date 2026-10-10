@@ -44,6 +44,8 @@ jobs:
       - name: Validate JavaScript
         working-directory: mydealsportal-backend
         run: npm run check
+      - name: Validate business signup and deal client syntax
+        run: node --check mydealsportal-preview/firebase-client.js
       - name: Test billing policy
         working-directory: mydealsportal-backend
         run: npm test
