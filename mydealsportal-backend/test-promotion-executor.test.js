@@ -4,7 +4,7 @@ import {applyTestPromotionSchedule} from "./test-promotion-executor.js";
 const subscription={id:"sub_123",livemode:false,status:"active",schedule:null,current_period_end:2000,metadata:{plan:"founding"},items:{data:[{quantity:1,price:{id:"price_1UOVlFIHJWXNHkKxKgfNFoRy"},current_period_end:2000}]}};
 const coupon={id:"coupon_123",percent_off:100,valid:true};
 function setup(){
- let create=0,update=0;const stripe={coupons:{retrieve:async()=>coupon},subscriptions:{retrieve:async()=>subscription},subscriptionSchedules:{
+ let create=0,update=0;const stripe={prices:{retrieve:async id=>({id,livemode:false,active:true,currency:"usd",unit_amount:4499,recurring:{interval:"month",interval_count:1}})},coupons:{retrieve:async()=>coupon},subscriptions:{retrieve:async()=>subscription},subscriptionSchedules:{
   retrieve:async()=>({id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOVlFIHJWXNHkKxKgfNFoRy",quantity:1}]}]}),
   create:async()=>{create++;return {id:"sub_sched_123",livemode:false,subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOVlFIHJWXNHkKxKgfNFoRy",quantity:1}]}]};},
   update:async(id,body)=>{update++;assert.equal(body.phases[1].duration.interval_count,2);return {id,livemode:false};}
@@ -64,5 +64,11 @@ test("refuses to overwrite an already customized promotion",async()=>{
 test("refuses unexpected schedule added concurrently",async()=>{
  const f=setup();f.stripe.subscriptions.retrieve=async()=>({...subscription,schedule:"sub_sched_other"});
  await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/changed/);
+ assert.deepEqual(f.stats(),{create:0,update:0});
+});
+
+test("wrong Stripe test price amount blocks schedule mutation",async()=>{
+ const f=setup();f.stripe.prices.retrieve=async id=>({id,livemode:false,active:true,currency:"usd",unit_amount:1,recurring:{interval:"month",interval_count:1}});
+ await assert.rejects(applyTestPromotionSchedule({...opts,stripe:f.stripe}),/matching Stripe test price/);
  assert.deepEqual(f.stats(),{create:0,update:0});
 });
