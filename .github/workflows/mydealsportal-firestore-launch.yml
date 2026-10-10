@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: mydealsportal/billing-live-readiness
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -30,6 +32,11 @@ jobs:
       - name: Test Firestore permissions
         working-directory: mydealsportal-backend
         run: npm run test:firestore:emulator
+      - name: Checkout production branch for deployment
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
       - uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: projects/423834035461/locations/global/workloadIdentityPools/mydealsportal-github-deploy/providers/mydealsportal-github
