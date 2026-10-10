@@ -35,6 +35,36 @@ jobs:
       - name: Verify billing checks and tests
         working-directory: mydealsportal-backend
         run: npm run check && npm test
+      - name: Verify Stripe secret format without revealing it
+        working-directory: mydealsportal-backend
+        env:
+          MYDEALSPORTAL_STRIPE_TEST_KEY: ${{ secrets.MYDEALSPORTAL_STRIPE_TEST_KEY }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const raw = process.env.MYDEALSPORTAL_STRIPE_TEST_KEY || '';
+          if (!raw) {
+            console.error('CHECK FAILED: repository secret is missing or unavailable to this workflow.');
+            process.exit(1);
+          }
+          if (raw !== raw.trim()) {
+            console.error('CHECK FAILED: stored secret contains leading or trailing whitespace.');
+            process.exit(1);
+          }
+          if (raw.startsWith('rk_test_')) {
+            console.error('CHECK FAILED: this is a restricted test key (rk_test_), not an sk_test_ key.');
+            process.exit(1);
+          }
+          if (raw.startsWith('sk_live_') || raw.startsWith('rk_live_')) {
+            console.error('CHECK FAILED: live-mode key supplied. No Stripe operations attempted.');
+            process.exit(1);
+          }
+          if (!raw.startsWith('sk_test_')) {
+            console.error('CHECK FAILED: secret is present but does not begin with sk_test_.');
+            process.exit(1);
+          }
+          console.log('Secret format verified: sk_test_ prefix, no surrounding whitespace. Value hidden.');
+          NODE
       - name: Apply to John Wick's test subscription only
         working-directory: mydealsportal-backend
         env:
