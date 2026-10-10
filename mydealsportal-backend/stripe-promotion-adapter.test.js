@@ -31,7 +31,7 @@ test("rejects wrong coupon and copied phase",()=>{
 
 test("supports real test coupon ID and flexible billing item period",()=>{
  const flexible={...subscription,current_period_end:undefined,items:{data:[{quantity:1,price:{id:"price_1UOpZeIHJWXNHkKxQP3tbT6i"},current_period_end:2000}]}};
- const preview=previewPromotionSchedule({subscription:flexible,planKey:"founding",initialInvoicePaid:true,nowSeconds:1500});
+ const preview=previewPromotionSchedule({subscription:flexible,planKey:"founding",initialInvoicePaid:true,nowSeconds:1500,verifiedTestPriceId:"price_1UOpZeIHJWXNHkKxQP3tbT6i"});
  const result=proposeScheduleUpdate({preview,coupon:{id:"8YGAywdJ",percent_off:100,valid:true},schedule:{subscription:"sub_123",phases:[{start_date:1000,end_date:2000,items:[{price:"price_1UOpZeIHJWXNHkKxQP3tbT6i",quantity:1}]}]}});
  assert.equal(result.phases[1].discounts[0].coupon,"8YGAywdJ");
  assert.equal(result.phases[1].duration.interval_count,2);
