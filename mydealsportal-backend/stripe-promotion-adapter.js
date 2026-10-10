@@ -1,8 +1,8 @@
 // Side-effect-free proposal for an eventual Stripe subscription schedule.
 // Creating a schedule is itself a Stripe mutation; don't do so here.
 import {preparePromotionSchedule} from "./promotion-preflight.js";
-export function previewPromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds}) {
- const config=preparePromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds});
+export function previewPromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds,verifiedTestPriceId}) {
+ const config=preparePromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds,verifiedTestPriceId});
  return Object.freeze({
   subscriptionId:subscription.id,
   paidPeriodEnds:config.startAfterPaidPeriod,
