@@ -2,7 +2,7 @@
 // Retrieves authoritative Stripe state. Never accepts checkout redirect or
 // browser flags as proof; never accepts live Stripe objects.
 import {reconcileVerifiedSubscription} from "./stripe-reconciliation.js";
-import {recordBillingReconciliation} from "./billing-firestore.js";
+import {recordSandboxBilling} from "./sandbox-billing-firestore.js";
 const TEST_PRICES={founding:"price_1UOpZeIHJWXNHkKxQP3tbT6i",standard:"price_1UOpZgIHJWXNHkKxIi1crSCn"};
 export async function reconcileSandboxPayment({stripe,db,FieldValue,subscriptionId,eventId,nowSeconds}){
  if(!stripe?.subscriptions?.retrieve || !stripe?.invoices?.list || !stripe?.invoices?.retrieve || !stripe?.refunds?.list || !db?.collection ||
@@ -51,5 +51,5 @@ export async function reconcileSandboxPayment({stripe,db,FieldValue,subscription
      throw new Error("Refunded test payment requires manual review");
  }
 
- return recordBillingReconciliation({db,FieldValue,uid,eventId,state});
+ return recordSandboxBilling({db,FieldValue,uid,eventId,state});
 }
