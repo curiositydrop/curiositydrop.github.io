@@ -1,3 +1,4 @@
+import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onRequest } from "firebase-functions/v2/https";
@@ -8,6 +9,7 @@ import Stripe from "stripe";
 // Production-only handlers. Never accept sandbox keys or test events.
 const key=defineSecret("MDP_LIVE_STRIPE_SECRET_KEY");
 const signing=defineSecret("MDP_LIVE_STRIPE_WEBHOOK_SECRET");
+if(!getApps().length) initializeApp();
 const db=getFirestore();
 const ORIGIN="https://curiositydrop.github.io";
 const PRICES={founder:"price_1UOVlFIHJWXNHkKxKgfNFoRy",standard:"price_1UOVlJIHJWXNHkKxDCIpogsu"};
