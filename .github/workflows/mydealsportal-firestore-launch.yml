@@ -37,6 +37,12 @@ jobs:
         with:
           workload_identity_provider: projects/423834035461/locations/global/workloadIdentityPools/mydealsportal-github-deploy/providers/mydealsportal-github
           service_account: mydealsportal-github-deploy@mydealsportal.iam.gserviceaccount.com
+      - name: Verify deployment identity and project
+        run: |
+          echo 'Project: mydealsportal'
+          gcloud config set project mydealsportal
+          gcloud auth print-access-token >/dev/null
+          echo 'GitHub Google Cloud authentication succeeded'
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
       - name: Deploy Firestore security rules and index (no Functions)
