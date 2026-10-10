@@ -26,6 +26,10 @@ jobs:
       - name: Verify billing code
         working-directory: mydealsportal-backend
         run: npm run check && npm test
+      - name: Verify sandbox entrypoint excludes live Stripe configuration
+        run: |
+          node --check mydealsportal-backend/index-sandbox.js
+          if grep -q 'MYDEALSPORTAL_STRIPE_LIVE_' mydealsportal-backend/index-sandbox.js; then exit 1; fi
       - name: Authenticate to Firebase
         uses: google-github-actions/auth@v3
         with:
