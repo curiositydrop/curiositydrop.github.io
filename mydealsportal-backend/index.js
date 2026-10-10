@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
 import { prepareSandboxCheckout } from "./sandbox-checkout-coordinator.js";
+import { ensureSandboxPromotion } from "./sandbox-promotion-reconciler.js";
 import { reconcileSandboxPayment } from "./sandbox-payment-reconciler.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
@@ -125,6 +126,15 @@ export const stripeSandboxWebhook = onRequest({
         subscriptionId:resolution.subscriptionId,eventId:classified.eventId,
         nowSeconds:Math.floor(Date.now()/1000)
       });
+      const matched=await db.collection("businesses").doc(resolution.uid).get();
+      if(matched.exists && matched.data().sandboxPublishingEnabled===true){
+        await ensureSandboxPromotion({
+          stripe:stripeClient(),apiKey:stripeKey.value(),
+          subscriptionId:resolution.subscriptionId,
+          planKey:matched.data().checkoutPlan,
+          nowSeconds:Math.floor(Date.now()/1000)
+        });
+      }
     }
     res.status(200).json({received:true});
   } catch(err) {
