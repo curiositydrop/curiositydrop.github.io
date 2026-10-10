@@ -61,7 +61,7 @@ async function commitReservation(uid){
   await db.runTransaction(async tx=>{
     const s=await tx.get(slots);if(!s.exists)return;
     const data=s.data().members||{};
-    if(!data[uid])throw Error("Founder reservation expired; requires manual reconciliation");
+    if(!data[uid])throw Error("Founder reservation missing; requires reconciliation");
     data[uid]={committed:true,expires:0};
     tx.update(slots,{members:data});
   });
@@ -176,6 +176,20 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
         }
       }
     }
+    if(event.type==="invoice.payment_failed"){
+      const subscriptionId=typeof obj.subscription==="string"?obj.subscription:obj.subscription?.id;
+      if(subscriptionId){
+        const subscription=await api.subscriptions.retrieve(subscriptionId);
+        const uid=subscription.metadata?.firebaseUid;
+        if(uid){
+          const ref=db.collection("businesses").doc(uid),snap=await ref.get();
+          if(snap.exists&&snap.data().stripeSubscriptionId===subscriptionId){
+            await ref.update({lastInvoicePaymentFailedAt:FieldValue.serverTimestamp()});
+          }
+        }
+      }
+    }
+    // Do not activate publishing on payment failure, unverified checkout, or a browser redirect.
     // Publishing entitlement on new deals is granted by a trusted server path only.
     // Client-side Firestore rules do not allow modification of publishingApproved.
     await db.collection("mdpStripeLiveEvents").doc(event.id).set({
