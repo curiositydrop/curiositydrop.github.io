@@ -18,10 +18,19 @@ service cloud.firestore {
     match /businesses/{businessId} {
       allow read: if resource.data.status == "active"
                   || (signedIn() && resource.data.ownerUid == request.auth.uid);
-      allow create: if signedIn()
-                    && businessId == request.auth.uid
-                    && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if owns(resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["name", "phone", "website", "zip", "city", "category", "updatedAt"]);\n      allow delete: if false;
+      allow create: if signedIn() && businessId == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == "draft"
+        && request.resource.data.subscriptionStatus == "unpaid"
+        && request.resource.data.keys().hasOnly([
+          "ownerUid","name","slug","phone","website","zip","city","category",
+          "status","subscriptionStatus","createdAt","updatedAt"
+        ]);
+      allow update: if owns(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "name","phone","website","zip","city","category","updatedAt"
+        ]);
+      allow delete: if false;
     }
 
     match /deals/{dealId} {
