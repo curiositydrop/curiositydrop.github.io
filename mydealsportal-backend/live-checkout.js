@@ -11,7 +11,12 @@ export const liveCheckout = onRequest({region:"us-central1",secrets:[liveKey]},a
     const ref=businessDoc(user.uid),snap=await ref.get(),biz=snap.data();
     if(!biz||biz.ownerUid!==user.uid)throw Error("Business required");
     if(["active","trialing"].includes(biz.subscriptionStatus))throw Error("Already subscribed");
-    const api=stripe(),offer=await chooseOffer(user.uid);
+    const api=stripe();
+    if(biz.pendingCheckoutId){
+      const prior=await api.checkout.sessions.retrieve(biz.pendingCheckoutId);
+      if(prior.status==="open" && prior.url){res.json({url:prior.url});return;}
+    }
+    const offer=await chooseOffer(user.uid);
     let customer=biz.stripeCustomerId;
     if(!customer){
       const newCustomer=await api.customers.create({email:user.email,name:biz.name},{idempotencyKey:"mdp-customer-"+user.uid});
@@ -27,6 +32,7 @@ export const liveCheckout = onRequest({region:"us-central1",secrets:[liveKey]},a
       cancel_url:"https://curiositydrop.github.io/mydealsportal-preview/dashboard.html?checkout=cancel",
       expires_at:Math.floor(Date.now()/1000)+1800
     });
+    await ref.update({pendingCheckoutId:session.id});
     res.json({url:session.url});
   }catch(err){console.error("Checkout",err);res.status(400).json({error:"Checkout unavailable"});}
 });
