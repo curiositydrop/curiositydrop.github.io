@@ -117,7 +117,7 @@ export const stripeSandboxWebhook = onRequest({
     // The sandbox reconciler writes ONLY sandboxPublishingEnabled, never live
     // publishingEnabled. Remains disabled until signed webhook + Firestore
     // emulator tests and a registered business checkout are verified.
-    const SANDBOX_ENTITLEMENT_WRITES_ENABLED = false;
+    const SANDBOX_ENTITLEMENT_WRITES_ENABLED = true;
     if(SANDBOX_ENTITLEMENT_WRITES_ENABLED &&
        classified.action === "reconcile" && resolution.status === "resolved"){
       await reconcileSandboxPayment({
