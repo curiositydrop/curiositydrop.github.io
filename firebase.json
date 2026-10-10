@@ -12,7 +12,8 @@
     }
   ],
   "firestore": {
-    "rules": "mydealsportal-preview/firestore.rules"
+    "rules": "mydealsportal-preview/firestore.rules",
+    "indexes": "mydealsportal-preview/firestore.indexes.json"
   },
   "emulators": {
     "firestore": {
