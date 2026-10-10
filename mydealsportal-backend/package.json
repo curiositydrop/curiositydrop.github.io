@@ -13,7 +13,7 @@
     "stripe:test:apply-promotion": "node apply-test-promotion.js",
     "stripe:test:apply-standard-promotion": "node apply-standard-test-promotion.js",
     "security:audit": "node billing-security-audit.js",
-    "test:firestore:emulator": "firebase emulators:exec --project mdp-rules-authorization-test --only firestore 'node --test firestore-rules.emulator.test.js'"
+    "test:firestore:emulator": "firebase emulators:exec --config ../firebase.json --project mdp-rules-authorization-test --only firestore 'node --test firestore-rules.emulator.test.js'"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
