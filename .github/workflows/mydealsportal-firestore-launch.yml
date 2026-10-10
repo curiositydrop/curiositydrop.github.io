@@ -2,11 +2,6 @@ name: MyDealsPortal Firestore launch safety
 on:
   push:
     branches: [main]
-    paths:
-      - mydealsportal-preview/firestore.rules
-      - mydealsportal-preview/firestore.indexes.json
-      - firebase.json
-      - .github/workflows/mydealsportal-firestore-launch.yml
   workflow_dispatch:
 permissions:
   contents: read
