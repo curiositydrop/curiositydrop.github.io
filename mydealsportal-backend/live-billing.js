@@ -61,7 +61,7 @@ async function commitReservation(uid){
   await db.runTransaction(async tx=>{
     const s=await tx.get(slots);if(!s.exists)return;
     const data=s.data().members||{};
-    if(!data[uid])return;
+    if(!data[uid])throw Error("Founder reservation expired; requires manual reconciliation");
     data[uid]={committed:true,expires:0};
     tx.update(slots,{members:data});
   });
@@ -114,10 +114,12 @@ export const liveCheckout=onRequest({region:"us-central1",secrets:[key]},async(r
       cancel_url:ORIGIN+"/mydealsportal-preview/dashboard.html?checkout=cancel",
       expires_at:Math.floor(Date.now()/1000)+30*60
     },{idempotencyKey:"mdp-live-checkout-"+uid+"-"+Math.floor(Date.now()/(30*60*1000))});
+    await ref.update({stripeCheckoutSessionId:session.id});
     response(res,200,{url:session.url,plan});
   }catch(e){
     console.error("liveCheckout",e);
-    if(uid&&plan==="founder")await releaseReservation(uid).catch(console.error);
+    // Do not release a reserved founder slot here: a Checkout Session may already exist
+    // even if the last Firestore write failed. The slot expires automatically.
     response(res,500,{error:"Could not start secure checkout. Please try again."});
   }
 });
@@ -131,13 +133,18 @@ export const liveStripeWebhook=onRequest({region:"us-central1",secrets:[key,sign
   try{
     const obj=event.data.object,api=stripe();
     if(event.type==="checkout.session.expired"){
-      if(obj.metadata?.plan==="founder"&&obj.metadata.firebaseUid)await releaseReservation(obj.metadata.firebaseUid);
+      if(obj.metadata?.plan==="founder"&&obj.metadata.firebaseUid){
+        const ref=db.collection("businesses").doc(obj.metadata.firebaseUid);
+        const business=await ref.get();
+        if(business.exists&&business.data().stripeCheckoutSessionId===obj.id)await releaseReservation(obj.metadata.firebaseUid);
+      }
     }
     if(event.type==="checkout.session.completed"&&obj.payment_status==="paid"){
       const uid=obj.metadata?.firebaseUid;
       if(uid){
         const sub=await api.subscriptions.retrieve(obj.subscription);
-        if(sub.metadata.firebaseUid!==uid)throw Error("Subscription owner mismatch");
+        if(sub.metadata.firebaseUid!==uid || obj.customer!==sub.customer)throw Error("Subscription owner mismatch");
+        if(!["active","trialing"].includes(sub.status))throw Error("Subscription is not active");
         const ref=db.collection("businesses").doc(uid),snap=await ref.get();
         if(!snap.exists||snap.data().ownerUid!==uid)throw Error("Business missing");
         const updates={stripeLiveCustomerId:obj.customer,stripeSubscriptionId:sub.id,
