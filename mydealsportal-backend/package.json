@@ -11,7 +11,8 @@
     "test": "node --test billing-policy.test.js checkout-contract.test.js webhook-policy.test.js entitlement-policy.test.js stripe-reconciliation.test.js billing-firestore.test.js sandbox-event-resolver.test.js live-billing-config.test.js production-event-guard.test.js founding-reservation-policy.test.js founding-firestore.test.js founding-confirmation.test.js live-checkout-preflight.test.js founding-cleanup.test.js promotion-schedule.test.js promotion-preflight.test.js stripe-promotion-adapter.test.js live-checkout-session.test.js checkout-reservation-validation.test.js checkout-session-firestore.test.js checkout-coordinator.test.js payment-reconciliation-runner.test.js checkout-to-activation.integration.test.js test-promotion-executor.test.js live-event-resolver.test.js expired-checkout-recovery.test.js sandbox-payment-reconciler.test.js",
     "stripe:test:readiness": "node stripe-test-readiness.js",
     "stripe:test:apply-promotion": "node apply-test-promotion.js",
-    "stripe:test:apply-standard-promotion": "node apply-standard-test-promotion.js"
+    "stripe:test:apply-standard-promotion": "node apply-standard-test-promotion.js",
+    "security:audit": "node billing-security-audit.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
