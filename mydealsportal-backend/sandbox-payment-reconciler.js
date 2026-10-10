@@ -29,6 +29,8 @@ export async function reconcileSandboxPayment({stripe,db,FieldValue,subscription
  const initial=history.data.filter(x=>x.billing_reason==="subscription_create").sort((a,b)=>a.created-b.created)[0];
  const latest=[...history.data].sort((a,b)=>b.created-a.created)[0];
  if(!initial)throw new Error("Test initial invoice missing");
+ if(initial.status==="paid" && initial.amount_paid!==(plan==="founding"?4499:4999))
+   throw new Error("Initial test invoice amount does not match selected plan");
  const state=reconcileVerifiedSubscription({
     subscription:sub,firstInvoice:initial,latestInvoice:latest,
     businessSuspended:snap.data().suspended===true || snap.data().billingSuspended===true,nowSeconds
