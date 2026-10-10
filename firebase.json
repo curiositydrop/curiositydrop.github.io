@@ -10,5 +10,16 @@
         "firebase-debug.*.log"
       ]
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "mydealsportal-preview/firestore.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8085
+    },
+    "ui": {
+      "enabled": false
+    }
+  }
 }
