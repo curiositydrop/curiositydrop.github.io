@@ -6,6 +6,7 @@ import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
+import { prepareSandboxCheckout } from "./sandbox-checkout-coordinator.js";
 import { reconcileSandboxPayment } from "./sandbox-payment-reconciler.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
@@ -65,28 +66,13 @@ export const sandboxCheckout = onRequest({region:"us-central1", secrets:[stripeK
     if (!biz.exists || biz.data().ownerUid!==decoded.uid) {
       send(res,403,{error:"Business profile required"});return;
     }
-    const stripe = stripeClient();
-    const existingId = biz.data().stripeCustomerId;
-    let customerId = existingId;
-    if (!customerId) {
-      const customer=await stripe.customers.create({
-        email:decoded.email, name:biz.data().name,
-        metadata:{firebaseUid:decoded.uid,project:"mydealsportal"}
-      },{idempotencyKey:"mdp-test-customer-"+decoded.uid});
-      customerId=customer.id;
-      await ref.update({stripeCustomerId:customerId});
-    }
-    const session=await stripe.checkout.sessions.create({
-      mode:"subscription",
-      customer:customerId,
-      line_items:[{price:"price_1UO4QpIqvlhcw8H0bCoRbJmF",quantity:1}],
-      client_reference_id:decoded.uid,
-      metadata:{firebaseUid:decoded.uid,sandboxOnly:"true"},
-      subscription_data:{metadata:{firebaseUid:decoded.uid,sandboxOnly:"true"}},
-      success_url:siteOrigin()+"/mydealsportal-preview/dashboard.html?checkout=success",
-      cancel_url:siteOrigin()+"/mydealsportal-preview/dashboard.html?checkout=cancel"
+    if(decoded.email_verified!==true)throw Error("Verified email required");
+    const business=biz.data();
+    const result=await prepareSandboxCheckout({
+      stripe:stripeClient(),db,uid:decoded.uid,email:decoded.email,
+      business,origin:siteOrigin(),nowSeconds:Math.floor(Date.now()/1000)
     });
-    send(res,200,{url:session.url});
+    send(res,200,{url:result.url});
   } catch(err) {
     console.error("sandboxCheckout",err);
     send(res,400,{error:"Checkout could not be created"});
