@@ -54,9 +54,11 @@ export async function reconcilePaymentEvent({stripe,db,FieldValue,eventId,subscr
      subscription,firstInvoice:initial,latestInvoice:latest,
      businessSuspended,nowSeconds
    });
-   return recordBillingReconciliation({
+   const outcome=await recordBillingReconciliation({
      db,FieldValue,uid,eventId,state
    });
+   await synchronizeDeals(db,uid);
+   return outcome;
  }
  // A refund of the initial charge must revoke the paid-first entitlement.
  // Partial refunds are conservatively treated as disputed until reviewed.
