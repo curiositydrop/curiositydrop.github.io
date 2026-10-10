@@ -19,8 +19,12 @@ export async function resolveSandboxSubscription({ stripe, event }) {
   if (typeof subscriptionId !== "string" || !/^sub_[A-Za-z0-9]+$/.test(subscriptionId))
     return { status:"unresolved", subscriptionId:null };
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  if (subscription.id !== subscriptionId || !subscription.metadata ||
-      subscription.metadata.sandboxOnly !== "true" ||
+  const modernTest = subscription.metadata?.project==="mydealsportal" &&
+    subscription.metadata?.environment==="test" &&
+    ["founding","standard"].includes(subscription.metadata?.plan);
+  const legacyTest = subscription.metadata?.sandboxOnly==="true";
+  if (subscription.id !== subscriptionId || subscription.livemode===true || !subscription.metadata ||
+      !(modernTest || legacyTest) ||
       typeof subscription.metadata.firebaseUid !== "string" ||
       !subscription.metadata.firebaseUid.trim())
     throw new Error("Subscription is not bound to the sandbox business");
