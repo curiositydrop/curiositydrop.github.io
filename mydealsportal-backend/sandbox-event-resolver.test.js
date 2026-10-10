@@ -28,3 +28,13 @@ test("unmapped events stay unresolved",async()=>{
  const result=await resolveSandboxSubscription({stripe,event:evt("refund.updated",{id:"re_123"})});
  assert.equal(result.status,"unresolved");
 });
+
+test("modern project-scoped test subscription resolves",async()=>{
+ const modern={...stripe,subscriptions:{retrieve:async id=>({id,livemode:false,customer:"cus_123",metadata:{firebaseUid:"owner1",project:"mydealsportal",environment:"test",plan:"standard"}})}};
+ const result=await resolveSandboxSubscription({stripe:modern,event:evt("invoice.paid",{parent:{subscription_details:{subscription:"sub_123"}}})});
+ assert.equal(result.status,"resolved");
+});
+test("matching metadata on a live Stripe subscription never resolves sandbox entitlement",async()=>{
+ const spoof={...stripe,subscriptions:{retrieve:async id=>({id,livemode:true,customer:"cus_123",metadata:{firebaseUid:"owner1",project:"mydealsportal",environment:"test",plan:"standard"}})}};
+ await assert.rejects(resolveSandboxSubscription({stripe:spoof,event:evt("customer.subscription.updated",{id:"sub_123"})}));
+});
