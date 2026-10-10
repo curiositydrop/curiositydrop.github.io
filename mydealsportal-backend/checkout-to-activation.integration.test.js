@@ -10,7 +10,8 @@ function firestore(){
   ownerUid:"u1",name:"Demo business",subscriptionStatus:"none"
  }]]);
  const db={
-  collection(name){return {doc(id){return {key:name+"/"+id,get:async()=>snapshot(name+"/"+id)};}};},
+  collection(name){return {where:()=>({get:async()=>({docs:[]})}),doc(id){return {key:name+"/"+id,get:async()=>snapshot(name+"/"+id)};}};},
+  batch:()=>({update(){},commit:async()=>{}}),
   runTransaction:async fn=>fn({
    get:async ref=>snapshot(ref.key),
    update(ref,delta){records.set(ref.key,{...records.get(ref.key),...delta});},
