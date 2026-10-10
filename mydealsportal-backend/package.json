@@ -12,11 +12,17 @@
     "stripe:test:readiness": "node stripe-test-readiness.js",
     "stripe:test:apply-promotion": "node apply-test-promotion.js",
     "stripe:test:apply-standard-promotion": "node apply-standard-test-promotion.js",
-    "security:audit": "node billing-security-audit.js"
+    "security:audit": "node billing-security-audit.js",
+    "test:firestore:emulator": "firebase emulators:exec --project mdp-rules-authorization-test --only firestore 'node --test firestore-rules.emulator.test.js'"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
     "firebase-functions": "^6.0.0",
     "stripe": "^18.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.4.0",
+    "firebase-tools": "^14.0.0"
   }
 }
