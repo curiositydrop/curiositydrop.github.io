@@ -20,7 +20,7 @@ export function proposeScheduleUpdate({preview,schedule,coupon}) {
  if(!preview || preview.readyToApply!==false ||
     !/^sub_[A-Za-z0-9]+$/.test(preview.subscriptionId||"") ||
     !/^price_[A-Za-z0-9]+$/.test(preview.priceId||"") ||
-    !/^coupon_[A-Za-z0-9]+$/.test(coupon?.id||"") ||
+    !(typeof coupon?.id==="string" && /^[A-Za-z0-9_-]{3,100}$/.test(coupon.id)) ||
     coupon.percent_off!==100 || coupon.valid!==true)
    throw new Error("Verified subscription and 100% coupon required");
  if(!schedule || schedule.subscription!==preview.subscriptionId ||
