@@ -54,7 +54,8 @@ export async function getMyBusiness(uid){
 }
 
 export async function saveBusiness(uid,data){
-  await setDoc(doc(db,"businesses",uid),{...data,ownerUid:uid,updatedAt:serverTimestamp()},{merge:true});
+  const {name,phone,website,zip,city,category}=data;
+  await updateDoc(doc(db,"businesses",uid),{name,phone,website,zip,city,category,updatedAt:serverTimestamp()});
 }
 
 export async function getMyDeals(uid){
@@ -64,8 +65,9 @@ export async function getMyDeals(uid){
 }
 
 export async function saveDeal(uid,business,data,id=null){
+  const {title,category,zip,city,price,description,terms,imageUrl}=data;
   const payload={
-    ...data,
+    title,category,zip,city,price,description,terms,
     ownerUid:uid,
     businessId:business.id,
     business:business.name,
@@ -74,7 +76,10 @@ export async function saveDeal(uid,business,data,id=null){
     updatedAt:serverTimestamp()
   };
   if(id){
-    await updateDoc(doc(db,"deals",id),payload);
+    await updateDoc(doc(db,"deals",id),{
+      title,category,zip,city,price,description,terms,active:data.active!==false,
+      updatedAt:serverTimestamp()
+    });
     return id;
   }
   payload.publishingApproved=false;
