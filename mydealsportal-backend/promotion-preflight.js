@@ -1,7 +1,7 @@
 // Validate a promotional schedule before any Stripe mutation. The caller
 // must retrieve the subscription and schedule from Stripe on the server.
 import {buildPromotionPhases} from "./promotion-schedule.js";
-export function preparePromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds}) {
+export function preparePromotionSchedule({subscription,planKey,initialInvoicePaid,nowSeconds,verifiedTestPriceId}) {
  if (!subscription || !/^sub_[A-Za-z0-9]+$/.test(subscription.id||"") ||
      subscription.status!=="active" || subscription.schedule ||
      !Number.isSafeInteger(nowSeconds) || nowSeconds<0 ||
@@ -16,6 +16,7 @@ export function preparePromotionSchedule({subscription,planKey,initialInvoicePai
   throw new Error("Subscription plan mismatch");
  return buildPromotionPhases({
    planKey,priceId:item[0].price.id,initialInvoicePaid,
-   firstPeriodEnd:subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end
+   firstPeriodEnd:subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end,
+   verifiedTestPriceId
  });
 }
