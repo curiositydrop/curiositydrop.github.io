@@ -1,7 +1,7 @@
 // Minimal LIVE Payment Link webhook. Kept separate from sandbox checkout.
 import {getApps,initializeApp} from "firebase-admin/app";
 import {getAuth} from "firebase-admin/auth";
-import {getFirestore,FieldValue} from "firebase-admin/firestore";
+import {getFirestore,FieldValue,FieldPath} from "firebase-admin/firestore";
 import {onRequest} from "firebase-functions/v2/https";
 import {defineSecret} from "firebase-functions/params";
 import Stripe from "stripe";
@@ -22,7 +22,7 @@ async function publish(uid,enabled){
   await ref.update({status:enabled?"active":"draft",subscriptionStatus:enabled?"active":"inactive",publishingEnabled:enabled,updatedAt:FieldValue.serverTimestamp()});
   let q=db.collection("deals").where("ownerUid","==",uid),last=null;
   for(;;){
-    let page=q.orderBy(FieldValue.documentId()).limit(300);
+    let page=q.orderBy(FieldPath.documentId()).limit(300);
     if(last)page=page.startAfter(last);
     const result=await page.get();
     if(result.empty)break;
