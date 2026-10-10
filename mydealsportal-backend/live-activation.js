@@ -53,7 +53,7 @@ export async function syncSubscription(subscription){
   if(subscription.metadata?.project!=="mydealsportal")return;
   const uid=subscription.metadata.uid;if(!uid)return;
   const ref=db.collection("businesses").doc(uid),snap=await ref.get();
-  if(!snap.exists || (snap.data().stripeSubscriptionId && snap.data().stripeSubscriptionId!==subscription.id))return;
+  if(!snap.exists || snap.data().stripeSubscriptionId!==subscription.id)return;
   const enabled=paidStatuses.has(subscription.status);
   await ref.update({status:enabled?"active":"draft",subscriptionStatus:subscription.status});
   if(!enabled){
