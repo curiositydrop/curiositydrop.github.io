@@ -34,11 +34,23 @@ service cloud.firestore {
     }
 
     match /deals/{dealId} {
-      allow read: if resource.data.active == true
+      allow read: if (resource.data.active == true && resource.data.publishingApproved == true)
                   || (signedIn() && resource.data.ownerUid == request.auth.uid);
       allow create: if signedIn()
-                    && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if owns(resource.data);
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.businessId == request.auth.uid
+        && request.resource.data.publishingApproved == false
+        && request.resource.data.keys().hasOnly([
+          "ownerUid","businessId","business","businessSlug","title","category",
+          "zip","city","price","description","terms","imageUrl","active",
+          "publishingApproved","createdAt","updatedAt"
+        ]);
+      allow update: if owns(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "title","category","zip","city","price","description","terms","imageUrl",
+          "active","updatedAt"
+        ]);
+      allow delete: if owns(resource.data);
     }
   }
 }
