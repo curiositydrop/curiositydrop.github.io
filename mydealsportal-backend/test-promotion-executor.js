@@ -7,14 +7,21 @@ export async function applyTestPromotionSchedule({
  if(typeof apiKey!=="string" || !apiKey.startsWith("sk_test_") ||
     !stripe?.subscriptionSchedules?.create ||
     !stripe?.subscriptionSchedules?.update || !stripe?.subscriptionSchedules?.retrieve ||
-    !stripe?.subscriptions?.retrieve || !stripe?.coupons?.retrieve)
+    !stripe?.subscriptions?.retrieve || !stripe?.coupons?.retrieve || !stripe?.prices?.retrieve)
    throw new Error("Stripe TEST-only schedule client required");
  if(subscription?.livemode!==false)
    throw new Error("Only test subscriptions are permitted");
  // For recovery, preflight the paid subscription fields with the schedule
  // removed from the *local copy*; only resume the schedule ID after a fresh
  // authoritative Stripe read and strict phase verification below.
- const preview=previewPromotionSchedule({subscription:{...subscription,schedule:null},planKey,initialInvoicePaid,nowSeconds});
+ const actualPriceId=subscription.items?.data?.[0]?.price?.id;
+ const verifiedPrice=await stripe.prices.retrieve(actualPriceId);
+ if(verifiedPrice?.id!==actualPriceId || verifiedPrice.livemode!==false ||
+    verifiedPrice.active!==true || verifiedPrice.currency!=="usd" ||
+    verifiedPrice.unit_amount!==(planKey==="founding"?4499:4999) ||
+    verifiedPrice.recurring?.interval!=="month" || verifiedPrice.recurring?.interval_count!==1)
+   throw new Error("Verified matching Stripe test price required");
+ const preview=previewPromotionSchedule({subscription:{...subscription,schedule:null},planKey,initialInvoicePaid,nowSeconds,verifiedTestPriceId:verifiedPrice.id});
  const serverCoupon=await stripe.coupons.retrieve(coupon?.id);
  if(serverCoupon.id!==coupon?.id || serverCoupon.valid!==true || serverCoupon.percent_off!==100)
    throw new Error("Verified 100% Stripe TEST coupon required");
