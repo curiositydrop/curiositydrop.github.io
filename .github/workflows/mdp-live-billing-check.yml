@@ -1,0 +1,20 @@
+name: MyDealsPortal live billing code check
+on:
+  pull_request:
+    paths:
+      - 'mydealsportal-backend/**'
+      - 'mydealsportal-preview/dashboard.html'
+      - '.github/workflows/mdp-live-billing-check.yml'
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check billing JavaScript syntax
+        run: |
+          node --check mydealsportal-backend/index.js
+          node --check mydealsportal-backend/live-billing.js
