@@ -6,6 +6,7 @@ import { defineSecret } from "firebase-functions/params";
 import Stripe from "stripe";
 import { classifyStripeEvent } from "./webhook-policy.js";
 import { resolveSandboxSubscription } from "./sandbox-event-resolver.js";
+import { reconcileSandboxPayment } from "./sandbox-payment-reconciler.js";
 import { verifyProductionEvent } from "./production-event-guard.js";
 import { evaluateLiveCheckoutPreflight, prospectivePricing } from "./live-checkout-preflight.js";
 import { prepareAndRecordCheckout } from "./checkout-coordinator.js";
@@ -127,6 +128,18 @@ export const stripeSandboxWebhook = onRequest({
       businessUid:resolution.uid || null,
       receivedAt:FieldValue.serverTimestamp()
     }).catch(err=>{if(err.code!==6&&err.code!=="already-exists")throw err;});
+    // The sandbox reconciler writes ONLY sandboxPublishingEnabled, never live
+    // publishingEnabled. Remains disabled until signed webhook + Firestore
+    // emulator tests and a registered business checkout are verified.
+    const SANDBOX_ENTITLEMENT_WRITES_ENABLED = false;
+    if(SANDBOX_ENTITLEMENT_WRITES_ENABLED &&
+       classified.action === "reconcile" && resolution.status === "resolved"){
+      await reconcileSandboxPayment({
+        stripe:stripeClient(),db,FieldValue,
+        subscriptionId:resolution.subscriptionId,eventId:classified.eventId,
+        nowSeconds:Math.floor(Date.now()/1000)
+      });
+    }
     res.status(200).json({received:true});
   } catch(err) {
     console.error("Webhook storage",err);
