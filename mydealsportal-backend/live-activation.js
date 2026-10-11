@@ -1,6 +1,6 @@
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { billingPlan, nextChargeAt } from "./billing-policy.js";
-const db={collection:(...args)=>getFirestore().collection(...args),runTransaction:(...args)=>getFirestore().runTransaction(...args)};
+const db={collection:(...args)=>getFirestore().collection(...args),runTransaction:(...args)=>getFirestore().runTransaction(...args),batch:()=>getFirestore().batch()};
 const paidStatuses=new Set(["active","trialing"]);
 export async function chooseOffer(uid){
   for(let n=1;n<=100;n++){
