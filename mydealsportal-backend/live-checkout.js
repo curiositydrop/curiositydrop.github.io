@@ -7,7 +7,7 @@ export const liveCheckout = onRequest({region:"us-central1",secrets:[liveKey]},a
   if(req.method!=="POST"){res.status(405).end();return;}
   try {
     const user=await signedIn(req);
-    if(!user.email_verified)throw Error("Email verification required");
+    if(!user.email_verified){res.status(403).json({error:"Please verify your business email address before checkout. Open your verification email, then sign out and back in."});return;}
     const ref=businessDoc(user.uid),snap=await ref.get(),biz=snap.data();
     if(!biz||biz.ownerUid!==user.uid)throw Error("Business required");
     if(["active","trialing"].includes(biz.subscriptionStatus))throw Error("Already subscribed");
@@ -34,5 +34,5 @@ export const liveCheckout = onRequest({region:"us-central1",secrets:[liveKey]},a
     });
     await ref.update({pendingCheckoutId:session.id});
     res.json({url:session.url});
-  }catch(err){console.error("Checkout",err);res.status(400).json({error:"Checkout unavailable"});}
+  }catch(err){console.error("Checkout",err);res.status(400).json({error:"Checkout unavailable. Please contact support if the issue continues."});}
 });
