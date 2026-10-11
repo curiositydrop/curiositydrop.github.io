@@ -9,7 +9,7 @@ export const liveBillingPortal=onRequest({region:"us-central1",secrets:[liveKey]
   if(!biz||biz.ownerUid!==user.uid||!biz.stripeCustomerId)throw Error("No customer");
   const portal=await stripe().billingPortal.sessions.create({
    customer:biz.stripeCustomerId,
-   return_url:"https://curiositydrop.github.io/mydealsportal-preview/dashboard.html"
+   return_url:"https://www.mydealsportal.com/dashboard.html"
   });
   res.json({url:portal.url});
  }catch(e){console.error("Billing portal",e);res.status(400).json({error:"Billing portal unavailable"});}
