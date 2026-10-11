@@ -19,7 +19,7 @@ export async function signedIn(req) {
 }
 export function allowOrigin(req, res) {
   const origin = req.get("origin");
-  if (origin && origin !== "https://curiositydrop.github.io") {
+  if (origin && !["https://curiositydrop.github.io","https://mydealsportal.com","https://www.mydealsportal.com"].includes(origin)) {
     res.status(403).end();
     return false;
   }
