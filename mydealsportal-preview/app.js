@@ -1,4 +1,4 @@
-const MDP_BASE="/mydealsportal-preview/";
+const MDP_BASE=location.hostname==="curiositydrop.github.io"?"/mydealsportal-preview/":"/";
 const seedDeals=[
 {id:"sample-1",title:"20% Off Dinner for Two",business:"Harbor Table Kitchen",zip:"04101",city:"Portland, Maine",category:"Food & Drink",price:"Save 20%",description:"Enjoy 20% off two dinner entrées during select evening hours.",terms:"Dine-in only. Sample ad for preview purposes.",created:8,active:true,sample:true},
 {id:"sample-2",title:"$30 Off Full Interior Detail",business:"Pine State Auto Detail",zip:"04005",city:"Biddeford, Maine",category:"Automotive",price:"Save $30",description:"Save on a complete interior detail for cars, trucks, and SUVs.",terms:"Appointment required. Sample ad for preview purposes.",created:7,active:true,sample:true},
