@@ -35,8 +35,8 @@ export const liveCheckout = onRequest({region:"us-central1",secrets:[liveKey]},a
       line_items:[{price:billingPlan(offer.plan).firstMonthPrice,quantity:1}],
       payment_intent_data:{setup_future_usage:"off_session"},
       metadata:{uid:user.uid,plan:offer.plan,slot:offer.slot||""},
-      success_url:"https://curiositydrop.github.io/mydealsportal-preview/dashboard.html?checkout=success",
-      cancel_url:"https://curiositydrop.github.io/mydealsportal-preview/dashboard.html?checkout=cancel",
+      success_url:"https://www.mydealsportal.com/dashboard.html?checkout=success",
+      cancel_url:"https://www.mydealsportal.com/dashboard.html?checkout=cancel",
       expires_at:Math.floor(Date.now()/1000)+1800
     });
     stage="save_checkout";
