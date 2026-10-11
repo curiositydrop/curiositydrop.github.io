@@ -11,6 +11,11 @@
       ]
     }
   ],
+  "hosting": {
+    "site": "mydealsportal",
+    "public": "mydealsportal-preview",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  },
   "firestore": {
     "rules": "mydealsportal-preview/firestore.rules",
     "indexes": "mydealsportal-preview/firestore.indexes.json"
